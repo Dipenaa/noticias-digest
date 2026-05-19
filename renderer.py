@@ -599,6 +599,124 @@ footer {
 .libertaria-header strong { color: #f87171; display: block; margin-bottom: 0.3rem; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; }
 
 #tab-libertaria .tab-btn.active { border-bottom-color: #dc2626; }
+
+/* ── Pestaña Estadísticas ────────────────────────────────────────────── */
+.stats-header { margin-bottom: 2rem; padding-bottom: .875rem; border-bottom: 1px solid var(--border-sub); }
+.stats-header h2 { font-size: 1rem; font-weight: 700; color: var(--txt-1); letter-spacing: -.02em; margin-bottom: .3rem; }
+.stats-header p  { font-size: .78rem; color: var(--txt-3); }
+
+.stats-kpi-row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+}
+.stat-kpi {
+  background: var(--surface);
+  border: 1px solid var(--border-sub);
+  border-radius: var(--r);
+  padding: 1.25rem 1.5rem;
+  min-width: 150px;
+}
+.stat-kpi-valor {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--accent);
+  letter-spacing: -.04em;
+  line-height: 1;
+}
+.stat-kpi-label {
+  font-size: .68rem;
+  color: var(--txt-3);
+  margin-top: .4rem;
+  line-height: 1.4;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.25rem;
+}
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border-sub);
+  border-radius: var(--r);
+  padding: 1.25rem 1.5rem;
+}
+.stat-card-title {
+  font-size: .62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--txt-3);
+  margin-bottom: 1rem;
+}
+.stat-bar-row {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  margin-bottom: .55rem;
+}
+.stat-bar-label {
+  font-size: .72rem;
+  color: var(--txt-2);
+  min-width: 120px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.stat-bar-bg {
+  flex: 1;
+  background: var(--surface-2);
+  border-radius: 9999px;
+  height: 5px;
+  min-width: 40px;
+}
+.stat-bar-fill {
+  height: 5px;
+  border-radius: 9999px;
+  min-width: 2px;
+  transition: width .6s cubic-bezier(.4,0,.2,1);
+}
+.stat-bar-count {
+  font-size: .7rem;
+  color: var(--txt-3);
+  min-width: 22px;
+  text-align: right;
+}
+
+/* Filtro de sesgo en leyenda */
+.leyenda-items .badge {
+  cursor: pointer;
+  transition: opacity .15s, box-shadow .15s;
+  user-select: none;
+}
+.leyenda-items .badge:hover { opacity: .8; }
+.leyenda-items .badge.filtro-activo {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--accent);
+}
+.leyenda-tip {
+  font-size: .65rem;
+  color: var(--txt-3);
+  font-style: italic;
+}
+.filtro-aviso {
+  font-size: .7rem;
+  color: var(--accent);
+  font-weight: 600;
+}
+.filtro-clear-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--txt-2);
+  border-radius: var(--r);
+  padding: .15rem .55rem;
+  font-size: .65rem;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background .12s;
+}
+.filtro-clear-btn:hover { background: var(--surface-2); color: var(--txt-1); }
 """
 
 
@@ -677,12 +795,22 @@ def _seccion(categoria: str, articulos: list[dict], analisis: str) -> str:
 
 
 def _leyenda() -> str:
-    """Bloque de leyenda con todos los niveles de sesgo y sus colores."""
-    badges = " ".join(_badge(s) for s in COLORES_SESGO)
+    """Bloque de leyenda con todos los niveles de sesgo y sus colores. Badges son clicables para filtrar."""
+    items = []
+    for s, color in COLORES_SESGO.items():
+        items.append(
+            f'<span class="badge" style="background:{color}" '
+            f'onclick="filtrarPorSesgo(\'{s}\',this)" '
+            f'title="Filtrar por {s}">{s.upper()}</span>'
+        )
+    badges = " ".join(items)
     return f"""
 <div class="leyenda">
-  <span class="leyenda-titulo">Leyenda de sesgo:</span>
+  <span class="leyenda-titulo">Leyenda:</span>
   <div class="leyenda-items">{badges}</div>
+  <span class="leyenda-tip">(clic para filtrar)</span>
+  <span class="filtro-aviso" id="filtro-aviso" style="display:none"></span>
+  <button class="filtro-clear-btn" id="filtro-clear" onclick="limpiarFiltro()" style="display:none">✕ Quitar filtro</button>
 </div>"""
 
 
@@ -834,6 +962,49 @@ def _tab_destacadas(noticias: dict[str, list[dict]]) -> str:
 </div>"""
 
 
+def _tab_estadisticas() -> str:
+    """Pestaña de estadísticas de sesgo y cobertura (datos calculados por JS en cliente)."""
+    return """
+<div class="stats-header">
+  <h2>Estadísticas del digest</h2>
+  <p>Distribución ideológica, cobertura por fuente y diversidad — calculado en tiempo real</p>
+</div>
+
+<div class="stats-kpi-row">
+  <div class="stat-kpi">
+    <div class="stat-kpi-valor" id="kpi-total">—</div>
+    <div class="stat-kpi-label">artículos totales</div>
+  </div>
+  <div class="stat-kpi">
+    <div class="stat-kpi-valor" id="kpi-fuentes">—</div>
+    <div class="stat-kpi-label">fuentes distintas</div>
+  </div>
+  <div class="stat-kpi">
+    <div class="stat-kpi-valor" id="kpi-diversidad">—</div>
+    <div class="stat-kpi-label">diversidad ideológica</div>
+  </div>
+  <div class="stat-kpi">
+    <div class="stat-kpi-valor" id="kpi-sesgos">—</div>
+    <div class="stat-kpi-label">sesgos detectados</div>
+  </div>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-card-title">Distribución de sesgo (análisis IA)</div>
+    <div id="stat-sesgo-chart"><span style="color:var(--txt-3);font-size:.8rem">Calculando…</span></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-card-title">Top fuentes por volumen</div>
+    <div id="stat-fuentes-chart"><span style="color:var(--txt-3);font-size:.8rem">Calculando…</span></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-card-title">Artículos por categoría</div>
+    <div id="stat-cat-chart"><span style="color:var(--txt-3);font-size:.8rem">Calculando…</span></div>
+  </div>
+</div>"""
+
+
 # ---------------------------------------------------------------------------
 # Punto de entrada público
 # ---------------------------------------------------------------------------
@@ -863,8 +1034,14 @@ def renderizar_html(
     destacadas  = _tab_destacadas(noticias)
     libertaria  = _tab_libertaria(alternativas or {}, analisis_alt or {})
     sintesis    = _tab_sintesis(grupos_sintesis or [])
+    estadisticas = _tab_estadisticas()
     total_alt   = sum(len(a) for a in (alternativas or {}).values())
     n_sintesis  = len(grupos_sintesis) if grupos_sintesis else 0
+
+    # colores de sesgo para el JS del cliente
+    sesgo_colores_js = "{" + ",".join(
+        f'"{k}":"{v}"' for k, v in COLORES_SESGO.items()
+    ) + "}"
 
     return f"""<!DOCTYPE html>
 <html lang="es">
@@ -901,6 +1078,9 @@ def renderizar_html(
   <button class="tab-btn" data-tab="libertaria" onclick="switchTab('libertaria')">
     &#9889; Prensa Libertaria
   </button>
+  <button class="tab-btn" data-tab="estadisticas" onclick="switchTab('estadisticas')">
+    &#128200; Estad&#237;sticas
+  </button>
 </div>
 
 <div class="search-bar">
@@ -931,6 +1111,10 @@ def renderizar_html(
     {libertaria}
   </div>
 
+  <div id="tab-estadisticas" class="tab-content">
+    {estadisticas}
+  </div>
+
 </main>
 
 <footer>
@@ -939,8 +1123,12 @@ def renderizar_html(
 </footer>
 
 <script>
-var _tabActual = 'destacadas';
+var _tabActual    = 'destacadas';
+var _filtroSesgo  = null;
+var _statsReady   = false;
+var SESGO_COLORES = {sesgo_colores_js};
 
+/* ── Navegación por pestañas ─────────────────────────────────────────── */
 function switchTab(name) {{
   _tabActual = name;
   document.querySelectorAll('.tab-content').forEach(function(el) {{
@@ -951,14 +1139,24 @@ function switchTab(name) {{
   }});
   document.getElementById('tab-' + name).style.display = 'block';
   document.querySelector('[data-tab="' + name + '"]').classList.add('active');
+
   var nav = document.getElementById('cat-nav');
   if (nav) nav.style.display = name === 'todas' ? 'flex' : 'none';
-  // Limpia el buscador al cambiar de pestaña y reaplica si hay texto
-  var q = document.getElementById('buscador').value;
-  if (q) buscar(q); else _actualizarContador();
+
+  // La barra de búsqueda y el filtro solo tienen sentido fuera de Estadísticas
+  var barra = document.querySelector('.search-bar');
+  if (barra) barra.style.display = name === 'estadisticas' ? 'none' : 'flex';
+
+  if (name === 'estadisticas') {{
+    if (!_statsReady) {{ renderEstadisticas(); _statsReady = true; }}
+  }} else {{
+    var q = document.getElementById('buscador').value;
+    if (q) buscar(q); else _limpiarContador();
+  }}
   try {{ localStorage.setItem('digestTab', name); }} catch(e) {{}}
 }}
 
+/* ── Búsqueda ────────────────────────────────────────────────────────── */
 function buscar(q) {{
   q = q.trim().toLowerCase();
   var tarjetas = document.querySelectorAll(
@@ -970,19 +1168,140 @@ function buscar(q) {{
   tarjetas.forEach(function(t) {{
     var texto = (t.textContent || t.innerText).toLowerCase();
     var ds    = (t.dataset.search || '').toLowerCase();
-    var ok    = !q || texto.includes(q) || ds.includes(q);
-    t.hidden  = !ok;
+    var okQ   = !q || texto.includes(q) || ds.includes(q);
+    var okF   = true;
+    if (_filtroSesgo && _tabActual === 'todas') {{
+      var bdgs = t.querySelectorAll('.badge');
+      var sIA  = bdgs.length >= 2 ? bdgs[1].textContent.trim().toLowerCase() : '';
+      okF = (sIA === _filtroSesgo);
+    }}
+    var ok   = okQ && okF;
+    t.hidden = !ok;
     if (ok) visibles++;
   }});
   var total = tarjetas.length;
   var cnt   = document.getElementById('search-count');
-  if (cnt) cnt.textContent = q ? visibles + ' de ' + total + ' resultado(s)' : '';
+  if (cnt) cnt.textContent = (q || _filtroSesgo) ? visibles + ' de ' + total + ' resultado(s)' : '';
 }}
 
-function _actualizarContador() {{
-  document.getElementById('search-count').textContent = '';
+function _limpiarContador() {{
+  var cnt = document.getElementById('search-count');
+  if (cnt) cnt.textContent = '';
 }}
 
+/* ── Filtro de sesgo (leyenda clicable) ──────────────────────────────── */
+function filtrarPorSesgo(sesgo, el) {{
+  if (_filtroSesgo === sesgo) {{
+    limpiarFiltro();
+    return;
+  }}
+  _filtroSesgo = sesgo;
+  document.querySelectorAll('.leyenda-items .badge').forEach(function(b) {{
+    b.classList.remove('filtro-activo');
+  }});
+  el.classList.add('filtro-activo');
+
+  var aviso = document.getElementById('filtro-aviso');
+  var btn   = document.getElementById('filtro-clear');
+  if (aviso) {{ aviso.textContent = 'Filtrando: ' + sesgo; aviso.style.display = ''; }}
+  if (btn)   btn.style.display = '';
+
+  if (_tabActual !== 'todas') switchTab('todas');
+  else buscar(document.getElementById('buscador').value);
+}}
+
+function limpiarFiltro() {{
+  _filtroSesgo = null;
+  document.querySelectorAll('.leyenda-items .badge').forEach(function(b) {{
+    b.classList.remove('filtro-activo');
+  }});
+  var aviso = document.getElementById('filtro-aviso');
+  var btn   = document.getElementById('filtro-clear');
+  if (aviso) aviso.style.display = 'none';
+  if (btn)   btn.style.display   = 'none';
+  buscar(document.getElementById('buscador').value);
+}}
+
+/* ── Estadísticas ────────────────────────────────────────────────────── */
+function renderEstadisticas() {{
+  var tarjetas  = document.querySelectorAll('#tab-todas .tarjeta');
+  var sesgos    = {{}};
+  var fuentes   = {{}};
+  var categorias = {{}};
+
+  tarjetas.forEach(function(t) {{
+    // Badge IA es el segundo .badge en la tarjeta
+    var bdgs  = t.querySelectorAll('.badge');
+    var sIA   = bdgs.length >= 2 ? bdgs[1].textContent.trim().toLowerCase() : 'desconocido';
+    sesgos[sIA] = (sesgos[sIA] || 0) + 1;
+
+    var fn = t.querySelector('.fuente-nombre');
+    if (fn) {{ var f = fn.textContent.trim(); fuentes[f] = (fuentes[f] || 0) + 1; }}
+  }});
+
+  document.querySelectorAll('#tab-todas .seccion').forEach(function(s) {{
+    var titulo = s.querySelector('.seccion-titulo');
+    if (titulo) {{
+      var n = s.querySelectorAll('.tarjeta').length;
+      categorias[titulo.textContent.trim()] = n;
+    }}
+  }});
+
+  var total      = tarjetas.length;
+  var nFuentes   = Object.keys(fuentes).length;
+  var sesgosAct  = Object.keys(sesgos).filter(function(s) {{ return s !== 'desconocido' && sesgos[s] > 0; }}).length;
+  // Diversidad: proporción de sesgos con >=5% del total (excluye desconocido)
+  var sesgosRef  = ['izquierda','centro-izquierda','centro','centro-derecha','derecha'];
+  var nDiv       = sesgosRef.filter(function(s) {{
+    return (sesgos[s] || 0) / Math.max(total,1) >= 0.05;
+  }}).length;
+  var divPct     = sesgosRef.length ? Math.round((nDiv / sesgosRef.length) * 100) + '%' : '—';
+
+  document.getElementById('kpi-total').textContent      = total;
+  document.getElementById('kpi-fuentes').textContent    = nFuentes;
+  document.getElementById('kpi-diversidad').textContent = divPct;
+  document.getElementById('kpi-sesgos').textContent     = sesgosAct;
+
+  // Sesgo chart
+  var sesgoOrden = ['izquierda','centro-izquierda','centro','centro-derecha','derecha','desconocido'];
+  var maxS = Math.max.apply(null, sesgoOrden.map(function(s) {{ return sesgos[s]||0; }})) || 1;
+  document.getElementById('stat-sesgo-chart').innerHTML = sesgoOrden.map(function(s) {{
+    var n   = sesgos[s] || 0;
+    var pct = Math.round((n / maxS) * 100);
+    var col = SESGO_COLORES[s] || '#9ca3af';
+    return '<div class="stat-bar-row">' +
+      '<span class="stat-bar-label">' + s + '</span>' +
+      '<div class="stat-bar-bg"><div class="stat-bar-fill" style="width:' + pct + '%;background:' + col + '"></div></div>' +
+      '<span class="stat-bar-count">' + n + '</span>' +
+      '</div>';
+  }}).join('');
+
+  // Top fuentes
+  var topF = Object.entries(fuentes).sort(function(a,b){{ return b[1]-a[1]; }}).slice(0,12);
+  var maxF = topF.length ? topF[0][1] : 1;
+  document.getElementById('stat-fuentes-chart').innerHTML = topF.map(function(p) {{
+    var pct = Math.round((p[1]/maxF)*100);
+    return '<div class="stat-bar-row">' +
+      '<span class="stat-bar-label">' + p[0] + '</span>' +
+      '<div class="stat-bar-bg"><div class="stat-bar-fill" style="width:' + pct + '%;background:var(--accent)"></div></div>' +
+      '<span class="stat-bar-count">' + p[1] + '</span>' +
+      '</div>';
+  }}).join('');
+
+  // Categorías
+  var catEntries = Object.entries(categorias);
+  var maxC = Math.max.apply(null, catEntries.map(function(e){{ return e[1]; }})) || 1;
+  document.getElementById('stat-cat-chart').innerHTML = catEntries.map(function(p) {{
+    var pct = Math.round((p[1]/maxC)*100);
+    return '<div class="stat-bar-row">' +
+      '<span class="stat-bar-label">' + p[0] + '</span>' +
+      '<div class="stat-bar-bg"><div class="stat-bar-fill" style="width:' + pct + '%;background:var(--accent-green)"></div></div>' +
+      '<span class="stat-bar-count">' + p[1] + '</span>' +
+      '</div>';
+  }}).join('');
+}}
+
+/* ── Inicio ──────────────────────────────────────────────────────────── */
 (function() {{
   var last = 'destacadas';
   try {{ last = localStorage.getItem('digestTab') || 'destacadas'; }} catch(e) {{}}
