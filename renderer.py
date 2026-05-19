@@ -1563,7 +1563,7 @@ function abrirArticulo(el) {{
   var cat   = secEl ? (secEl.querySelector('.seccion-titulo') || {{}}).textContent || '' : (d.categoria || '');
 
   // Tiempo de lectura estimado
-  var palabras = (titulo + ' ' + resumen).split(/[ \t\n]+/).filter(Boolean).length;
+  var palabras = (titulo + ' ' + resumen).split(/\\s+/).filter(Boolean).length;
   var minutos  = Math.max(1, Math.round(palabras / 200));
 
   document.getElementById('d-categoria').textContent = cat;
