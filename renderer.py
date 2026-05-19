@@ -740,9 +740,11 @@ def _tarjeta(articulo: dict) -> str:
         if critica else ""
     )
 
-    search_data = f'{articulo["titulo"].lower()} {articulo["fuente"].lower()} {(articulo.get("resumen") or "").lower()}'
+    sesgo_fuente = articulo.get("sesgo_fuente") or "desconocido"
+    sesgo_ia     = articulo.get("sesgo_ia")     or "desconocido"
+    search_data  = f'{articulo["titulo"].lower()} {articulo["fuente"].lower()} {(articulo.get("resumen") or "").lower()}'
     return f"""
-<div class="tarjeta" data-search="{search_data}">
+<div class="tarjeta" data-search="{search_data}" data-sesgo-fuente="{sesgo_fuente}" data-sesgo-ia="{sesgo_ia}">
   <div class="tarjeta-meta">
     <div class="fuente-bloque">
       <span class="fuente-nombre">{articulo["fuente"]}</span>
@@ -750,9 +752,9 @@ def _tarjeta(articulo: dict) -> str:
     </div>
     <div class="badges">
       <span class="badge-etiqueta">Fuente:</span>
-      {_badge(articulo.get("sesgo_fuente") or "desconocido")}
+      {_badge(sesgo_fuente)}
       <span class="badge-etiqueta">IA:</span>
-      {_badge(articulo.get("sesgo_ia") or "desconocido")}
+      {_badge(sesgo_ia)}
     </div>
   </div>
   <div class="titulo">
@@ -991,8 +993,12 @@ def _tab_estadisticas() -> str:
 
 <div class="stats-grid">
   <div class="stat-card">
-    <div class="stat-card-title">Distribución de sesgo (análisis IA)</div>
+    <div class="stat-card-title">Sesgo por fuente (siempre disponible)</div>
     <div id="stat-sesgo-chart"><span style="color:var(--txt-3);font-size:.8rem">Calculando…</span></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-card-title">Sesgo según análisis IA (requiere Gemini)</div>
+    <div id="stat-sesgo-ia-chart"><span style="color:var(--txt-3);font-size:.8rem">Calculando…</span></div>
   </div>
   <div class="stat-card">
     <div class="stat-card-title">Top fuentes por volumen</div>
@@ -1171,9 +1177,9 @@ function buscar(q) {{
     var okQ   = !q || texto.includes(q) || ds.includes(q);
     var okF   = true;
     if (_filtroSesgo && _tabActual === 'todas') {{
-      var bdgs = t.querySelectorAll('.badge');
-      var sIA  = bdgs.length >= 2 ? bdgs[1].textContent.trim().toLowerCase() : '';
-      okF = (sIA === _filtroSesgo);
+      // Usar el sesgo de la fuente (siempre disponible) para filtrar
+      var sF = (t.dataset.sesgoFuente || '').toLowerCase();
+      okF = (sF === _filtroSesgo);
     }}
     var ok   = okQ && okF;
     t.hidden = !ok;
@@ -1224,16 +1230,18 @@ function limpiarFiltro() {{
 
 /* ── Estadísticas ────────────────────────────────────────────────────── */
 function renderEstadisticas() {{
-  var tarjetas  = document.querySelectorAll('#tab-todas .tarjeta');
-  var sesgos    = {{}};
-  var fuentes   = {{}};
+  var tarjetas   = document.querySelectorAll('#tab-todas .tarjeta');
+  var sesgosF    = {{}};  // por sesgo_fuente (siempre disponible)
+  var sesgosIA   = {{}};  // por sesgo_ia (solo con análisis IA)
+  var fuentes    = {{}};
   var categorias = {{}};
 
   tarjetas.forEach(function(t) {{
-    // Badge IA es el segundo .badge en la tarjeta
-    var bdgs  = t.querySelectorAll('.badge');
-    var sIA   = bdgs.length >= 2 ? bdgs[1].textContent.trim().toLowerCase() : 'desconocido';
-    sesgos[sIA] = (sesgos[sIA] || 0) + 1;
+    // Leer directamente de los data attributes — fiable independientemente del DOM
+    var sF  = (t.dataset.sesgoFuente || 'desconocido').toLowerCase();
+    var sIA = (t.dataset.sesgoIa    || 'desconocido').toLowerCase();
+    sesgosF[sF]  = (sesgosF[sF]  || 0) + 1;
+    sesgosIA[sIA] = (sesgosIA[sIA] || 0) + 1;
 
     var fn = t.querySelector('.fuente-nombre');
     if (fn) {{ var f = fn.textContent.trim(); fuentes[f] = (fuentes[f] || 0) + 1; }}
@@ -1242,32 +1250,37 @@ function renderEstadisticas() {{
   document.querySelectorAll('#tab-todas .seccion').forEach(function(s) {{
     var titulo = s.querySelector('.seccion-titulo');
     if (titulo) {{
-      var n = s.querySelectorAll('.tarjeta').length;
-      categorias[titulo.textContent.trim()] = n;
+      categorias[titulo.textContent.trim()] = s.querySelectorAll('.tarjeta').length;
     }}
   }});
 
-  var total      = tarjetas.length;
-  var nFuentes   = Object.keys(fuentes).length;
-  var sesgosAct  = Object.keys(sesgos).filter(function(s) {{ return s !== 'desconocido' && sesgos[s] > 0; }}).length;
-  // Diversidad: proporción de sesgos con >=5% del total (excluye desconocido)
-  var sesgosRef  = ['izquierda','centro-izquierda','centro','centro-derecha','derecha'];
-  var nDiv       = sesgosRef.filter(function(s) {{
-    return (sesgos[s] || 0) / Math.max(total,1) >= 0.05;
+  var total    = tarjetas.length;
+  var nFuentes = Object.keys(fuentes).length;
+
+  // Diversidad: basada en sesgo_fuente (siempre tiene datos reales)
+  var sesgosRef = ['izquierda','centro-izquierda','centro','centro-derecha','derecha'];
+  var nDiv = sesgosRef.filter(function(s) {{
+    return (sesgosF[s] || 0) / Math.max(total, 1) >= 0.05;
   }}).length;
-  var divPct     = sesgosRef.length ? Math.round((nDiv / sesgosRef.length) * 100) + '%' : '—';
+  var divPct = sesgosRef.length ? Math.round((nDiv / sesgosRef.length) * 100) + '%' : '—';
+
+  // Sesgos detectados por IA (excluye desconocido)
+  var sesgosActIA = Object.keys(sesgosIA).filter(function(s) {{
+    return s !== 'desconocido' && sesgosIA[s] > 0;
+  }}).length;
 
   document.getElementById('kpi-total').textContent      = total;
   document.getElementById('kpi-fuentes').textContent    = nFuentes;
   document.getElementById('kpi-diversidad').textContent = divPct;
-  document.getElementById('kpi-sesgos').textContent     = sesgosAct;
+  document.getElementById('kpi-sesgos').textContent     = sesgosActIA || '—';
 
-  // Sesgo chart
   var sesgoOrden = ['izquierda','centro-izquierda','centro','centro-derecha','derecha','desconocido'];
-  var maxS = Math.max.apply(null, sesgoOrden.map(function(s) {{ return sesgos[s]||0; }})) || 1;
+
+  // Gráfico: sesgo de la fuente (siempre disponible)
+  var maxSF = Math.max.apply(null, sesgoOrden.map(function(s) {{ return sesgosF[s]||0; }})) || 1;
   document.getElementById('stat-sesgo-chart').innerHTML = sesgoOrden.map(function(s) {{
-    var n   = sesgos[s] || 0;
-    var pct = Math.round((n / maxS) * 100);
+    var n   = sesgosF[s] || 0;
+    var pct = Math.round((n / maxSF) * 100);
     var col = SESGO_COLORES[s] || '#9ca3af';
     return '<div class="stat-bar-row">' +
       '<span class="stat-bar-label">' + s + '</span>' +
@@ -1275,6 +1288,23 @@ function renderEstadisticas() {{
       '<span class="stat-bar-count">' + n + '</span>' +
       '</div>';
   }}).join('');
+
+  // Gráfico: sesgo IA (puede estar todo en "desconocido" sin cuota)
+  var maxSIA = Math.max.apply(null, sesgoOrden.map(function(s) {{ return sesgosIA[s]||0; }})) || 1;
+  var iaHtml = sesgoOrden.map(function(s) {{
+    var n   = sesgosIA[s] || 0;
+    var pct = Math.round((n / maxSIA) * 100);
+    var col = SESGO_COLORES[s] || '#9ca3af';
+    return '<div class="stat-bar-row">' +
+      '<span class="stat-bar-label">' + s + '</span>' +
+      '<div class="stat-bar-bg"><div class="stat-bar-fill" style="width:' + pct + '%;background:' + col + '"></div></div>' +
+      '<span class="stat-bar-count">' + n + '</span>' +
+      '</div>';
+  }}).join('');
+  var iaEl = document.getElementById('stat-sesgo-ia-chart');
+  if (iaEl) iaEl.innerHTML = sesgosActIA === 0
+    ? '<span style="color:var(--txt-3);font-size:.78rem">Sin datos IA — ejecuta con GEMINI_API_KEY para ver análisis</span>'
+    : iaHtml;
 
   // Top fuentes
   var topF = Object.entries(fuentes).sort(function(a,b){{ return b[1]-a[1]; }}).slice(0,12);
