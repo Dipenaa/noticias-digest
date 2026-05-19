@@ -17,10 +17,13 @@ Variables de entorno requeridas:
 """
 
 import os
+import time
 import threading
 import traceback
 from datetime import datetime
 from flask import Flask, Response, redirect, jsonify
+
+_INTERVALO_HORAS = 6   # regenerar el digest cada N horas
 
 # Importamos solo los módulos que no usan sys.stdout.reconfigure
 from fetcher import obtener_todas_las_noticias, obtener_noticias_alternativas
@@ -109,6 +112,14 @@ def _lanzar_generacion():
     t.start()
 
 
+def _scheduler():
+    """Regenera el digest cada _INTERVALO_HORAS mientras el servidor está activo."""
+    while True:
+        time.sleep(_INTERVALO_HORAS * 3600)
+        print(f"[{datetime.now():%H:%M:%S}] Regeneración automática ({_INTERVALO_HORAS}h)")
+        _lanzar_generacion()
+
+
 # ---------------------------------------------------------------------------
 # Página de carga (se muestra mientras el digest no está listo)
 # ---------------------------------------------------------------------------
@@ -147,8 +158,17 @@ _HTML_CARGANDO = """<!DOCTYPE html>
 @app.route("/")
 def index():
     with _lock:
-        html  = _html_cache
-        error = _ultimo_error
+        html   = _html_cache
+        error  = _ultimo_error
+        update = _ultimo_update
+
+    # Si el caché tiene más de _INTERVALO_HORAS (p.ej. el servidor acaba de
+    # despertar tras estar dormido), lanzar regeneración en background.
+    # El visitante recibe el HTML viejo de inmediato; el siguiente ya verá el nuevo.
+    if html and update:
+        edad = (datetime.now() - update).total_seconds()
+        if edad > _INTERVALO_HORAS * 3600:
+            _lanzar_generacion()
 
     if html:
         return Response(html, mimetype="text/html; charset=utf-8")
@@ -189,6 +209,8 @@ if __name__ == "__main__":
     # Genera el digest al arrancar (en background para no bloquear el bind del puerto)
     _lanzar_generacion()
 
+    # Regenera automáticamente cada _INTERVALO_HORAS
+    threading.Thread(target=_scheduler, daemon=True).start()
+
     port = int(os.environ.get("PORT", 5000))
-    # debug=False en producción; Render gestiona el proceso
     app.run(host="0.0.0.0", port=port, debug=False)

@@ -10,6 +10,7 @@ Construye un documento HTML autocontenido (CSS incluido) con:
   - Caja de crítica por artículo
 """
 
+import html as _html
 import os
 import webbrowser
 from datetime import datetime
@@ -717,6 +718,149 @@ footer {
   transition: background .12s;
 }
 .filtro-clear-btn:hover { background: var(--surface-2); color: var(--txt-1); }
+
+/* ── Vista inmersiva (drawer lateral) ───────────────────────────────── */
+.drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  z-index: 500;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+.drawer-overlay.open { opacity: 1; pointer-events: all; }
+
+.drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: min(560px, 100vw);
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  z-index: 501;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.drawer.open { transform: translateX(0); }
+
+.drawer-header {
+  padding: 1.1rem 1.5rem;
+  border-bottom: 1px solid var(--border-sub);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+.drawer-header-meta { display: flex; flex-direction: column; gap: 0.3rem; min-width: 0; }
+.drawer-categoria {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+}
+.drawer-fuente-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.drawer-reading {
+  font-size: 0.65rem;
+  color: var(--txt-3);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.drawer-close {
+  background: none;
+  border: 1px solid var(--border-sub);
+  color: var(--txt-2);
+  border-radius: var(--r);
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.12s, color 0.12s;
+}
+.drawer-close:hover { background: var(--surface-2); color: var(--txt-1); }
+
+.drawer-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+.drawer-badges { display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap; }
+.drawer-titulo {
+  font-size: 1.2rem;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: -0.025em;
+  color: var(--txt-1);
+}
+.drawer-resumen {
+  font-size: 0.88rem;
+  color: var(--txt-2);
+  line-height: 1.8;
+}
+.drawer-critica {
+  background: #0a1a0a;
+  border: 1px solid #14532d;
+  border-radius: calc(var(--r) - 1px);
+  padding: 0.875rem 1rem;
+  font-size: 0.82rem;
+  color: #4ade80;
+  line-height: 1.65;
+}
+
+.drawer-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border-sub);
+  display: flex;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+.drawer-btn {
+  flex: 1;
+  padding: 0.6rem 1rem;
+  border-radius: var(--r);
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  transition: background 0.15s;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+.drawer-btn-primary { background: var(--accent); color: #fff; }
+.drawer-btn-primary:hover { background: #4f46e5; }
+.drawer-btn-secondary { background: var(--surface-2); color: var(--txt-1); border: 1px solid var(--border-sub); }
+.drawer-btn-secondary:hover { background: var(--border); }
+
+/* Clic en tarjeta abre el drawer */
+.tarjeta, .tarjeta-destacada { cursor: pointer; }
+.tarjeta:active, .tarjeta-destacada:active { transform: scale(0.995); }
+/* … pero el enlace del título sigue siendo un enlace normal */
+.tarjeta .titulo a, .tarjeta-destacada .titulo a { cursor: pointer; }
 """
 
 
@@ -732,19 +876,33 @@ def _badge(sesgo: str) -> str:
 
 def _tarjeta(articulo: dict) -> str:
     """Construye la tarjeta HTML de un artículo individual."""
-    critica = (articulo.get("critica") or "").strip()
-    critica_html = (
-        f'<div class="critica">'
-        f'<span class="critica-icono">💡</span>{critica}'
-        f'</div>'
-        if critica else ""
-    )
-
     sesgo_fuente = articulo.get("sesgo_fuente") or "desconocido"
     sesgo_ia     = articulo.get("sesgo_ia")     or "desconocido"
-    search_data  = f'{articulo["titulo"].lower()} {articulo["fuente"].lower()} {(articulo.get("resumen") or "").lower()}'
+    critica      = (articulo.get("critica") or "").strip()
+    critica_html = (
+        f'<div class="critica"><span class="critica-icono">💡</span>{critica}</div>'
+        if critica else ""
+    )
+    search_data = f'{articulo["titulo"].lower()} {articulo["fuente"].lower()} {(articulo.get("resumen") or "").lower()}'
+
+    # Atributos escapados para la vista inmersiva
+    da = {k: _html.escape(str(v), quote=True) for k, v in {
+        "titulo":  articulo["titulo"],
+        "fuente":  articulo["fuente"],
+        "fecha":   articulo["fecha"],
+        "enlace":  articulo["enlace"],
+        "resumen": articulo.get("resumen") or "",
+        "critica": critica,
+    }.items()}
+
     return f"""
-<div class="tarjeta" data-search="{search_data}" data-sesgo-fuente="{sesgo_fuente}" data-sesgo-ia="{sesgo_ia}">
+<div class="tarjeta"
+     data-search="{_html.escape(search_data, quote=True)}"
+     data-sesgo-fuente="{sesgo_fuente}" data-sesgo-ia="{sesgo_ia}"
+     data-titulo="{da['titulo']}" data-fuente="{da['fuente']}"
+     data-fecha="{da['fecha']}"   data-enlace="{da['enlace']}"
+     data-resumen="{da['resumen']}" data-critica="{da['critica']}"
+     onclick="if(!event.target.closest('a'))abrirArticulo(this)">
   <div class="tarjeta-meta">
     <div class="fuente-bloque">
       <span class="fuente-nombre">{articulo["fuente"]}</span>
@@ -827,14 +985,34 @@ def _nav(categorias: list[str]) -> str:
 
 def _featured_card(articulo: dict, categoria: str) -> str:
     """Tarjeta grande para la pestaña Destacadas."""
-    critica = (articulo.get("critica") or "").strip()
+    sesgo_fuente = articulo.get("sesgo_fuente") or "desconocido"
+    sesgo_ia     = articulo.get("sesgo_ia")     or "desconocido"
+    critica      = (articulo.get("critica") or "").strip()
     critica_html = (
         f'<div class="critica"><span class="critica-icono">💡</span>{critica}</div>'
         if critica else ""
     )
     search_data_d = f'{articulo["titulo"].lower()} {articulo["fuente"].lower()} {categoria.lower()}'
+
+    da = {k: _html.escape(str(v), quote=True) for k, v in {
+        "titulo":    articulo["titulo"],
+        "fuente":    articulo["fuente"],
+        "fecha":     articulo["fecha"],
+        "enlace":    articulo["enlace"],
+        "resumen":   articulo.get("resumen") or "",
+        "critica":   critica,
+        "categoria": categoria,
+    }.items()}
+
     return f"""
-<div class="tarjeta-destacada" data-search="{search_data_d}">
+<div class="tarjeta-destacada"
+     data-search="{_html.escape(search_data_d, quote=True)}"
+     data-sesgo-fuente="{sesgo_fuente}" data-sesgo-ia="{sesgo_ia}"
+     data-titulo="{da['titulo']}"   data-fuente="{da['fuente']}"
+     data-fecha="{da['fecha']}"     data-enlace="{da['enlace']}"
+     data-resumen="{da['resumen']}" data-critica="{da['critica']}"
+     data-categoria="{da['categoria']}"
+     onclick="if(!event.target.closest('a'))abrirArticulo(this)">
   <div class="tarjeta-meta">
     <div class="fuente-bloque">
       <span class="categoria-label">{categoria}</span>
@@ -843,9 +1021,9 @@ def _featured_card(articulo: dict, categoria: str) -> str:
     </div>
     <div class="badges">
       <span class="badge-etiqueta">Fuente:</span>
-      {_badge(articulo.get("sesgo_fuente") or "desconocido")}
+      {_badge(sesgo_fuente)}
       <span class="badge-etiqueta">IA:</span>
-      {_badge(articulo.get("sesgo_ia") or "desconocido")}
+      {_badge(sesgo_ia)}
     </div>
   </div>
   <div class="titulo">
@@ -1128,6 +1306,43 @@ def renderizar_html(
   Análisis por Google Gemini
 </footer>
 
+<!-- ── Vista inmersiva ─────────────────────────────────────────────── -->
+<div class="drawer-overlay" id="drawer-overlay" onclick="cerrarDrawer()"></div>
+<div class="drawer" id="drawer" role="dialog" aria-modal="true">
+  <div class="drawer-header">
+    <div class="drawer-header-meta">
+      <span class="drawer-categoria" id="d-categoria"></span>
+      <div class="drawer-fuente-row">
+        <span class="fuente-nombre" id="d-fuente"></span>
+        <span class="fecha" id="d-fecha"></span>
+        <span class="drawer-reading">&#9201; <span id="d-reading"></span></span>
+      </div>
+      <div class="drawer-badges" style="margin-top:.4rem">
+        <span class="badge-etiqueta">Fuente:</span>
+        <span class="badge" id="d-sesgo-f"></span>
+        <span class="badge-etiqueta" style="margin-left:.25rem">IA:</span>
+        <span class="badge" id="d-sesgo-ia"></span>
+      </div>
+    </div>
+    <button class="drawer-close" onclick="cerrarDrawer()" title="Cerrar (Esc)">&#x2715;</button>
+  </div>
+  <div class="drawer-body">
+    <div class="drawer-titulo" id="d-titulo"></div>
+    <p class="drawer-resumen" id="d-resumen"></p>
+    <div class="drawer-critica" id="d-critica" style="display:none"></div>
+  </div>
+  <div class="drawer-footer">
+    <a class="drawer-btn drawer-btn-primary" id="d-btn-leer" href="#"
+       target="_blank" rel="noopener noreferrer">
+      Leer art&#237;culo completo &#8599;
+    </a>
+    <button class="drawer-btn drawer-btn-secondary" id="d-btn-compartir"
+            onclick="compartirArticulo()">
+      Copiar enlace
+    </button>
+  </div>
+</div>
+
 <script>
 var _tabActual    = 'destacadas';
 var _filtroSesgo  = null;
@@ -1330,6 +1545,82 @@ function renderEstadisticas() {{
       '</div>';
   }}).join('');
 }}
+
+/* ── Vista inmersiva ─────────────────────────────────────────────────── */
+function abrirArticulo(el) {{
+  var d         = el.dataset;
+  var titulo    = d.titulo    || '';
+  var fuente    = d.fuente    || '';
+  var fecha     = d.fecha     || '';
+  var enlace    = d.enlace    || '#';
+  var resumen   = d.resumen   || '';
+  var critica   = d.critica   || '';
+  var sesgoF    = d.sesgoFuente || 'desconocido';
+  var sesgoIA   = d.sesgoIa    || 'desconocido';
+
+  // Categoría: leer del ancestro .seccion si existe
+  var secEl = el.closest('.seccion');
+  var cat   = secEl ? (secEl.querySelector('.seccion-titulo') || {{}}).textContent || '' : (d.categoria || '');
+
+  // Tiempo de lectura estimado
+  var palabras = (titulo + ' ' + resumen).split(/[ \t\n]+/).filter(Boolean).length;
+  var minutos  = Math.max(1, Math.round(palabras / 200));
+
+  document.getElementById('d-categoria').textContent = cat;
+  document.getElementById('d-fuente').textContent    = fuente;
+  document.getElementById('d-fecha').textContent     = fecha;
+  document.getElementById('d-reading').textContent   = minutos + ' min lectura';
+  document.getElementById('d-titulo').textContent    = titulo;
+  document.getElementById('d-resumen').textContent   = resumen;
+
+  var sfEl = document.getElementById('d-sesgo-f');
+  sfEl.textContent = sesgoF.toUpperCase();
+  sfEl.style.background = SESGO_COLORES[sesgoF] || '#9ca3af';
+
+  var siaEl = document.getElementById('d-sesgo-ia');
+  siaEl.textContent = sesgoIA.toUpperCase();
+  siaEl.style.background = SESGO_COLORES[sesgoIA] || '#9ca3af';
+
+  var criticaEl = document.getElementById('d-critica');
+  if (critica) {{
+    criticaEl.textContent  = '\U0001F4A1 ' + critica;
+    criticaEl.style.display = '';
+  }} else {{
+    criticaEl.style.display = 'none';
+  }}
+
+  document.getElementById('d-btn-leer').href = enlace;
+
+  document.getElementById('drawer-overlay').classList.add('open');
+  document.getElementById('drawer').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}}
+
+function cerrarDrawer() {{
+  document.getElementById('drawer-overlay').classList.remove('open');
+  document.getElementById('drawer').classList.remove('open');
+  document.body.style.overflow = '';
+}}
+
+function compartirArticulo() {{
+  var titulo  = document.getElementById('d-titulo').textContent;
+  var enlace  = document.getElementById('d-btn-leer').href;
+  var btn     = document.getElementById('d-btn-compartir');
+  if (navigator.share) {{
+    navigator.share({{ title: titulo, url: enlace }}).catch(function() {{}});
+  }} else {{
+    navigator.clipboard.writeText(enlace).then(function() {{
+      btn.textContent = '✓ Copiado';
+      setTimeout(function() {{ btn.textContent = 'Copiar enlace'; }}, 2000);
+    }}).catch(function() {{
+      prompt('Copia este enlace:', enlace);
+    }});
+  }}
+}}
+
+document.addEventListener('keydown', function(e) {{
+  if (e.key === 'Escape') cerrarDrawer();
+}});
 
 /* ── Inicio ──────────────────────────────────────────────────────────── */
 (function() {{
