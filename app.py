@@ -37,12 +37,14 @@ app = Flask(__name__)
 # Estado global (compartido entre hilos con un lock)
 # ---------------------------------------------------------------------------
 
-_lock          = threading.Lock()
-_html_cache    = None          # HTML generado más reciente (str)
-_generando     = False         # True mientras hay una generación en curso
-_ultimo_update = None          # datetime del último digest exitoso
-_ultimo_error  = None          # texto del último error, si lo hubo
-_sin_ia        = os.getenv("SIN_IA", "").lower() in ("1", "true", "yes")
+_lock             = threading.Lock()
+_html_cache       = None          # HTML generado más reciente (str)
+_generando        = False         # True mientras hay una generación en curso
+_ultimo_update    = None          # datetime del último digest exitoso
+_ultimo_error     = None          # texto del último error, si lo hubo
+_sin_ia           = os.getenv("SIN_IA", "").lower() in ("1", "true", "yes")
+_noticias_raw     = None          # último dict de noticias principales sin enriquecer
+_alternativas_raw = None          # último dict de noticias alternativas sin enriquecer
 
 
 # ---------------------------------------------------------------------------
@@ -52,6 +54,7 @@ _sin_ia        = os.getenv("SIN_IA", "").lower() in ("1", "true", "yes")
 def _generar():
     """Descarga feeds, analiza con Gemini (si procede) y actualiza _html_cache."""
     global _generando, _html_cache, _ultimo_update, _ultimo_error
+    global _noticias_raw, _alternativas_raw
 
     with _lock:
         if _generando:
@@ -64,6 +67,12 @@ def _generar():
         # 1. Descarga
         noticias     = obtener_todas_las_noticias()
         alternativas = obtener_noticias_alternativas()
+
+        # Guardamos una copia de las noticias crudas para poder re-analizar sin re-descargar
+        import copy
+        with _lock:
+            _noticias_raw     = copy.deepcopy(noticias)
+            _alternativas_raw = copy.deepcopy(alternativas)
 
         # 2. Análisis IA (opcional — desactivado si SIN_IA=1 o no hay API key)
         analisis:      dict = {}
@@ -110,6 +119,65 @@ def _lanzar_generacion():
     """Arranca _generar() en un hilo daemon si no hay una en curso."""
     t = threading.Thread(target=_generar, daemon=True)
     t.start()
+
+
+def _solo_analizar_ia():
+    """Corre solo el análisis IA sobre las noticias ya descargadas (sin re-fetch de feeds)."""
+    global _generando, _html_cache, _ultimo_update, _ultimo_error
+    global _noticias_raw, _alternativas_raw
+
+    with _lock:
+        if _generando:
+            return
+        if _noticias_raw is None:
+            # No hay caché de noticias → lanzar generación completa
+            _lanzar_generacion()
+            return
+        _generando = True
+
+    try:
+        import copy
+        with _lock:
+            noticias     = copy.deepcopy(_noticias_raw)
+            alternativas = copy.deepcopy(_alternativas_raw)
+
+        print(f"[{datetime.now():%H:%M:%S}] Lanzando análisis IA sobre noticias en caché...")
+
+        from config import GEMINI_API_KEY
+        ia_disponible = (not _sin_ia) and GEMINI_API_KEY not in ("TU_API_KEY_AQUÍ", "", None)
+
+        analisis:      dict = {}
+        analisis_alt:  dict = {}
+        grupos_sintesis: list = []
+
+        if ia_disponible:
+            noticias,     analisis     = analizar_todas_las_noticias(noticias)
+            alternativas, analisis_alt = analizar_todas_las_noticias(alternativas)
+            grupos_sintesis            = sintetizar_noticias(noticias, alternativas)
+        else:
+            print(f"[{datetime.now():%H:%M:%S}] IA no disponible — SIN_IA o API key ausente")
+
+        html = renderizar_html(
+            noticias, analisis,
+            alternativas, analisis_alt,
+            grupos_sintesis,
+        )
+
+        with _lock:
+            _html_cache    = html
+            _ultimo_update = datetime.now()
+            _ultimo_error  = None
+
+        print(f"[{datetime.now():%H:%M:%S}] Análisis IA completado.")
+
+    except Exception:
+        err = traceback.format_exc()
+        print(f"[{datetime.now():%H:%M:%S}] ERROR en análisis IA:\n{err}")
+        with _lock:
+            _ultimo_error = err
+    finally:
+        with _lock:
+            _generando = False
 
 
 def _scheduler():
@@ -187,6 +255,16 @@ def regenerar():
     """Lanza una nueva generación en background y redirige al digest."""
     _lanzar_generacion()
     return redirect("/")
+
+
+@app.route("/analizar", methods=["GET", "POST"])
+def analizar():
+    """Lanza solo el análisis IA sobre las noticias ya cacheadas (sin re-fetch de feeds).
+    Devuelve JSON {ok: true} de inmediato; el cliente sondea /estado para saber cuándo acabó.
+    """
+    t = threading.Thread(target=_solo_analizar_ia, daemon=True)
+    t.start()
+    return jsonify({"ok": True, "mensaje": "Análisis IA iniciado en background"})
 
 
 @app.route("/estado")

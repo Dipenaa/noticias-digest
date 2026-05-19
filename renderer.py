@@ -859,8 +859,133 @@ footer {
 /* Clic en tarjeta abre el drawer */
 .tarjeta, .tarjeta-destacada { cursor: pointer; }
 .tarjeta:active, .tarjeta-destacada:active { transform: scale(0.995); }
-/* … pero el enlace del título sigue siendo un enlace normal */
 .tarjeta .titulo a, .tarjeta-destacada .titulo a { cursor: pointer; }
+
+/* ── Sentimiento ─────────────────────────────────────────────────────── */
+.badge-sent {
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 0.15rem 0.45rem;
+  border-radius: 9999px;
+}
+.badge-sent-alarmista { background: #450a0a; color: #fca5a5; }
+.badge-sent-neutral   { background: #27272a; color: #71717a; }
+.badge-sent-optimista { background: #052e16; color: #86efac; }
+
+/* ── Badge multi-fuente verificado ───────────────────────────────────── */
+.badge-verified {
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  background: #1e1b4b;
+  color: #a5b4fc;
+}
+
+/* ── Bookmark ────────────────────────────────────────────────────────── */
+.bookmark-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--txt-3);
+  padding: 0.1rem 0.2rem;
+  border-radius: 4px;
+  line-height: 1;
+  transition: color 0.15s, transform 0.1s;
+  flex-shrink: 0;
+}
+.bookmark-btn:hover { color: #fbbf24; transform: scale(1.15); }
+.bookmark-btn.guardado { color: #fbbf24; }
+
+/* ── Resaltado de palabras clave ─────────────────────────────────────── */
+.tarjeta.kw-match, .tarjeta-destacada.kw-match {
+  border-left: 3px solid #f59e0b;
+}
+.keywords-input {
+  width: 200px;
+  background: var(--surface);
+  border: 1px solid var(--border-sub);
+  border-radius: var(--r);
+  color: var(--txt-1);
+  font-family: inherit;
+  font-size: 0.82rem;
+  padding: 0.4rem 0.875rem;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.keywords-input::placeholder { color: var(--txt-3); }
+.keywords-input:focus { border-color: #f59e0b; }
+.kw-sep { color: var(--border); font-size: 1.1rem; user-select: none; }
+
+/* ── Pestaña Para Leer ───────────────────────────────────────────────── */
+.para-leer-header { margin-bottom: 1.5rem; padding-bottom: .875rem; border-bottom: 1px solid var(--border-sub); }
+.para-leer-header h2 { font-size: 1rem; font-weight: 700; color: var(--txt-1); letter-spacing: -.02em; margin-bottom: .3rem; }
+.para-leer-header p  { font-size: .78rem; color: var(--txt-3); }
+.para-leer-empty { text-align: center; padding: 4rem 0; color: var(--txt-3); font-size: .875rem; line-height: 1.7; }
+.tab-count { font-size: .6rem; background: var(--accent); color: #fff; border-radius: 9999px; padding: .1rem .45rem; margin-left: .3rem; vertical-align: middle; }
+
+/* ── Comparador de ángulos (dentro de síntesis) ──────────────────────── */
+.angulos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: .75rem;
+  border-top: 1px solid var(--border-sub);
+  padding-top: .875rem;
+}
+.angulo-col { display: flex; flex-direction: column; gap: .4rem; }
+.angulo-label {
+  font-size: .58rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--txt-3);
+  margin-bottom: .1rem;
+}
+.angulo-item { font-size: .75rem; }
+.angulo-item a { color: var(--txt-2); text-decoration: none; line-height: 1.4; }
+.angulo-item a:hover { color: var(--txt-1); }
+
+/* ── Banner IA faltante ──────────────────────────────────────────────── */
+#ia-banner {
+  display: none;
+  align-items: center;
+  gap: .75rem;
+  background: #1c1917;
+  border: 1px solid #78350f;
+  border-radius: var(--r);
+  padding: .6rem 1rem;
+  margin: .75rem var(--pad-x);
+  font-size: .8rem;
+  color: #fbbf24;
+}
+#ia-banner .ia-msg { flex: 1; }
+#ia-banner .ia-regen {
+  background: #92400e;
+  color: #fef3c7;
+  border: none;
+  border-radius: var(--r);
+  padding: .35rem .875rem;
+  font-size: .78rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background .15s;
+}
+#ia-banner .ia-regen:hover { background: #b45309; }
+#ia-banner .ia-regen:disabled { opacity: .5; cursor: default; }
+#ia-banner .ia-close {
+  background: none;
+  border: none;
+  color: #92400e;
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 0 .15rem;
+}
 """
 
 
@@ -868,31 +993,50 @@ footer {
 # Constructores de bloques HTML
 # ---------------------------------------------------------------------------
 
+CLASES_SENTIMIENTO = {
+    "alarmista": "badge-sent-alarmista",
+    "neutral":   "badge-sent-neutral",
+    "optimista": "badge-sent-optimista",
+}
+ICONOS_SENTIMIENTO = {"alarmista": "⚠", "neutral": "◉", "optimista": "✦"}
+
+
 def _badge(sesgo: str) -> str:
-    """Genera la etiqueta coloreada de sesgo."""
     color = COLORES_SESGO.get(sesgo, COLORES_SESGO["desconocido"])
     return f'<span class="badge" style="background:{color}">{sesgo.upper()}</span>'
 
 
-def _tarjeta(articulo: dict) -> str:
-    """Construye la tarjeta HTML de un artículo individual."""
+def _badge_sentimiento(sentimiento: str) -> str:
+    if not sentimiento or sentimiento == "neutral":
+        return ""
+    cls  = CLASES_SENTIMIENTO.get(sentimiento, "badge-sent-neutral")
+    icon = ICONOS_SENTIMIENTO.get(sentimiento, "")
+    return f'<span class="badge-sent {cls}" title="Tono: {sentimiento}">{icon} {sentimiento.upper()}</span>'
+
+
+def _tarjeta(articulo: dict, verificados: frozenset = frozenset()) -> str:
     sesgo_fuente = articulo.get("sesgo_fuente") or "desconocido"
     sesgo_ia     = articulo.get("sesgo_ia")     or "desconocido"
+    sentimiento  = articulo.get("sentimiento")  or ""
     critica      = (articulo.get("critica") or "").strip()
     critica_html = (
         f'<div class="critica"><span class="critica-icono">💡</span>{critica}</div>'
         if critica else ""
     )
+    verified_html = (
+        '<span class="badge-verified" title="Confirmado por múltiples fuentes de distinto sesgo">&#10003; Multi-fuente</span>'
+        if articulo.get("enlace") in verificados else ""
+    )
     search_data = f'{articulo["titulo"].lower()} {articulo["fuente"].lower()} {(articulo.get("resumen") or "").lower()}'
 
-    # Atributos escapados para la vista inmersiva
     da = {k: _html.escape(str(v), quote=True) for k, v in {
-        "titulo":  articulo["titulo"],
-        "fuente":  articulo["fuente"],
-        "fecha":   articulo["fecha"],
-        "enlace":  articulo["enlace"],
-        "resumen": articulo.get("resumen") or "",
-        "critica": critica,
+        "titulo":      articulo["titulo"],
+        "fuente":      articulo["fuente"],
+        "fecha":       articulo["fecha"],
+        "enlace":      articulo["enlace"],
+        "resumen":     articulo.get("resumen") or "",
+        "critica":     critica,
+        "sentimiento": sentimiento,
     }.items()}
 
     return f"""
@@ -902,7 +1046,8 @@ def _tarjeta(articulo: dict) -> str:
      data-titulo="{da['titulo']}" data-fuente="{da['fuente']}"
      data-fecha="{da['fecha']}"   data-enlace="{da['enlace']}"
      data-resumen="{da['resumen']}" data-critica="{da['critica']}"
-     onclick="if(!event.target.closest('a'))abrirArticulo(this)">
+     data-sentimiento="{da['sentimiento']}"
+     onclick="if(!event.target.closest('a,.bookmark-btn'))abrirArticulo(this)">
   <div class="tarjeta-meta">
     <div class="fuente-bloque">
       <span class="fuente-nombre">{articulo["fuente"]}</span>
@@ -913,6 +1058,12 @@ def _tarjeta(articulo: dict) -> str:
       {_badge(sesgo_fuente)}
       <span class="badge-etiqueta">IA:</span>
       {_badge(sesgo_ia)}
+      {_badge_sentimiento(sentimiento)}
+      {verified_html}
+      <button class="bookmark-btn" title="Guardar para leer"
+              data-enlace="{da['enlace']}" data-titulo="{da['titulo']}"
+              data-fuente="{da['fuente']}" data-fecha="{da['fecha']}"
+              onclick="toggleBookmark(event,this)">&#9733;</button>
     </div>
   </div>
   <div class="titulo">
@@ -925,12 +1076,12 @@ def _tarjeta(articulo: dict) -> str:
 </div>"""
 
 
-def _seccion(categoria: str, articulos: list[dict], analisis: str) -> str:
-    """Construye la sección HTML de una categoría completa."""
+def _seccion(categoria: str, articulos: list[dict], analisis: str,
+             verificados: frozenset = frozenset()) -> str:
     id_seccion = categoria.lower().replace(" ", "-")
 
     if articulos:
-        tarjetas = "\n".join(_tarjeta(a) for a in articulos)
+        tarjetas = "\n".join(_tarjeta(a, verificados) for a in articulos)
         contenido = f'<div class="grid">{tarjetas}</div>'
     else:
         contenido = '<p class="sin-articulos">No se encontraron artículos.</p>'
@@ -983,25 +1134,31 @@ def _nav(categorias: list[str]) -> str:
     return f'<nav id="cat-nav">{links}</nav>'
 
 
-def _featured_card(articulo: dict, categoria: str) -> str:
-    """Tarjeta grande para la pestaña Destacadas."""
+def _featured_card(articulo: dict, categoria: str,
+                   verificados: frozenset = frozenset()) -> str:
     sesgo_fuente = articulo.get("sesgo_fuente") or "desconocido"
     sesgo_ia     = articulo.get("sesgo_ia")     or "desconocido"
+    sentimiento  = articulo.get("sentimiento")  or ""
     critica      = (articulo.get("critica") or "").strip()
     critica_html = (
         f'<div class="critica"><span class="critica-icono">💡</span>{critica}</div>'
         if critica else ""
     )
+    verified_html = (
+        '<span class="badge-verified">&#10003; Multi-fuente</span>'
+        if articulo.get("enlace") in verificados else ""
+    )
     search_data_d = f'{articulo["titulo"].lower()} {articulo["fuente"].lower()} {categoria.lower()}'
 
     da = {k: _html.escape(str(v), quote=True) for k, v in {
-        "titulo":    articulo["titulo"],
-        "fuente":    articulo["fuente"],
-        "fecha":     articulo["fecha"],
-        "enlace":    articulo["enlace"],
-        "resumen":   articulo.get("resumen") or "",
-        "critica":   critica,
-        "categoria": categoria,
+        "titulo":      articulo["titulo"],
+        "fuente":      articulo["fuente"],
+        "fecha":       articulo["fecha"],
+        "enlace":      articulo["enlace"],
+        "resumen":     articulo.get("resumen") or "",
+        "critica":     critica,
+        "categoria":   categoria,
+        "sentimiento": sentimiento,
     }.items()}
 
     return f"""
@@ -1011,8 +1168,8 @@ def _featured_card(articulo: dict, categoria: str) -> str:
      data-titulo="{da['titulo']}"   data-fuente="{da['fuente']}"
      data-fecha="{da['fecha']}"     data-enlace="{da['enlace']}"
      data-resumen="{da['resumen']}" data-critica="{da['critica']}"
-     data-categoria="{da['categoria']}"
-     onclick="if(!event.target.closest('a'))abrirArticulo(this)">
+     data-categoria="{da['categoria']}" data-sentimiento="{da['sentimiento']}"
+     onclick="if(!event.target.closest('a,.bookmark-btn'))abrirArticulo(this)">
   <div class="tarjeta-meta">
     <div class="fuente-bloque">
       <span class="categoria-label">{categoria}</span>
@@ -1024,6 +1181,12 @@ def _featured_card(articulo: dict, categoria: str) -> str:
       {_badge(sesgo_fuente)}
       <span class="badge-etiqueta">IA:</span>
       {_badge(sesgo_ia)}
+      {_badge_sentimiento(sentimiento)}
+      {verified_html}
+      <button class="bookmark-btn" title="Guardar para leer"
+              data-enlace="{da['enlace']}" data-titulo="{da['titulo']}"
+              data-fuente="{da['fuente']}" data-fecha="{da['fecha']}"
+              onclick="toggleBookmark(event,this)">&#9733;</button>
     </div>
   </div>
   <div class="titulo">
@@ -1037,10 +1200,26 @@ def _featured_card(articulo: dict, categoria: str) -> str:
 
 
 def _synthesis_card(grupo: dict) -> str:
-    """Tarjeta de síntesis para una historia cubierta por múltiples fuentes."""
-    n = len(grupo["articulos"])
+    """Tarjeta de síntesis con comparador de ángulos por sesgo político."""
+    articulos = grupo["articulos"]
+    n = len(articulos)
+
+    # Agrupar artículos por orientación política para el comparador
+    _izq = ["izquierda", "centro-izquierda"]
+    _der = ["centro-derecha", "derecha"]
+    cols = {
+        "Izquierda": [a for a in articulos if a.get("sesgo_fuente") in _izq],
+        "Centro":    [a for a in articulos if a.get("sesgo_fuente") == "centro"],
+        "Derecha":   [a for a in articulos if a.get("sesgo_fuente") in _der],
+        "Alternativa": [a for a in articulos if a.get("alt")],
+    }
+    # Solo mostrar columnas con contenido y quitar ALT si ya sale en otras
+    cols_con_datos = {k: v for k, v in cols.items() if v}
+    hay_comparador = len(cols_con_datos) >= 2
+
+    # Lista de todas las fuentes (vista clásica)
     fuentes_html = ""
-    for art in grupo["articulos"]:
+    for art in articulos:
         alt_badge = '<span class="sintesis-fuente-alt">ALT</span>' if art.get("alt") else ""
         fuentes_html += f"""
 <div class="sintesis-fuente-item">
@@ -1052,16 +1231,27 @@ def _synthesis_card(grupo: dict) -> str:
   </a>
 </div>"""
 
+    # Comparador de ángulos
+    angulos_html = ""
+    if hay_comparador:
+        columnas = ""
+        for nombre, arts in cols_con_datos.items():
+            items = "".join(
+                f'<div class="angulo-item"><a href="{a["enlace"]}" target="_blank" rel="noopener noreferrer">{a["titulo"]}</a></div>'
+                for a in arts
+            )
+            columnas += f'<div class="angulo-col"><div class="angulo-label">{nombre}</div>{items}</div>'
+        angulos_html = f'<div class="angulos-grid">{columnas}</div>'
+
     return f"""
-<div class="sintesis-card" data-search="{grupo['titulo'].lower()} {' '.join(a['fuente'].lower() for a in grupo['articulos'])}">
+<div class="sintesis-card" data-search="{grupo['titulo'].lower()} {' '.join(a['fuente'].lower() for a in articulos)}">
   <div class="sintesis-meta">
     <span class="sintesis-fuentes-count">{n} fuente{"s" if n != 1 else ""}</span>
+    {"" if not hay_comparador else '<span style="font-size:.6rem;color:#a78bfa;font-weight:600">&#9670; Comparador activo</span>'}
   </div>
   <div class="sintesis-titulo">{grupo["titulo"]}</div>
   <div class="sintesis-texto">{grupo["sintesis"]}</div>
-  <div class="sintesis-fuentes">
-    {fuentes_html}
-  </div>
+  {angulos_html if hay_comparador else f'<div class="sintesis-fuentes">{fuentes_html}</div>'}
 </div>"""
 
 
@@ -1086,13 +1276,13 @@ def _tab_sintesis(grupos: list[dict]) -> str:
 </div>"""
 
 
-def _tab_libertaria(alternativas: dict[str, list[dict]], analisis_alt: dict[str, str]) -> str:
-    """Genera el contenido de la pestaña Prensa Libertaria."""
+def _tab_libertaria(alternativas: dict[str, list[dict]], analisis_alt: dict[str, str],
+                    verificados: frozenset = frozenset()) -> str:
     if not alternativas or not any(alternativas.values()):
         return '<p class="sin-articulos" style="padding:3rem 0;text-align:center">No se encontraron artículos en fuentes alternativas.</p>'
 
     secciones = "\n".join(
-        _seccion(cat, arts, analisis_alt.get(cat, ""))
+        _seccion(cat, arts, analisis_alt.get(cat, ""), verificados)
         for cat, arts in alternativas.items()
     )
 
@@ -1106,7 +1296,8 @@ def _tab_libertaria(alternativas: dict[str, list[dict]], analisis_alt: dict[str,
     return aviso + "\n" + secciones
 
 
-def _tab_destacadas(noticias: dict[str, list[dict]]) -> str:
+def _tab_destacadas(noticias: dict[str, list[dict]],
+                    verificados: frozenset = frozenset()) -> str:
     """
     Genera el contenido de la pestaña Destacadas.
 
@@ -1127,7 +1318,7 @@ def _tab_destacadas(noticias: dict[str, list[dict]]) -> str:
     if not seleccionados:
         return '<p class="sin-destacadas">No hay artículos destacados disponibles.</p>'
 
-    cards = "\n".join(_featured_card(a, cat) for cat, a in seleccionados)
+    cards = "\n".join(_featured_card(a, cat, verificados) for cat, a in seleccionados)
     fuente_label = "seleccionadas por Gemini" if any(
         a.get("importante") for arts in noticias.values() for a in arts
     ) else "primera noticia de cada sección (ejecuta con análisis IA para selección automática)"
@@ -1139,6 +1330,21 @@ def _tab_destacadas(noticias: dict[str, list[dict]]) -> str:
 </div>
 <div class="grid-destacadas">
 {cards}
+</div>"""
+
+
+def _tab_para_leer() -> str:
+    """Pestaña de lista de lectura (contenido generado íntegramente por JS desde localStorage)."""
+    return """
+<div class="para-leer-header">
+  <h2>Para leer</h2>
+  <p id="para-leer-desc">Artículos guardados con &#9733; — se conservan entre sesiones</p>
+</div>
+<div id="para-leer-contenido">
+  <div class="para-leer-empty">
+    Todav&#237;a no has guardado ning&#250;n art&#237;culo.<br>
+    Haz clic en &#9733; en cualquier tarjeta para a&#241;adirlo aqu&#237;.
+  </div>
 </div>"""
 
 
@@ -1215,12 +1421,34 @@ def renderizar_html(
         for cat, arts in noticias.items()
     )
 
-    destacadas  = _tab_destacadas(noticias)
-    libertaria  = _tab_libertaria(alternativas or {}, analisis_alt or {})
-    sintesis    = _tab_sintesis(grupos_sintesis or [])
+    # URLs confirmadas por ≥2 fuentes de sesgos distintos (para badge multi-fuente)
+    verificados: frozenset = frozenset()
+    if grupos_sintesis:
+        _sesgos_izq = {"izquierda", "centro-izquierda"}
+        _sesgos_der = {"centro-derecha", "derecha"}
+        candidatos: set[str] = set()
+        for grupo in grupos_sintesis:
+            arts = grupo.get("articulos", [])
+            sesgos_presentes = {a.get("sesgo_fuente", "") for a in arts}
+            tiene_izq = bool(sesgos_presentes & _sesgos_izq)
+            tiene_der = bool(sesgos_presentes & _sesgos_der)
+            if tiene_izq and tiene_der:
+                for a in arts:
+                    candidatos.add(a["enlace"])
+        verificados = frozenset(candidatos)
+
+    secciones = "\n".join(
+        _seccion(cat, arts, analisis.get(cat, ""), verificados)
+        for cat, arts in noticias.items()
+    )
+
+    destacadas   = _tab_destacadas(noticias, verificados)
+    libertaria   = _tab_libertaria(alternativas or {}, analisis_alt or {}, verificados)
+    sintesis     = _tab_sintesis(grupos_sintesis or [])
+    para_leer    = _tab_para_leer()
     estadisticas = _tab_estadisticas()
-    total_alt   = sum(len(a) for a in (alternativas or {}).values())
-    n_sintesis  = len(grupos_sintesis) if grupos_sintesis else 0
+    total_alt    = sum(len(a) for a in (alternativas or {}).values())
+    n_sintesis   = len(grupos_sintesis) if grupos_sintesis else 0
 
     # colores de sesgo para el JS del cliente
     sesgo_colores_js = "{" + ",".join(
@@ -1248,6 +1476,12 @@ def renderizar_html(
   </div>
 </header>
 
+<div id="ia-banner">
+  <span class="ia-msg">&#9888; <strong><span id="ia-banner-count">0</span> art&#237;culos</strong> sin an&#225;lisis IA &mdash; resumen, sesgo y s&#237;ntesis pueden estar incompletos</span>
+  <button class="ia-regen" id="ia-regen-btn" onclick="lanzarAnalisisIA()">Regenerar an&#225;lisis IA</button>
+  <button class="ia-close" onclick="document.getElementById('ia-banner').style.display='none'" title="Cerrar">&#215;</button>
+</div>
+
 <div class="tab-bar">
   <button class="tab-btn active" data-tab="destacadas" onclick="switchTab('destacadas')">
     &#9733; Destacadas
@@ -1262,6 +1496,9 @@ def renderizar_html(
   <button class="tab-btn" data-tab="libertaria" onclick="switchTab('libertaria')">
     &#9889; Prensa Libertaria
   </button>
+  <button class="tab-btn" data-tab="para-leer" onclick="switchTab('para-leer')">
+    &#9733; Para leer<span class="tab-count" id="bookmark-count" style="display:none"></span>
+  </button>
   <button class="tab-btn" data-tab="estadisticas" onclick="switchTab('estadisticas')">
     &#128200; Estad&#237;sticas
   </button>
@@ -1271,6 +1508,10 @@ def renderizar_html(
   <input class="search-input" id="buscador" type="search"
          placeholder="Buscar en noticias..." autocomplete="off"
          oninput="buscar(this.value)">
+  <span class="kw-sep">|</span>
+  <input class="keywords-input" id="kw-input" type="text"
+         placeholder="Resaltar palabras clave..." autocomplete="off"
+         oninput="aplicarKeywords(this.value)">
   <span class="search-count" id="search-count"></span>
 </div>
 
@@ -1293,6 +1534,10 @@ def renderizar_html(
 
   <div id="tab-libertaria" class="tab-content">
     {libertaria}
+  </div>
+
+  <div id="tab-para-leer" class="tab-content">
+    {para_leer}
   </div>
 
   <div id="tab-estadisticas" class="tab-content">
@@ -1322,6 +1567,7 @@ def renderizar_html(
         <span class="badge" id="d-sesgo-f"></span>
         <span class="badge-etiqueta" style="margin-left:.25rem">IA:</span>
         <span class="badge" id="d-sesgo-ia"></span>
+        <span id="d-sent" style="margin-left:.25rem"></span>
       </div>
     </div>
     <button class="drawer-close" onclick="cerrarDrawer()" title="Cerrar (Esc)">&#x2715;</button>
@@ -1370,9 +1616,13 @@ function switchTab(name) {{
 
   if (name === 'estadisticas') {{
     if (!_statsReady) {{ renderEstadisticas(); _statsReady = true; }}
+  }} else if (name === 'para-leer') {{
+    _renderizarParaLeer();
   }} else {{
     var q = document.getElementById('buscador').value;
     if (q) buscar(q); else _limpiarContador();
+    _sincronizarBotonesBK();
+    if (_kwActuales.length) aplicarKeywords(document.getElementById('kw-input').value);
   }}
   try {{ localStorage.setItem('digestTab', name); }} catch(e) {{}}
 }}
@@ -1546,6 +1796,113 @@ function renderEstadisticas() {{
   }}).join('');
 }}
 
+/* ── Lista de lectura ────────────────────────────────────────────────── */
+var _BK_KEY = 'digestBookmarks';
+
+function _cargarBookmarks() {{
+  try {{ return JSON.parse(localStorage.getItem(_BK_KEY) || '[]'); }} catch(e) {{ return []; }}
+}}
+function _guardarBookmarks(lista) {{
+  try {{ localStorage.setItem(_BK_KEY, JSON.stringify(lista)); }} catch(e) {{}}
+}}
+function _actualizarContadorBK() {{
+  var n    = _cargarBookmarks().length;
+  var cnt  = document.getElementById('bookmark-count');
+  if (!cnt) return;
+  if (n > 0) {{ cnt.textContent = n; cnt.style.display = ''; }}
+  else        cnt.style.display = 'none';
+}}
+
+function toggleBookmark(ev, btn) {{
+  ev.stopPropagation();
+  var d       = btn.dataset;
+  var enlace  = d.enlace;
+  var lista   = _cargarBookmarks();
+  var idx     = lista.findIndex(function(x) {{ return x.enlace === enlace; }});
+  if (idx >= 0) {{
+    lista.splice(idx, 1);
+    btn.classList.remove('guardado');
+    btn.title = 'Guardar para leer';
+  }} else {{
+    lista.push({{ enlace: enlace, titulo: d.titulo, fuente: d.fuente, fecha: d.fecha }});
+    btn.classList.add('guardado');
+    btn.title = 'Quitar de la lista';
+  }}
+  _guardarBookmarks(lista);
+  _actualizarContadorBK();
+  if (_tabActual === 'para-leer') _renderizarParaLeer();
+}}
+
+function _renderizarParaLeer() {{
+  var lista = _cargarBookmarks();
+  var cont  = document.getElementById('para-leer-contenido');
+  var desc  = document.getElementById('para-leer-desc');
+  if (!cont) return;
+  if (lista.length === 0) {{
+    cont.innerHTML = '<div class="para-leer-empty">Todavía no has guardado ningún artículo.<br>Haz clic en ★ en cualquier tarjeta para añadirlo aquí.</div>';
+    if (desc) desc.textContent = 'Artículos guardados con ★ — se conservan entre sesiones';
+    return;
+  }}
+  if (desc) desc.textContent = lista.length + ' artículo(s) guardado(s)';
+  cont.innerHTML = '<div class="grid">' + lista.map(function(item) {{
+    var tit = item.titulo || '';
+    var src = item.fuente || '';
+    var fch = item.fecha  || '';
+    var url = item.enlace || '#';
+    return '<div class="tarjeta" style="cursor:default">' +
+      '<div class="tarjeta-meta"><div class="fuente-bloque">' +
+      '<span class="fuente-nombre">' + src + '</span>' +
+      '<span class="fecha">' + fch + '</span>' +
+      '</div>' +
+      '<button class="bookmark-btn guardado" title="Quitar de la lista" onclick="_eliminarBookmark(\'' + url.replace(/'/g,"\\u0027") + '\',this)">&#9733;</button>' +
+      '</div>' +
+      '<div class="titulo"><a href="' + url + '" target="_blank" rel="noopener noreferrer">' + tit + '</a></div>' +
+      '</div>';
+  }}).join('') + '</div>';
+}}
+
+function _eliminarBookmark(enlace, btn) {{
+  var lista = _cargarBookmarks().filter(function(x) {{ return x.enlace !== enlace; }});
+  _guardarBookmarks(lista);
+  _actualizarContadorBK();
+  _renderizarParaLeer();
+  // Quitar clase guardado del botón correspondiente en otras pestañas
+  document.querySelectorAll('.bookmark-btn[data-enlace="' + enlace + '"]').forEach(function(b) {{
+    b.classList.remove('guardado');
+    b.title = 'Guardar para leer';
+  }});
+}}
+
+function _sincronizarBotonesBK() {{
+  var guardados = new Set(_cargarBookmarks().map(function(x) {{ return x.enlace; }}));
+  document.querySelectorAll('.bookmark-btn').forEach(function(btn) {{
+    if (guardados.has(btn.dataset.enlace)) {{
+      btn.classList.add('guardado');
+      btn.title = 'Quitar de la lista';
+    }} else {{
+      btn.classList.remove('guardado');
+      btn.title = 'Guardar para leer';
+    }}
+  }});
+}}
+
+/* ── Resaltado de palabras clave ─────────────────────────────────────── */
+var _kwActuales = [];
+
+function aplicarKeywords(raw) {{
+  _kwActuales = raw.split(',').map(function(s) {{ return s.trim().toLowerCase(); }}).filter(Boolean);
+  try {{ localStorage.setItem('digestKeywords', raw); }} catch(e) {{}}
+  document.querySelectorAll('.tarjeta, .tarjeta-destacada').forEach(function(t) {{
+    if (_kwActuales.length === 0) {{
+      t.classList.remove('kw-match');
+    }} else {{
+      var texto = (t.dataset.search || '').toLowerCase();
+      var match = _kwActuales.some(function(kw) {{ return texto.includes(kw); }});
+      t.classList.toggle('kw-match', match);
+    }}
+  }});
+}}
+
 /* ── Vista inmersiva ─────────────────────────────────────────────────── */
 function abrirArticulo(el) {{
   var d         = el.dataset;
@@ -1580,6 +1937,16 @@ function abrirArticulo(el) {{
   var siaEl = document.getElementById('d-sesgo-ia');
   siaEl.textContent = sesgoIA.toUpperCase();
   siaEl.style.background = SESGO_COLORES[sesgoIA] || '#9ca3af';
+
+  var sent     = (d.sentimiento || '').toLowerCase();
+  var sentClss = {{'alarmista':'badge-sent-alarmista','neutral':'badge-sent-neutral','optimista':'badge-sent-optimista'}};
+  var sentIcon = {{'alarmista':'⚠','optimista':'✦'}};
+  var sentEl   = document.getElementById('d-sent');
+  if (sentEl) {{
+    sentEl.innerHTML = (sent && sent !== 'neutral')
+      ? '<span class="badge-sent ' + (sentClss[sent]||'') + '">' + (sentIcon[sent]||'') + ' ' + sent.toUpperCase() + '</span>'
+      : '';
+  }}
 
   var criticaEl = document.getElementById('d-critica');
   if (critica) {{
@@ -1622,10 +1989,67 @@ document.addEventListener('keydown', function(e) {{
   if (e.key === 'Escape') cerrarDrawer();
 }});
 
+/* ── Lanzar análisis IA sin re-descargar feeds ───────────────────────── */
+function lanzarAnalisisIA() {{
+  var btn = document.getElementById('ia-regen-btn');
+  btn.disabled = true;
+  btn.textContent = 'Analizando…';
+  // Intenta /analizar (solo IA); si no existe el endpoint, cae a /regenerar
+  fetch('/analizar', {{method:'POST'}})
+    .then(function(r) {{
+      if (!r.ok) throw new Error('no-endpoint');
+      return r.json();
+    }})
+    .then(function() {{
+      btn.textContent = 'Esperando resultado…';
+      // Sondea /estado cada 4 s hasta que generando === false
+      var poll = setInterval(function() {{
+        fetch('/estado').then(function(r){{return r.json();}}).then(function(s) {{
+          if (!s.generando) {{
+            clearInterval(poll);
+            window.location.reload();
+          }}
+        }}).catch(function(){{ clearInterval(poll); window.location.reload(); }});
+      }}, 4000);
+    }})
+    .catch(function() {{
+      // Sin servidor Flask (archivo local) o /analizar no existe: regenerar completo
+      window.location.href = '/regenerar';
+    }});
+}}
+
 /* ── Inicio ──────────────────────────────────────────────────────────── */
 (function() {{
   var last = 'destacadas';
   try {{ last = localStorage.getItem('digestTab') || 'destacadas'; }} catch(e) {{}}
+
+  // Restaurar palabras clave
+  try {{
+    var kw = localStorage.getItem('digestKeywords');
+    if (kw) {{
+      var kwInput = document.getElementById('kw-input');
+      if (kwInput) {{ kwInput.value = kw; aplicarKeywords(kw); }}
+    }}
+  }} catch(e) {{}}
+
+  // Actualizar contador de bookmarks
+  _actualizarContadorBK();
+
+  // Detectar artículos sin análisis IA y mostrar banner
+  var sinIA = document.querySelectorAll('[data-sesgo-ia="desconocido"]').length;
+  if (sinIA > 0) {{
+    document.getElementById('ia-banner-count').textContent = sinIA;
+    document.getElementById('ia-banner').style.display = 'flex';
+    // En modo archivo local (file://), ajustar el botón
+    if (window.location.protocol === 'file:') {{
+      var btn = document.getElementById('ia-regen-btn');
+      btn.textContent = 'Iniciar servidor Flask';
+      btn.onclick = function() {{
+        alert('Inicia el servidor Flask (app.py) o el .bat del escritorio para poder regenerar el análisis IA.');
+      }};
+    }}
+  }}
+
   switchTab(last);
 }})();
 </script>

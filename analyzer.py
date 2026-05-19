@@ -46,6 +46,11 @@ Para cada artículo, proporciona en {idioma}:
 - "importante": true si este artículo es uno de los 2 más relevantes e impactantes
   del lote (noticia de primer orden, alto impacto público), false en todos los demás.
   Marca exactamente 1 o 2 por lote, nunca más.
+- "sentimiento": el tono emocional predominante del artículo.
+  Usa exactamente uno de: "alarmista" | "neutral" | "optimista"
+  alarmista = urgencia, miedo, catastrofismo, indignación exagerada.
+  optimista  = esperanza, progreso, logro, solución destacada.
+  neutral    = informativo, factual, sin carga emocional marcada.
 
 Además proporciona:
 - "analisis_general": un párrafo de análisis crítico del conjunto de noticias
@@ -58,7 +63,7 @@ Artículos (JSON):
 Responde ÚNICAMENTE con este JSON (sin bloques de código, sin texto extra):
 {{
   "articulos": [
-    {{"sesgo_ia": "...", "critica": "...", "importante": false}},
+    {{"sesgo_ia": "...", "critica": "...", "importante": false, "sentimiento": "neutral"}},
     ...
   ],
   "analisis_general": "..."
@@ -159,9 +164,10 @@ def _analizar_categoria(
     analisis_articulos = resultado.get("articulos", [])
     for i, articulo in enumerate(articulos):
         datos_ia = analisis_articulos[i] if i < len(analisis_articulos) else {}
-        articulo["sesgo_ia"]   = datos_ia.get("sesgo_ia", "desconocido")
-        articulo["critica"]    = datos_ia.get("critica", "")
-        articulo["importante"] = bool(datos_ia.get("importante", False))
+        articulo["sesgo_ia"]    = datos_ia.get("sesgo_ia", "desconocido")
+        articulo["critica"]     = datos_ia.get("critica", "")
+        articulo["importante"]  = bool(datos_ia.get("importante", False))
+        articulo["sentimiento"] = datos_ia.get("sentimiento", "neutral")
 
     return articulos, resultado.get("analisis_general", "")
 
