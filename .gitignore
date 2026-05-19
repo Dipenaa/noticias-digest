@@ -1,0 +1,6 @@
+noticias.html
+__pycache__/
+*.pyc
+*.pyo
+.env
+CLAUDE.local.md

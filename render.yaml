@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: noticias-digest
+    env: python
+    region: frankfurt   # más cercano a España; cámbialo si prefieres otro
+    plan: free
+
+    buildCommand: pip install -r requirements.txt
+    startCommand: python app.py
+
+    # El digest se regenera automáticamente cada 6 horas.
+    # El free tier de Render duerme tras 15 min de inactividad;
+    # este cron lo mantiene vivo y el digest fresco.
+    # (Requiere plan Starter o superior para cron jobs en Render.
+    #  En free tier, llama a /regenerar manualmente o usa un servicio externo
+    #  como cron-job.org apuntando a https://tu-app.onrender.com/regenerar)
+
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false          # debes introducirla manualmente en Render Dashboard
+
+      # Descomenta para desactivar el análisis IA (solo RSS, gratis, sin cuota):
+      # - key: SIN_IA
+      #   value: "1"

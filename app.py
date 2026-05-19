@@ -1,0 +1,194 @@
+"""
+app.py — Servidor Flask para desplegar el digest en Render (o cualquier PaaS).
+
+Rutas:
+  GET /            → sirve el digest HTML más reciente
+  GET /regenerar   → lanza una regeneración en background y redirige a /
+  GET /estado      → JSON con el estado actual (generando, último update, errores)
+
+Flujo al arrancar:
+  1. Genera el digest completo en un hilo de background
+  2. Mientras tanto, / devuelve una página de "cargando"
+  3. Cuando termina, / devuelve el HTML completo
+  4. Render puede hacer cron de /regenerar para mantenerlo fresco
+
+Variables de entorno requeridas:
+  GEMINI_API_KEY   → tu clave de la API de Gemini (configúrala en Render Dashboard)
+"""
+
+import os
+import threading
+import traceback
+from datetime import datetime
+from flask import Flask, Response, redirect, jsonify
+
+# Importamos solo los módulos que no usan sys.stdout.reconfigure
+from fetcher import obtener_todas_las_noticias, obtener_noticias_alternativas
+from analyzer import analizar_todas_las_noticias
+from synthesizer import sintetizar_noticias
+from renderer import renderizar_html
+
+app = Flask(__name__)
+
+# ---------------------------------------------------------------------------
+# Estado global (compartido entre hilos con un lock)
+# ---------------------------------------------------------------------------
+
+_lock          = threading.Lock()
+_html_cache    = None          # HTML generado más reciente (str)
+_generando     = False         # True mientras hay una generación en curso
+_ultimo_update = None          # datetime del último digest exitoso
+_ultimo_error  = None          # texto del último error, si lo hubo
+_sin_ia        = os.getenv("SIN_IA", "").lower() in ("1", "true", "yes")
+
+
+# ---------------------------------------------------------------------------
+# Lógica de generación (se ejecuta en un hilo separado)
+# ---------------------------------------------------------------------------
+
+def _generar():
+    """Descarga feeds, analiza con Gemini (si procede) y actualiza _html_cache."""
+    global _generando, _html_cache, _ultimo_update, _ultimo_error
+
+    with _lock:
+        if _generando:
+            return   # ya hay una generación en marcha
+        _generando = True
+
+    try:
+        print(f"[{datetime.now():%H:%M:%S}] Iniciando generación del digest...")
+
+        # 1. Descarga
+        noticias     = obtener_todas_las_noticias()
+        alternativas = obtener_noticias_alternativas()
+
+        # 2. Análisis IA (opcional — desactivado si SIN_IA=1 o no hay API key)
+        analisis:      dict = {}
+        analisis_alt:  dict = {}
+        grupos_sintesis: list = []
+
+        from config import GEMINI_API_KEY
+        ia_disponible = (not _sin_ia) and GEMINI_API_KEY not in ("TU_API_KEY_AQUÍ", "", None)
+
+        if ia_disponible:
+            print(f"[{datetime.now():%H:%M:%S}] Analizando con Gemini...")
+            noticias,     analisis     = analizar_todas_las_noticias(noticias)
+            alternativas, analisis_alt = analizar_todas_las_noticias(alternativas)
+            grupos_sintesis            = sintetizar_noticias(noticias, alternativas)
+        else:
+            print(f"[{datetime.now():%H:%M:%S}] Modo sin IA (SIN_IA=1 o API key no configurada)")
+
+        # 3. Renderiza
+        html = renderizar_html(
+            noticias, analisis,
+            alternativas, analisis_alt,
+            grupos_sintesis,
+        )
+
+        with _lock:
+            _html_cache    = html
+            _ultimo_update = datetime.now()
+            _ultimo_error  = None
+
+        print(f"[{datetime.now():%H:%M:%S}] Digest generado correctamente.")
+
+    except Exception:
+        err = traceback.format_exc()
+        print(f"[{datetime.now():%H:%M:%S}] ERROR durante la generación:\n{err}")
+        with _lock:
+            _ultimo_error = err
+
+    finally:
+        with _lock:
+            _generando = False
+
+
+def _lanzar_generacion():
+    """Arranca _generar() en un hilo daemon si no hay una en curso."""
+    t = threading.Thread(target=_generar, daemon=True)
+    t.start()
+
+
+# ---------------------------------------------------------------------------
+# Página de carga (se muestra mientras el digest no está listo)
+# ---------------------------------------------------------------------------
+
+_HTML_CARGANDO = """<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="refresh" content="8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generando digest…</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #09090b; color: #a1a1aa;
+           display: flex; flex-direction: column; align-items: center;
+           justify-content: center; height: 100vh; margin: 0; gap: 1.5rem; }
+    h1   { color: #fafafa; font-size: 1.2rem; font-weight: 700; }
+    .dot { display: inline-block; animation: blink 1.2s infinite; }
+    .dot:nth-child(2) { animation-delay: .2s; }
+    .dot:nth-child(3) { animation-delay: .4s; }
+    @keyframes blink { 0%,80%,100%{opacity:0} 40%{opacity:1} }
+    p    { font-size: .85rem; max-width: 340px; text-align: center; line-height:1.6; }
+  </style>
+</head>
+<body>
+  <h1>📰 Generando digest<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></h1>
+  <p>Descargando feeds RSS y analizando con Gemini.<br>
+     Esta página se recargará automáticamente cada 8 segundos.</p>
+</body>
+</html>"""
+
+
+# ---------------------------------------------------------------------------
+# Rutas Flask
+# ---------------------------------------------------------------------------
+
+@app.route("/")
+def index():
+    with _lock:
+        html  = _html_cache
+        error = _ultimo_error
+
+    if html:
+        return Response(html, mimetype="text/html; charset=utf-8")
+
+    if error:
+        return Response(
+            f"<pre style='color:red;background:#111;padding:2rem'>{error}</pre>",
+            status=500, mimetype="text/html",
+        )
+
+    return Response(_HTML_CARGANDO, status=503, mimetype="text/html")
+
+
+@app.route("/regenerar")
+def regenerar():
+    """Lanza una nueva generación en background y redirige al digest."""
+    _lanzar_generacion()
+    return redirect("/")
+
+
+@app.route("/estado")
+def estado():
+    """Devuelve el estado actual en JSON (útil para monitorización)."""
+    with _lock:
+        return jsonify({
+            "generando":     _generando,
+            "tiene_cache":   _html_cache is not None,
+            "ultimo_update": _ultimo_update.isoformat() if _ultimo_update else None,
+            "ultimo_error":  _ultimo_error is not None,
+        })
+
+
+# ---------------------------------------------------------------------------
+# Arranque
+# ---------------------------------------------------------------------------
+
+if __name__ == "__main__":
+    # Genera el digest al arrancar (en background para no bloquear el bind del puerto)
+    _lanzar_generacion()
+
+    port = int(os.environ.get("PORT", 5000))
+    # debug=False en producción; Render gestiona el proceso
+    app.run(host="0.0.0.0", port=port, debug=False)
