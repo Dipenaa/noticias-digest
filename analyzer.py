@@ -51,6 +51,22 @@ Para cada artículo, proporciona en {idioma}:
   alarmista = urgencia, miedo, catastrofismo, indignación exagerada.
   optimista  = esperanza, progreso, logro, solución destacada.
   neutral    = informativo, factual, sin carga emocional marcada.
+- "asombro": puntuación del 0 al 3 que indica cuánto amplía este artículo
+  la comprensión del mundo desde una perspectiva genuinamente humana.
+  Es completamente independiente del sesgo político y del impacto noticioso.
+  Pregúntate: ¿revela algo fascinante sobre cómo funciona el mundo, la gente,
+  la historia o la condición humana? ¿Conecta el presente con algo más grande?
+  ¿Es de esos artículos que te hacen parar y pensar aunque no sean urgentes?
+  0 = noticia rutinaria, sin dimensión más profunda
+  1 = algo interesante pero sin gran valor de asombro
+  2 = revela algo genuinamente fascinante (patrón histórico inesperado,
+      comportamiento humano sorprendente, descubrimiento que cambia perspectivas)
+  3 = excepcional: de esos artículos raros que expanden cómo entiendes el mundo
+  Sé muy exigente: en un lote de 10 artículos lo normal es 0 o 1 con puntuación 3,
+  y 1 o 2 con puntuación 2. La mayoría deberían ser 0 o 1.
+- "asombro_razon": si asombro es 2 o 3, una frase corta (15-25 palabras) que explique
+  por qué este artículo es fascinante desde una perspectiva humana o histórica.
+  Si asombro es 0 o 1, pon null.
 
 Además proporciona:
 - "analisis_general": un párrafo de análisis crítico del conjunto de noticias
@@ -63,7 +79,7 @@ Artículos (JSON):
 Responde ÚNICAMENTE con este JSON (sin bloques de código, sin texto extra):
 {{
   "articulos": [
-    {{"sesgo_ia": "...", "critica": "...", "importante": false, "sentimiento": "neutral"}},
+    {{"sesgo_ia": "...", "critica": "...", "importante": false, "sentimiento": "neutral", "asombro": 0, "asombro_razon": null}},
     ...
   ],
   "analisis_general": "..."
@@ -145,10 +161,12 @@ def _analizar_categoria(
     for i, a in enumerate(articulos):
         cached = _cache.get_articulo(a["enlace"])
         if cached:
-            a["sesgo_ia"]    = cached["sesgo_ia"]
-            a["critica"]     = cached["critica"]
-            a["sentimiento"] = cached["sentimiento"]
-            a["importante"]  = False  # la importancia es relativa al ciclo actual
+            a["sesgo_ia"]      = cached["sesgo_ia"]
+            a["critica"]       = cached["critica"]
+            a["sentimiento"]   = cached["sentimiento"]
+            a["asombro"]       = cached.get("asombro", 0)
+            a["asombro_razon"] = cached.get("asombro_razon")
+            a["importante"]    = False  # la importancia es relativa al ciclo actual
         else:
             nuevos_idx.append(i)
 
@@ -191,15 +209,19 @@ def _analizar_categoria(
     for j, orig_idx in enumerate(nuevos_idx):
         datos_ia = analisis_articulos[j] if j < len(analisis_articulos) else {}
         a = articulos[orig_idx]
-        a["sesgo_ia"]    = datos_ia.get("sesgo_ia", "desconocido")
-        a["critica"]     = datos_ia.get("critica", "")
-        a["importante"]  = bool(datos_ia.get("importante", False))
-        a["sentimiento"] = datos_ia.get("sentimiento", "neutral")
+        a["sesgo_ia"]       = datos_ia.get("sesgo_ia", "desconocido")
+        a["critica"]        = datos_ia.get("critica", "")
+        a["importante"]     = bool(datos_ia.get("importante", False))
+        a["sentimiento"]    = datos_ia.get("sentimiento", "neutral")
+        a["asombro"]        = int(datos_ia.get("asombro", 0) or 0)
+        a["asombro_razon"]  = datos_ia.get("asombro_razon") or None
 
         _cache.set_articulo(a["enlace"], {
-            "sesgo_ia":    a["sesgo_ia"],
-            "critica":     a["critica"],
-            "sentimiento": a["sentimiento"],
+            "sesgo_ia":      a["sesgo_ia"],
+            "critica":       a["critica"],
+            "sentimiento":   a["sentimiento"],
+            "asombro":       a["asombro"],
+            "asombro_razon": a["asombro_razon"],
         })
 
     analisis_general = resultado.get("analisis_general", "")

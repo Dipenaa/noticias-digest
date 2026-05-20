@@ -48,6 +48,7 @@ Digest personal de noticias en español. Descarga feeds RSS de ~51 fuentes organ
 - Añadida **barra de ordenación** en el UI: por defecto, más recientes, más antiguos, destacados primero, sesgo izquierda/derecha, más alarmistas
 - La ordenación actúa sobre los grids de la pestaña activa sin recargar la página
 - Pendiente verificar que las URLs RSS de Historia y Antropología funcionan en producción (usar discoverer.py si alguna falla)
+- Añadida pestaña **Asombro** (✨): Claude puntúa cada artículo de 0-3 en "asombro" (independiente del sesgo), los artículos con puntuación ≥2 aparecen aquí con estrellas y una frase explicando por qué son fascinantes. Diseño violeta/índigo para diferenciarlo del resto.
 
 ## Problema pendiente importante
 El disco de Render gratuito es efímero: `article_cache.json` se pierde cada vez que el servidor se reinicia. Soluciones posibles (no implementadas aún):

@@ -936,6 +936,33 @@ footer {
 .keywords-input:focus { border-color: #f59e0b; }
 .kw-sep { color: var(--border); font-size: 1.1rem; user-select: none; }
 
+/* ── Pestaña Asombro ─────────────────────────────────────────────────── */
+#tab-asombro { padding: 1rem; }
+.asombro-header { text-align: center; padding: 2rem 0 1.5rem; }
+.asombro-header h2 { font-size: 1.4rem; font-weight: 700; color: var(--txt-1); margin-bottom: .5rem; }
+.asombro-header p { font-size: .85rem; color: var(--txt-3); max-width: 520px; margin: 0 auto; line-height: 1.7; }
+.asombro-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px,1fr)); gap: 1.25rem; max-width: 1400px; margin: 0 auto; }
+.asombro-card {
+  background: var(--surface);
+  border: 1px solid var(--border-sub);
+  border-radius: var(--r);
+  padding: 1.25rem;
+  cursor: pointer;
+  transition: transform .15s, border-color .15s, box-shadow .15s;
+}
+.asombro-card:hover { transform: translateY(-2px); border-color: #7c3aed; box-shadow: 0 4px 20px rgba(124,58,237,.15); }
+.asombro-score { font-size: 1rem; color: #a78bfa; margin-bottom: .45rem; letter-spacing: .1em; }
+.asombro-cat { display: inline-block; font-size: .65rem; text-transform: uppercase; letter-spacing: .08em; color: #7c3aed; background: rgba(124,58,237,.1); border: 1px solid rgba(124,58,237,.3); border-radius: 9999px; padding: .1rem .5rem; margin-bottom: .6rem; }
+.asombro-titulo { font-size: .95rem; font-weight: 600; color: var(--txt-1); margin-bottom: .35rem; line-height: 1.4; }
+.asombro-titulo a { color: inherit; text-decoration: none; }
+.asombro-titulo a:hover { color: #a78bfa; }
+.asombro-fuente { font-size: .72rem; color: var(--txt-3); margin-bottom: .6rem; }
+.asombro-razon { font-size: .8rem; color: #c4b5fd; font-style: italic; margin-bottom: .6rem; line-height: 1.5; }
+.asombro-resumen { font-size: .8rem; color: var(--txt-2); line-height: 1.6; }
+.asombro-empty { text-align: center; padding: 5rem 1rem; color: var(--txt-3); }
+.asombro-empty-icon { font-size: 3rem; margin-bottom: 1rem; }
+.tab-btn[data-tab="asombro"].active { border-bottom-color: #7c3aed !important; color: #a78bfa !important; }
+
 /* ── Barra de ordenación ─────────────────────────────────────────────── */
 .sort-bar {
   position: sticky;
@@ -1446,6 +1473,94 @@ def _tab_estadisticas() -> str:
 # Punto de entrada público
 # ---------------------------------------------------------------------------
 
+def _asombro_card(articulo: dict) -> str:
+    score        = int(articulo.get("asombro") or 0)
+    razon        = (articulo.get("asombro_razon") or articulo.get("critica") or "").strip()
+    categoria    = articulo.get("_cat", "")
+    sesgo_ia     = articulo.get("sesgo_ia") or "desconocido"
+    sesgo_fuente = articulo.get("sesgo_fuente") or "desconocido"
+    importante   = "true" if articulo.get("importante") else "false"
+    estrellas    = "✦" * score + "✧" * (3 - score)
+    search_data  = f'{articulo["titulo"].lower()} {articulo["fuente"].lower()}'
+
+    da = {k: _html.escape(str(v), quote=True) for k, v in {
+        "titulo":      articulo["titulo"],
+        "fuente":      articulo["fuente"],
+        "fecha":       articulo["fecha"],
+        "enlace":      articulo["enlace"],
+        "resumen":     articulo.get("resumen") or "",
+        "critica":     articulo.get("critica") or "",
+        "sentimiento": articulo.get("sentimiento") or "",
+    }.items()}
+
+    razon_html = f'<p class="asombro-razon">💡 {_html.escape(razon)}</p>' if razon else ""
+    resumen_corto = _html.escape((articulo.get("resumen") or "")[:220])
+
+    return f"""
+<div class="asombro-card"
+     data-search="{_html.escape(search_data, quote=True)}"
+     data-sesgo-fuente="{sesgo_fuente}" data-sesgo-ia="{sesgo_ia}"
+     data-titulo="{da['titulo']}" data-fuente="{da['fuente']}"
+     data-fecha="{da['fecha']}" data-enlace="{da['enlace']}"
+     data-resumen="{da['resumen']}" data-critica="{da['critica']}"
+     data-sentimiento="{da['sentimiento']}"
+     data-importante="{importante}" data-order="0"
+     onclick="if(!event.target.closest('a'))abrirArticulo(this)">
+  <div class="asombro-score">{estrellas}</div>
+  <span class="asombro-cat">{_html.escape(categoria)}</span>
+  <h3 class="asombro-titulo">
+    <a href="{_html.escape(articulo['enlace'])}" target="_blank" rel="noopener"
+       onclick="event.stopPropagation()">{_html.escape(articulo['titulo'])}</a>
+  </h3>
+  <div class="asombro-fuente">{_html.escape(articulo['fuente'])} · {_html.escape(articulo['fecha'])}</div>
+  {razon_html}
+  <p class="asombro-resumen">{resumen_corto}</p>
+</div>"""
+
+
+def _tab_asombro(
+    noticias:     dict[str, list[dict]],
+    alternativas: dict[str, list[dict]],
+) -> tuple[str, int]:
+    """Pestaña Asombro. Devuelve (html, n_articulos)."""
+    candidatos: list[dict] = []
+
+    for cat, arts in noticias.items():
+        for a in arts:
+            if int(a.get("asombro") or 0) >= 2:
+                candidatos.append({**a, "_cat": cat})
+
+    for cat, arts in (alternativas or {}).items():
+        for a in arts:
+            if int(a.get("asombro") or 0) >= 2:
+                candidatos.append({**a, "_cat": cat})
+
+    candidatos.sort(key=lambda x: int(x.get("asombro") or 0), reverse=True)
+
+    if not candidatos:
+        return ("""
+<div class="asombro-header">
+  <h2>✨ Asombro</h2>
+  <p>Hoy el mundo no ha dicho nada especialmente fascinante,<br>
+     o todavía no hay análisis de IA disponible.</p>
+</div>
+<div class="asombro-empty">
+  <div class="asombro-empty-icon">🌍</div>
+  <p>Vuelve más tarde o activa la API de Claude para descubrir<br>qué hay de fascinante hoy.</p>
+</div>""", 0)
+
+    cards = "\n".join(_asombro_card(a) for a in candidatos)
+    return (f"""
+<div class="asombro-header">
+  <h2>✨ Asombro</h2>
+  <p>No las noticias más importantes del día — las que más te hacen pensar.<br>
+     Artículos que revelan algo genuinamente fascinante sobre el mundo.</p>
+</div>
+<div class="asombro-grid">
+{cards}
+</div>""", len(candidatos))
+
+
 def renderizar_html(
     noticias: dict[str, list[dict]],
     analisis: dict[str, str],
@@ -1489,13 +1604,14 @@ def renderizar_html(
         for cat, arts in noticias.items()
     )
 
-    destacadas   = _tab_destacadas(noticias, verificados)
-    libertaria   = _tab_libertaria(alternativas or {}, analisis_alt or {}, verificados)
-    sintesis     = _tab_sintesis(grupos_sintesis or [])
-    para_leer    = _tab_para_leer()
-    estadisticas = _tab_estadisticas()
-    total_alt    = sum(len(a) for a in (alternativas or {}).values())
-    n_sintesis   = len(grupos_sintesis) if grupos_sintesis else 0
+    destacadas          = _tab_destacadas(noticias, verificados)
+    libertaria          = _tab_libertaria(alternativas or {}, analisis_alt or {}, verificados)
+    sintesis            = _tab_sintesis(grupos_sintesis or [])
+    para_leer           = _tab_para_leer()
+    estadisticas        = _tab_estadisticas()
+    asombro_html, n_asombro = _tab_asombro(noticias, alternativas or {})
+    total_alt           = sum(len(a) for a in (alternativas or {}).values())
+    n_sintesis          = len(grupos_sintesis) if grupos_sintesis else 0
 
     # colores de sesgo para el JS del cliente
     sesgo_colores_js = "{" + ",".join(
@@ -1538,6 +1654,9 @@ def renderizar_html(
 <div class="tab-bar">
   <button class="tab-btn active" data-tab="destacadas" onclick="switchTab('destacadas')">
     &#9733; Destacadas
+  </button>
+  <button class="tab-btn" data-tab="asombro" onclick="switchTab('asombro')">
+    &#10024; Asombro{f'<span class="tab-count">{n_asombro}</span>' if n_asombro else ''}
   </button>
   <button class="tab-btn" data-tab="sintesis" onclick="switchTab('sintesis')">
     &#128279; S&#237;ntesis
@@ -1590,6 +1709,10 @@ def renderizar_html(
   <div id="tab-todas" class="tab-content">
     {_leyenda()}
     {secciones}
+  </div>
+
+  <div id="tab-asombro" class="tab-content">
+    {asombro_html}
   </div>
 
   <div id="tab-sintesis" class="tab-content">
@@ -1682,7 +1805,8 @@ function switchTab(name) {{
   var barra = document.querySelector('.search-bar');
   if (barra) barra.style.display = noSearch ? 'none' : 'flex';
   var sortBar = document.getElementById('sort-bar');
-  if (sortBar) sortBar.style.display = (noSearch || name === 'sintesis') ? 'none' : 'flex';
+  var noSort = noSearch || name === 'sintesis' || name === 'asombro';
+  if (sortBar) sortBar.style.display = noSort ? 'none' : 'flex';
 
   try {{
     if (name === 'estadisticas') {{
