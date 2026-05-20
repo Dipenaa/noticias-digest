@@ -1,104 +1,78 @@
 ---
 name: redisenar
-description: Rediseña el tema visual del digest de noticias. Úsalo cuando el usuario pida cambiar colores, estilo, textura o aspecto general de la web.
+description: Rediseña el tema visual del digest. Úsalo cuando el usuario pida cambiar colores, estilo, textura o aspecto general. Incluye workflow completo con preview local.
 ---
 
-# Skill: redisenar
+# Skill: /redisenar
 
-## Contexto del proyecto
-El digest es una app Flask en `C:\Users\Usuario\Desktop\noticias\`.
-Todo el CSS está embebido en `renderer.py` — en la constante `_CSS` (string Python multilínea).
-No hay archivos CSS externos. No hay framework de estilos. Todo es CSS puro.
+## Contexto
+- CSS en `styles.py` → constante `_CSS`. Este es el ÚNICO archivo a editar para diseño.
+- `renderer.py` importa `_CSS` desde `styles.py`.
+- Preview local en `localhost:5001` con botón 🔄 (servidor `preview.py`).
+- Ver `diseño.md` en rules/ para el sistema de diseño completo y colores hardcodeados.
 
-## Archivo a modificar
-`renderer.py` — solo el bloque `_CSS`. No tocar lógica Python ni JS salvo que el usuario lo pida explícitamente.
+## Proceso obligatorio
 
-## Paleta actual (tema Otoño — referencia para variaciones)
-```css
---bg:          #f0e6d3;   /* pergamino otoñal */
---surface:     #faf5ec;   /* papel cálido */
---surface-2:   #e8d9c0;   /* hover / elevado */
---border:      #c4a882;   /* ocre tierra */
---border-sub:  #ddd0b8;   /* borde sutil */
---txt-1:       #2a1a0e;   /* nogal oscuro */
---txt-2:       #6b3f20;   /* corteza marrón */
---txt-3:       #9a7355;   /* siena muted */
---accent:      #b5451b;   /* calabaza / siena tostada */
---accent-blue: #7b5e3a;   /* roble cálido */
---accent-green:#8b7a1e;   /* olivo dorado */
---accent-gold: #d4860a;   /* ámbar */
+### 1. Leer el estado actual
+```
+Leer styles.py completo antes de editar — nunca editar a ciegas.
 ```
 
-## Proceso obligatorio (en este orden)
+### 2. Si el usuario pide referencias o inspiración
+Buscar en web: `"best designed news websites 2025"`, `"news app UI design"`.
+Presentar 4-6 opciones con descripción del estilo visual, NO solo el nombre.
+Esperar confirmación antes de implementar.
 
-1. **Leer renderer.py** completo antes de editar — nunca editar a ciegas.
+### 3. Actualizar variables `:root` primero
+Casi todos los colores usan estas variables. Una buena paleta en `:root` propaga el cambio al 80% del UI.
 
-2. **Actualizar las variables `:root`** primero. Casi todos los colores usan estas variables, así que una buena paleta en `:root` propaga el cambio a casi todo.
+### 4. Actualizar colores hardcodeados
+Ver la tabla completa en `.claude/rules/diseño.md`. Los más comunes:
+- `.analisis-general`, `.critica`, `.drawer-critica` → bg, border, color
+- `.header-logo .icono`, `.seccion-acento` → gradiente
+- Hover shadows → cambiar `rgba(R,G,B,...)` con los nuevos valores RGB del acento
+- `.tab-bar::before` → si cambia el nombre/branding
+- `#ia-banner` → bg, border, color, botón
 
-3. **Buscar y actualizar colores hardcodeados** que NO usan variables. Los más comunes:
-   - `.analisis-general` → `background`, `border`, `color`
-   - `.critica` → `background`, `border`, `color`
-   - `.drawer-critica` → igual
-   - `.header-logo .icono` → gradiente de color
-   - `.seccion-acento` → gradiente de color
-   - `.tarjeta:hover` → `box-shadow` con color RGBA
-   - `.tarjeta-destacada:hover` → igual
-   - `.sintesis-card:hover` → igual
-   - `.sintesis-fuentes-count` → `background`, `border`
-   - `.drawer-btn-primary:hover` → color de hover
-   - `.drawer-btn-translate` → `background`, `color`, `border`
-   - `.badge-sent-optimista` → `background`, `color`
-   - `.badge-verified` → `background`, `color`, `border`
-   - `.tab-bar` → `background` hardcodeado
-   - `nav` → `background: rgba(...)` hardcodeado
-   - `header` → comprobar si usa `var(--surface)` o tiene color fijo
-   - `stat-kpi-valor` → gradiente de color
-   - `#ia-banner` → colores de fondo/texto/botón
+### 5. NO tocar (salvo petición explícita)
+- `#tab-libertaria` → acento rojo `#dc2626`
+- `.asombro-*` → acento violeta `#7c3aed`
+- `#tab-libertaria .tab-btn.active` → `border-left-color: #dc2626`
+- `.tab-btn[data-tab="asombro"].active` → `border-left-color: #7c3aed`
 
-4. **Textura de fondo**: si el usuario pide textura natural (papel, grano, lino, madera), añadirla en `body` con SVG inline:
-   ```css
-   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E");
-   ```
-   Ajustar `opacity` (0.02–0.06) y `baseFrequency` (0.6 = grano grueso, 0.9 = grano fino).
+### 6. Validar
+```powershell
+python -c "import renderer; print('OK')"
+```
 
-5. **Secciones especiales** — tienen acento propio, no romperlas:
-   - `#tab-libertaria` → acento rojo (`#dc2626`), no cambiar salvo petición explícita
-   - `.asombro-*` → acento violeta (`#7c3aed`), no cambiar salvo petición explícita
+### 7. Ver el resultado (sin gastar tokens)
+Decirle al usuario: "Pulsa 🔄 en localhost:5001 para ver el cambio."
+Solo tomar screenshot si el usuario lo pide o hay un problema que diagnosticar.
 
-6. **Validar** siempre antes de commitear:
-   ```powershell
-   python -c "import renderer; print('OK')"
-   python -c "
-   import re, renderer
-   html = renderer.renderizar_html({}, {}, {}, {}, [])
-   blocks = re.findall(r'<script[^>]*>(.*?)</script>', html, re.DOTALL)
-   for i, b in enumerate(blocks):
-       open(f'_tj{i}.js','w',encoding='utf-8').write(b)
-   print(len(blocks), 'bloques JS')
-   "
-   node --check _tj0.js; node --check _tj1.js; node --check _tj2.js
-   Remove-Item _tj*.js
-   ```
+Si necesito screenshot:
+```python
+import urllib.request
+urllib.request.urlopen('http://localhost:5001/regen')  # regenerar primero
+# Luego Playwright desde http://localhost:5001
+```
 
-7. **Commit y push**:
-   ```powershell
-   git add renderer.py
-   git commit -m @'
-   Rediseno tema <nombre>: <descripcion breve>
+### 8. Commit
+```powershell
+git add styles.py
+git commit -m "Rediseno tema <nombre>: <descripcion>
 
-   Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
-   '@
-   git push origin master
-   ```
+Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
+git push origin master
+```
 
 ## Contraste mínimo
-- Texto sobre fondo claro: ratio ≥ 4.5:1
+- Texto principal sobre fondo: ratio ≥ 4.5:1
 - Texto muted (`--txt-3`): ratio ≥ 3:1 sobre `--bg`
-- Nunca usar colores muy claros para texto en fondos blancos/crema
+- Nunca color claro sobre fondo blanco/crema
 
-## Ejemplos de variaciones posibles
-- **Invierno**: azules grisáceos, hielo, nieve, plateados fríos
-- **Primavera**: verdes frescos, rosa pálido, lavanda, flores
-- **Verano**: blancos brillantes, turquesa, coral, amarillo sol
-- **Noche**: oscuro con toques dorados / índigo profundo
-- **Periódico clásico**: blanco puro, negro, gris, serifas (cambiar font-family también)
+## Variaciones posibles desde el tema actual
+- **Noche**: `--bg: #0f0f0f`, surface oscuro, acento verde o dorado
+- **Periódico clásico**: blanco puro, negro, gris, cambiar `--font-serif` a fuente mono
+- **Primavera**: `--accent` a rosa/lavanda, bg a blanco puro
+- **Invierno**: azules grisáceos, `--accent` a azul pizarra
+- **Contraste alto**: bg blanco puro `#ffffff`, txt-1 negro puro `#000000`
