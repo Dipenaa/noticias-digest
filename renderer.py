@@ -24,20 +24,20 @@ from config import ARCHIVO_SALIDA
 # ---------------------------------------------------------------------------
 
 _CSS = """
-/* ── Variables — tema Papel Natural ─────────────────────────────────── */
+/* ── Variables — tema Otoño ──────────────────────────────────────────── */
 :root {
-  --bg:          #f4f1eb;   /* pergamino suave */
-  --surface:     #ffffff;   /* blanco limpio */
-  --surface-2:   #ece8de;   /* hover / elevado */
-  --border:      #c8beb0;   /* borde visible, tierra */
-  --border-sub:  #e3ddd3;   /* borde sutil */
-  --txt-1:       #1c2b1e;   /* texto principal — verde muy oscuro */
-  --txt-2:       #3a5c45;   /* texto secundario — verde bosque */
-  --txt-3:       #8a7f6e;   /* texto muted — tierra */
-  --accent:      #2d6a4f;   /* verde bosque principal */
-  --accent-blue: #3b7a6a;   /* teal oscuro */
-  --accent-green:#4a9e6b;   /* verde claro */
-  --accent-gold: #8b6914;   /* dorado tierra */
+  --bg:          #f0e6d3;   /* pergamino otoñal */
+  --surface:     #faf5ec;   /* papel cálido */
+  --surface-2:   #e8d9c0;   /* hover / elevado */
+  --border:      #c4a882;   /* ocre tierra */
+  --border-sub:  #ddd0b8;   /* borde sutil */
+  --txt-1:       #2a1a0e;   /* nogal oscuro */
+  --txt-2:       #6b3f20;   /* corteza marrón */
+  --txt-3:       #9a7355;   /* siena muted */
+  --accent:      #b5451b;   /* calabaza / siena tostada */
+  --accent-blue: #7b5e3a;   /* roble cálido */
+  --accent-green:#8b7a1e;   /* olivo dorado */
+  --accent-gold: #d4860a;   /* ámbar */
   --r:           0.375rem;
 }
 
@@ -45,7 +45,8 @@ _CSS = """
 
 body {
   font-family: system-ui, 'Segoe UI', -apple-system, sans-serif;
-  background: var(--bg);
+  background-color: var(--bg);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E");
   color: var(--txt-1);
   line-height: 1.65;
   font-size: 15px;
@@ -54,7 +55,7 @@ body {
 
 /* ── Cabecera ────────────────────────────────────────────────────────── */
 header {
-  background: #ffffff;
+  background: var(--surface);
   border-bottom: 1px solid var(--border-sub);
   box-shadow: 0 1px 4px rgba(0,0,0,0.07);
   padding: 0.875rem 2rem;
@@ -72,7 +73,7 @@ header {
 .header-logo .icono {
   width: 32px;
   height: 32px;
-  background: linear-gradient(135deg, #2d6a4f 0%, #4a9e6b 100%);
+  background: linear-gradient(135deg, #b5451b 0%, #d4860a 100%);
   border-radius: 9px;
   display: flex;
   align-items: center;
@@ -97,7 +98,7 @@ header .meta {
 
 /* ── Navegación ──────────────────────────────────────────────────────── */
 nav {
-  background: rgba(249,247,242,0.97);
+  background: rgba(240,230,211,0.97);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   padding: 0.45rem 2rem;
@@ -163,7 +164,7 @@ main { max-width: 1340px; margin: 0 auto; padding: 2.5rem 2rem; }
 .seccion-acento {
   width: 4px;
   height: 1.2rem;
-  background: linear-gradient(180deg, #4a9e6b, #2d6a4f);
+  background: linear-gradient(180deg, #d4860a, #b5451b);
   border-radius: 9999px;
   flex-shrink: 0;
 }
@@ -177,13 +178,13 @@ main { max-width: 1340px; margin: 0 auto; padding: 2.5rem 2rem; }
 
 /* ── Bloque de análisis crítico general ──────────────────────────────── */
 .analisis-general {
-  background: #f0f7f3;
-  border: 1px solid #c8ddd2;
+  background: #fdf0dc;
+  border: 1px solid #e0c080;
   border-left: 3px solid var(--accent);
   border-radius: var(--r);
   padding: 0.9rem 1.2rem;
   margin-bottom: 1.5rem;
-  color: #2d5040;
+  color: #5a2e0a;
   font-size: 0.855rem;
   line-height: 1.7;
 }
@@ -216,7 +217,7 @@ main { max-width: 1340px; margin: 0 auto; padding: 2.5rem 2rem; }
 }
 .tarjeta:hover {
   border-color: var(--accent);
-  box-shadow: 0 2px 12px rgba(45,106,79,0.12), 0 1px 3px rgba(0,0,0,0.06);
+  box-shadow: 0 2px 12px rgba(181,69,27,0.14), 0 1px 3px rgba(0,0,0,0.06);
 }
 
 .tarjeta-meta {
@@ -275,13 +276,13 @@ main { max-width: 1340px; margin: 0 auto; padding: 2.5rem 2rem; }
 
 /* ── Crítica de IA ───────────────────────────────────────────────────── */
 .critica {
-  background: #f0f7f3;
-  border: 1px solid #c8ddd2;
+  background: #fdf0dc;
+  border: 1px solid #e0c080;
   border-left: 2px solid var(--accent);
   border-radius: calc(var(--r) - 1px);
   padding: 0.55rem 0.875rem;
   font-size: 0.77rem;
-  color: #2d5040;
+  color: #5a2e0a;
   line-height: 1.55;
   margin-top: auto;
 }
@@ -307,7 +308,7 @@ footer {
 
 /* ── Barra de pestañas ───────────────────────────────────────────────── */
 .tab-bar {
-  background: #f9f7f2;
+  background: #ede4d0;
   border-bottom: 1px solid var(--border-sub);
   padding: 0 2rem;
   display: flex;
@@ -363,7 +364,7 @@ footer {
 }
 .tarjeta-destacada:hover {
   border-color: var(--accent);
-  box-shadow: 0 2px 16px rgba(45,106,79,0.14), 0 1px 4px rgba(0,0,0,0.06);
+  box-shadow: 0 2px 16px rgba(181,69,27,0.14), 0 1px 4px rgba(0,0,0,0.06);
 }
 
 /* Indicador de categoría en la tarjeta destacada */
@@ -488,7 +489,7 @@ footer {
   transition: border-color 0.18s, box-shadow 0.18s;
 }
 .sintesis-card:hover {
-  box-shadow: 0 2px 12px rgba(45,106,79,0.12);
+  box-shadow: 0 2px 12px rgba(181,69,27,0.13);
 }
 
 .sintesis-meta {
@@ -503,11 +504,11 @@ footer {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  background: #e8f5ee;
+  background: #fdefd0;
   color: var(--accent);
   padding: 0.2rem 0.6rem;
   border-radius: 9999px;
-  border: 1px solid #c8ddd2;
+  border: 1px solid #e0c080;
 }
 
 .sintesis-titulo {
@@ -626,7 +627,7 @@ footer {
 .stat-kpi-valor {
   font-size: 2.2rem;
   font-weight: 800;
-  background: linear-gradient(135deg, var(--accent), var(--accent-green));
+  background: linear-gradient(135deg, var(--accent), var(--accent-gold));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -826,12 +827,12 @@ footer {
   line-height: 1.8;
 }
 .drawer-critica {
-  background: #f0f7f3;
-  border: 1px solid #c8ddd2;
+  background: #fdf0dc;
+  border: 1px solid #e0c080;
   border-radius: calc(var(--r) - 1px);
   padding: 0.875rem 1rem;
   font-size: 0.82rem;
-  color: #2d5040;
+  color: #5a2e0a;
   line-height: 1.65;
 }
 
@@ -860,11 +861,11 @@ footer {
   gap: 0.4rem;
 }
 .drawer-btn-primary { background: var(--accent); color: #fff; }
-.drawer-btn-primary:hover { background: #1e5c3d; }
+.drawer-btn-primary:hover { background: #8b3112; }
 .drawer-btn-secondary { background: var(--surface-2); color: var(--txt-1); border: 1px solid var(--border-sub); }
 .drawer-btn-secondary:hover { background: var(--border-sub); }
-.drawer-btn-translate { background: #eef7ff; color: #1e5c8a; border: 1px solid #bdd8f0; }
-.drawer-btn-translate:hover { background: #daedf9; }
+.drawer-btn-translate { background: #fdf5e0; color: #7b5c1a; border: 1px solid #e0c87a; }
+.drawer-btn-translate:hover { background: #f5e8c0; }
 
 /* Clic en tarjeta abre el drawer */
 .tarjeta, .tarjeta-destacada { cursor: pointer; }
@@ -881,7 +882,7 @@ footer {
 }
 .badge-sent-alarmista { background: #fef2f2; color: #b91c1c; }
 .badge-sent-neutral   { background: #f3f4f6; color: #6b7280; }
-.badge-sent-optimista { background: #f0f7f3; color: #2d6a4f; }
+.badge-sent-optimista { background: #fef3d0; color: #8b6914; }
 
 /* ── Badge multi-fuente verificado ───────────────────────────────────── */
 .badge-verified {
@@ -890,9 +891,9 @@ footer {
   letter-spacing: 0.04em;
   padding: 0.15rem 0.5rem;
   border-radius: 9999px;
-  background: #eef2ff;
-  color: #4338ca;
-  border: 1px solid #c7d2fe;
+  background: #fdf0e0;
+  color: #8b4513;
+  border: 1px solid #d4a87a;
 }
 
 /* ── Bookmark ────────────────────────────────────────────────────────── */
