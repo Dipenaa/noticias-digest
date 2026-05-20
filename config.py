@@ -9,8 +9,9 @@ import os
 # ---------------------------------------------------------------------------
 # API de Anthropic (Claude) — análisis de sesgo y síntesis
 # ---------------------------------------------------------------------------
-ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
-CLAUDE_MODEL      = "claude-sonnet-4-6"
+ANTHROPIC_API_KEY     = os.getenv("ANTHROPIC_API_KEY", "")
+CLAUDE_MODEL          = "claude-sonnet-4-6"           # síntesis cruzada
+CLAUDE_MODEL_ANALISIS = "claude-haiku-4-5-20251001"   # análisis masivo (20× más barato)
 
 # ---------------------------------------------------------------------------
 # API de Gemini — descubrimiento de fuentes (discoverer.py)

@@ -4,6 +4,11 @@ analyzer.py — Análisis de sesgo y crítica periodística con la API de Claude
 Estrategia: en lugar de llamar a la API artículo por artículo (caro y lento),
 enviamos todos los artículos de una categoría en una sola llamada y pedimos
 una respuesta JSON estructurada.  Así el coste es O(categorías), no O(artículos).
+
+Optimizaciones de coste:
+- Caché persistente: artículos ya analizados no se re-envían a Claude (TTL 24h).
+- Modelo Haiku para análisis masivo (≈20× más barato que Sonnet).
+- Sonnet se reserva para la síntesis cruzada en synthesizer.py.
 """
 
 import json
@@ -11,25 +16,23 @@ import time
 import anthropic
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from config import ANTHROPIC_API_KEY, CLAUDE_MODEL, IDIOMA_ANALISIS
+from config import ANTHROPIC_API_KEY, CLAUDE_MODEL_ANALISIS, IDIOMA_ANALISIS
+from article_cache import ArticleCache
 
 
 # ---------------------------------------------------------------------------
 # Constantes
 # ---------------------------------------------------------------------------
 
-# Colores CSS para cada nivel de sesgo (compartidos con renderer.py)
 COLORES_SESGO: dict[str, str] = {
-    "izquierda":        "#3b82f6",  # azul
-    "centro-izquierda": "#60a5fa",  # azul claro
-    "centro":           "#6b7280",  # gris
-    "centro-derecha":   "#f97316",  # naranja
-    "derecha":          "#ef4444",  # rojo
-    "desconocido":      "#9ca3af",  # gris claro
+    "izquierda":        "#3b82f6",
+    "centro-izquierda": "#60a5fa",
+    "centro":           "#6b7280",
+    "centro-derecha":   "#f97316",
+    "derecha":          "#ef4444",
+    "desconocido":      "#9ca3af",
 }
 
-# Instrucción que se envía a Claude.
-# {idioma} y {articulos_json} se rellenan en tiempo de ejecución.
 _PROMPT = """
 Eres un analista periodístico crítico e imparcial. Tu tarea es analizar \
 los siguientes artículos de noticias y responder ÚNICAMENTE con JSON válido.
@@ -67,28 +70,28 @@ Responde ÚNICAMENTE con este JSON (sin bloques de código, sin texto extra):
 }}
 """
 
+# ---------------------------------------------------------------------------
+# Caché de artículos
+# ---------------------------------------------------------------------------
+
+_cache = ArticleCache()
 
 # ---------------------------------------------------------------------------
 # Llamada a la API
 # ---------------------------------------------------------------------------
 
 _REINTENTOS_MAX  = 4
-_ESPERA_BASE_429 = 30   # segundos de espera inicial tras rate limit
-_ESPERA_BASE_5XX = 5    # segundos de espera inicial tras error de servidor
+_ESPERA_BASE_429 = 30
+_ESPERA_BASE_5XX = 5
 
 
 def _llamar_claude(prompt: str) -> dict | None:
-    """
-    Envía un prompt a la API de Claude y devuelve el dict parseado.
-    Reintenta con espera exponencial en rate limit y errores 5xx.
-    Devuelve None si se agotan los reintentos o hay un error no recuperable.
-    """
     client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 
     for intento in range(1, _REINTENTOS_MAX + 1):
         try:
             message = client.messages.create(
-                model=CLAUDE_MODEL,
+                model=CLAUDE_MODEL_ANALISIS,
                 max_tokens=4096,
                 temperature=0.2,
                 messages=[{"role": "user", "content": prompt}],
@@ -133,76 +136,102 @@ def _llamar_claude(prompt: str) -> dict | None:
 
 
 # ---------------------------------------------------------------------------
-# Análisis por categoría
+# Análisis por categoría (con caché)
 # ---------------------------------------------------------------------------
 
 def _analizar_categoria(
+    categoria: str,
     articulos: list[dict],
 ) -> tuple[list[dict], str]:
-    """
-    Analiza todos los artículos de una categoría en una sola llamada.
-
-    Devuelve:
-        (articulos_enriquecidos, texto_analisis_general)
-    """
     if not articulos:
         return articulos, ""
 
-    payload_articulos = [
+    # Separar artículos nuevos de los ya cacheados
+    nuevos_idx: list[int] = []
+    for i, a in enumerate(articulos):
+        cached = _cache.get_articulo(a["enlace"])
+        if cached:
+            a["sesgo_ia"]    = cached["sesgo_ia"]
+            a["critica"]     = cached["critica"]
+            a["sentimiento"] = cached["sentimiento"]
+            a["importante"]  = False  # la importancia es relativa al ciclo actual
+        else:
+            nuevos_idx.append(i)
+
+    if not nuevos_idx:
+        analisis_general = _cache.get_analisis_general(categoria) or ""
+        print(f"  ✓ {categoria}: {len(articulos)} artículo(s) desde caché (0 tokens)")
+        return articulos, analisis_general
+
+    nuevos = [articulos[i] for i in nuevos_idx]
+    print(f"  → {categoria}: {len(nuevos)} nuevos / {len(articulos)} totales")
+
+    payload = [
         {
-            "id":      i,
+            "id":      j,
             "titulo":  a["titulo"],
             "fuente":  a["fuente"],
             "resumen": a["resumen"],
         }
-        for i, a in enumerate(articulos)
+        for j, a in enumerate(nuevos)
     ]
 
     prompt = _PROMPT.format(
         idioma=IDIOMA_ANALISIS,
-        articulos_json=json.dumps(payload_articulos, ensure_ascii=False, indent=2),
+        articulos_json=json.dumps(payload, ensure_ascii=False, indent=2),
     )
 
-    print(f"  → Enviando {len(articulos)} artículo(s) a Claude...")
+    print(f"  → Enviando {len(nuevos)} artículo(s) a Claude Haiku...")
     resultado = _llamar_claude(prompt)
 
     if resultado is None:
-        for a in articulos:
-            a["sesgo_ia"] = "desconocido"
-            a["critica"]  = "No se pudo obtener análisis de IA."
-        return articulos, "El análisis de IA no estuvo disponible para esta sección."
+        for i in nuevos_idx:
+            articulos[i]["sesgo_ia"]    = "desconocido"
+            articulos[i]["critica"]     = "No se pudo obtener análisis de IA."
+            articulos[i]["importante"]  = False
+            articulos[i]["sentimiento"] = "neutral"
+        return articulos, _cache.get_analisis_general(categoria) or \
+               "El análisis de IA no estuvo disponible para esta sección."
 
     analisis_articulos = resultado.get("articulos", [])
-    for i, articulo in enumerate(articulos):
-        datos_ia = analisis_articulos[i] if i < len(analisis_articulos) else {}
-        articulo["sesgo_ia"]    = datos_ia.get("sesgo_ia", "desconocido")
-        articulo["critica"]     = datos_ia.get("critica", "")
-        articulo["importante"]  = bool(datos_ia.get("importante", False))
-        articulo["sentimiento"] = datos_ia.get("sentimiento", "neutral")
+    for j, orig_idx in enumerate(nuevos_idx):
+        datos_ia = analisis_articulos[j] if j < len(analisis_articulos) else {}
+        a = articulos[orig_idx]
+        a["sesgo_ia"]    = datos_ia.get("sesgo_ia", "desconocido")
+        a["critica"]     = datos_ia.get("critica", "")
+        a["importante"]  = bool(datos_ia.get("importante", False))
+        a["sentimiento"] = datos_ia.get("sentimiento", "neutral")
 
-    return articulos, resultado.get("analisis_general", "")
+        _cache.set_articulo(a["enlace"], {
+            "sesgo_ia":    a["sesgo_ia"],
+            "critica":     a["critica"],
+            "sentimiento": a["sentimiento"],
+        })
+
+    analisis_general = resultado.get("analisis_general", "")
+    if analisis_general:
+        _cache.set_analisis_general(categoria, analisis_general)
+    else:
+        analisis_general = _cache.get_analisis_general(categoria) or ""
+
+    return articulos, analisis_general
 
 
 # ---------------------------------------------------------------------------
 # Punto de entrada público
 # ---------------------------------------------------------------------------
 
-_MAX_WORKERS_ANALYSIS = 3  # categorías analizadas en paralelo (respeta rate limits)
+_MAX_WORKERS_ANALYSIS = 3
 
 
 def analizar_todas_las_noticias(
     noticias: dict[str, list[dict]],
 ) -> tuple[dict[str, list[dict]], dict[str, str]]:
-    """
-    Analiza todas las categorías en paralelo (hasta 3 a la vez) y devuelve:
-        noticias_enriquecidas  → mismo dict pero con sesgo_ia y critica rellenos
-        analisis_por_categoria → {categoría: texto_análisis_general}
-    """
     analisis: dict[str, str] = {}
 
     def _tarea(categoria: str, articulos: list[dict]):
         print(f"\n🤖 Analizando: {categoria}")
-        return categoria, _analizar_categoria(articulos)
+        return categoria, _analizar_categoria(categoria, articulos)
 
     with ThreadPoolExecutor(max_workers=_MAX_WORKERS_ANALYSIS) as executor:
         futures = {
@@ -218,5 +247,9 @@ def analizar_todas_las_noticias(
             except Exception as e:
                 print(f"  ✗ Error inesperado analizando {cat}: {e}")
                 analisis[cat] = ""
+
+    _cache.guardar()
+    stats = _cache.stats()
+    print(f"\n  💾 Caché: {stats['articulos_cacheados']} artículos guardados")
 
     return noticias, analisis
