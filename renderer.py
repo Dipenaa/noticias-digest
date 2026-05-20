@@ -312,7 +312,6 @@ footer {
 
 /* ── Contenido de pestañas (oculto por defecto; JS muestra el activo) ── */
 .tab-content { display: none; }
-#tab-destacadas { display: block; }   /* visible sin JS */
 
 /* ── Barra de pestañas ───────────────────────────────────────────────── */
 .tab-bar {
@@ -1524,7 +1523,7 @@ def renderizar_html(
 <div class="search-bar">
   <input class="search-input" id="buscador" type="search"
          placeholder="Buscar en noticias..." autocomplete="off"
-         oninput="buscar(this.value)">
+         oninput="clearTimeout(_buscarTimer);_buscarTimer=setTimeout(function(){{buscar(document.getElementById('buscador').value)}},200)">
   <span class="kw-sep">|</span>
   <input class="keywords-input" id="kw-input" type="text"
          placeholder="Resaltar palabras clave..." autocomplete="off"
@@ -1610,6 +1609,7 @@ def renderizar_html(
 var _tabActual    = 'destacadas';
 var _filtroSesgo  = null;
 var _statsReady   = false;
+var _buscarTimer  = null;
 var SESGO_COLORES = {sesgo_colores_js};
 
 /* ── Navegación por pestañas ─────────────────────────────────────────── */
@@ -1621,8 +1621,10 @@ function switchTab(name) {{
   document.querySelectorAll('.tab-btn').forEach(function(el) {{
     el.classList.remove('active');
   }});
-  document.getElementById('tab-' + name).style.display = 'block';
-  document.querySelector('[data-tab="' + name + '"]').classList.add('active');
+  var tabEl = document.getElementById('tab-' + name);
+  if (tabEl) tabEl.style.display = 'block';
+  var btnEl = document.querySelector('[data-tab="' + name + '"]');
+  if (btnEl) btnEl.classList.add('active');
 
   var nav = document.getElementById('cat-nav');
   if (nav) nav.style.display = name === 'todas' ? 'flex' : 'none';
@@ -1631,16 +1633,21 @@ function switchTab(name) {{
   var barra = document.querySelector('.search-bar');
   if (barra) barra.style.display = name === 'estadisticas' ? 'none' : 'flex';
 
-  if (name === 'estadisticas') {{
-    if (!_statsReady) {{ renderEstadisticas(); _statsReady = true; }}
-  }} else if (name === 'para-leer') {{
-    _renderizarParaLeer();
-  }} else {{
-    var q = document.getElementById('buscador').value;
-    if (q) buscar(q); else _limpiarContador();
-    _sincronizarBotonesBK();
-    if (_kwActuales.length) aplicarKeywords(document.getElementById('kw-input').value);
-  }}
+  try {{
+    if (name === 'estadisticas') {{
+      if (!_statsReady) {{ renderEstadisticas(); _statsReady = true; }}
+    }} else if (name === 'para-leer') {{
+      _renderizarParaLeer();
+    }} else {{
+      var q = document.getElementById('buscador');
+      if (q && q.value) buscar(q.value); else _limpiarContador();
+      _sincronizarBotonesBK();
+      if (_kwActuales && _kwActuales.length) {{
+        var kwIn = document.getElementById('kw-input');
+        if (kwIn) aplicarKeywords(kwIn.value);
+      }}
+    }}
+  }} catch(e) {{}}
   try {{ localStorage.setItem('digestTab', name); }} catch(e) {{}}
 }}
 

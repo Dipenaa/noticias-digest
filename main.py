@@ -11,7 +11,7 @@ import sys
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 import time
 
-from config import GEMINI_API_KEY, GEMINI_MODEL
+from config import ANTHROPIC_API_KEY, CLAUDE_MODEL
 from fetcher import obtener_todas_las_noticias, obtener_noticias_alternativas
 from analyzer import analizar_todas_las_noticias
 from synthesizer import sintetizar_noticias
@@ -23,10 +23,10 @@ from renderer import renderizar_html, guardar_y_abrir
 # ---------------------------------------------------------------------------
 
 def _verificar_configuracion() -> None:
-    if GEMINI_API_KEY in ("TU_API_KEY_AQUÍ", "", None):
+    if ANTHROPIC_API_KEY in ("", None):
         print()
-        print("  ⚠  GEMINI_API_KEY no configurada.")
-        print("  Edita config.py o define la variable de entorno.")
+        print("  ⚠  ANTHROPIC_API_KEY no configurada.")
+        print("  Define la variable de entorno ANTHROPIC_API_KEY.")
         print("  También puedes usar: python main.py --sin-ia")
         print()
         sys.exit(1)
@@ -55,7 +55,7 @@ def main() -> None:
 
     if not sin_ia:
         _verificar_configuracion()
-        print(f"\n  Modelo IA : {GEMINI_MODEL}")
+        print(f"\n  Modelo IA : {CLAUDE_MODEL}")
     else:
         print("\n  Modo: solo RSS (sin análisis de IA)")
 
@@ -83,10 +83,10 @@ def main() -> None:
     if sin_ia:
         print("\n⏭  Saltando análisis de IA (--sin-ia activado)")
     else:
-        print("\n🤖 Analizando noticias principales con Gemini...")
+        print("\n🤖 Analizando noticias principales con Claude...")
         noticias, analisis = analizar_todas_las_noticias(noticias)
 
-        print("\n🤖 Analizando prensa libertaria con Gemini...")
+        print("\n🤖 Analizando prensa libertaria con Claude...")
         alternativas, analisis_alt = analizar_todas_las_noticias(alternativas)
 
         print("\n🔗 Detectando historias comunes y generando síntesis...")

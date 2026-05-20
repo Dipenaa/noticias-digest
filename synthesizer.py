@@ -1,7 +1,7 @@
 """
 synthesizer.py — Agrupa artículos relacionados y sintetiza perspectivas cruzadas.
 
-Estrategia de una sola llamada a Gemini:
+Estrategia de una sola llamada a Claude:
   1. Envía todos los artículos (id + fuente + título + resumen corto)
   2. Pide que detecte grupos que cubren el MISMO evento concreto
   3. Para cada grupo genera una síntesis que contrasta perspectivas
@@ -11,17 +11,12 @@ El resultado alimenta la pestaña "Síntesis" del digest HTML.
 """
 
 import json
-import requests
+import time
+import anthropic
 
-from config import GEMINI_API_KEY, GEMINI_MODEL, IDIOMA_ANALISIS
+from config import ANTHROPIC_API_KEY, CLAUDE_MODEL, IDIOMA_ANALISIS
 
-_GEMINI_URL = (
-    "https://generativelanguage.googleapis.com/v1beta/models/"
-    f"{GEMINI_MODEL}:generateContent?key={GEMINI_API_KEY}"
-)
-
-# Máximo de artículos que se envían a Gemini.
-# Con más de ~120 el prompt se vuelve muy largo para el tier gratuito.
+# Máximo de artículos que se envían a Claude.
 _MAX_ARTICULOS_SINTESIS = 120
 
 _PROMPT = """
@@ -60,29 +55,55 @@ Si ningún artículo está relacionado con otro, responde con {{"grupos": []}}.
 """
 
 
-def _llamar_gemini(prompt: str) -> dict | None:
-    payload = {
-        "contents": [{"parts": [{"text": prompt}]}],
-        "generationConfig": {
-            "temperature":     0.3,
-            "maxOutputTokens": 8192,
-        },
-    }
-    try:
-        resp = requests.post(_GEMINI_URL, json=payload, timeout=120)
-        resp.raise_for_status()
-        texto = resp.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
-        if texto.startswith("```"):
-            texto = "\n".join(texto.splitlines()[1:-1]).strip()
-        return json.loads(texto)
-    except requests.exceptions.HTTPError as e:
-        print(f"  ✗ Error HTTP {e.response.status_code}: {e.response.text[:200]}")
-    except requests.exceptions.Timeout:
-        print("  ✗ Gemini tardó demasiado (timeout 120 s)")
-    except json.JSONDecodeError as e:
-        print(f"  ✗ JSON inválido en la respuesta: {e}")
-    except Exception as e:
-        print(f"  ✗ Error inesperado: {e}")
+_REINTENTOS_MAX  = 3
+_ESPERA_BASE_429 = 30
+_ESPERA_BASE_5XX = 5
+
+
+def _llamar_claude(prompt: str) -> dict | None:
+    client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+
+    for intento in range(1, _REINTENTOS_MAX + 1):
+        try:
+            message = client.messages.create(
+                model=CLAUDE_MODEL,
+                max_tokens=8192,
+                temperature=0.3,
+                messages=[{"role": "user", "content": prompt}],
+            )
+            texto = message.content[0].text.strip()
+            if texto.startswith("```"):
+                texto = "\n".join(texto.splitlines()[1:-1]).strip()
+            return json.loads(texto)
+
+        except anthropic.RateLimitError:
+            if intento == _REINTENTOS_MAX:
+                print(f"  ✗ Rate limit en síntesis — reintentos agotados")
+                return None
+            espera = _ESPERA_BASE_429 * (2 ** (intento - 1))
+            print(f"  ⏳ Rate limit — esperando {espera}s (intento {intento}/{_REINTENTOS_MAX})...")
+            time.sleep(espera)
+
+        except anthropic.APIStatusError as e:
+            if e.status_code >= 500:
+                if intento == _REINTENTOS_MAX:
+                    print(f"  ✗ Error {e.status_code} — reintentos agotados")
+                    return None
+                espera = _ESPERA_BASE_5XX * (2 ** (intento - 1))
+                print(f"  ⏳ Error {e.status_code} — esperando {espera}s (intento {intento}/{_REINTENTOS_MAX})...")
+                time.sleep(espera)
+            else:
+                print(f"  ✗ Error API {e.status_code}: {str(e)[:200]}")
+                return None
+
+        except json.JSONDecodeError as e:
+            print(f"  ✗ JSON inválido en la respuesta: {e}")
+            return None
+
+        except Exception as e:
+            print(f"  ✗ Error inesperado: {e}")
+            return None
+
     return None
 
 
@@ -99,9 +120,9 @@ def sintetizar_noticias(
     Devuelve lista de grupos:
     [
         {
-            "titulo":    str,           # nombre de la historia
-            "sintesis":  str,           # texto cruzado generado por Gemini
-            "articulos": [              # artículos que la cubren
+            "titulo":    str,
+            "sintesis":  str,
+            "articulos": [
                 {
                     "fuente":       str,
                     "titulo":       str,
@@ -113,7 +134,6 @@ def sintetizar_noticias(
         }
     ]
     """
-    # ── Aplana todas las fuentes en una lista indexada ───────────────────
     todos: list[dict] = []
 
     for cat, arts in noticias.items():
@@ -128,19 +148,16 @@ def sintetizar_noticias(
     if not todos:
         return []
 
-    # Limita el volumen para no superar el contexto gratuito
     if len(todos) > _MAX_ARTICULOS_SINTESIS:
         print(f"  ℹ Limitando a {_MAX_ARTICULOS_SINTESIS} artículos para síntesis "
               f"(de {len(todos)} totales)")
         todos = todos[:_MAX_ARTICULOS_SINTESIS]
 
-    # ── Construye el payload — solo lo que Gemini necesita para agrupar ──
     payload = [
         {
             "id":      i,
             "fuente":  a["fuente"],
             "titulo":  a["titulo"],
-            # Resumen corto: suficiente para agrupar sin disparar los tokens
             "resumen": (a.get("resumen") or "")[:180],
         }
         for i, a in enumerate(todos)
@@ -152,12 +169,11 @@ def sintetizar_noticias(
     )
 
     print(f"  → Analizando {len(todos)} artículos en busca de historias comunes...")
-    resultado = _llamar_gemini(prompt)
+    resultado = _llamar_claude(prompt)
 
     if resultado is None:
         return []
 
-    # ── Mapea los IDs de vuelta a los artículos originales ───────────────
     grupos_finales: list[dict] = []
 
     for grupo in resultado.get("grupos", []):
@@ -173,10 +189,9 @@ def sintetizar_noticias(
                     "enlace":       a["enlace"],
                     "categoria":    a["_categoria"],
                     "sesgo_fuente": a.get("sesgo_fuente", "desconocido"),
-                    "alt":          a["_alt"],   # True si es fuente alternativa
+                    "alt":          a["_alt"],
                 })
 
-        # Solo incluimos grupos con ≥2 artículos de distintas fuentes
         fuentes_unicas = {art["fuente"] for art in articulos_grupo}
         if len(fuentes_unicas) >= 2:
             grupos_finales.append({
@@ -185,7 +200,6 @@ def sintetizar_noticias(
                 "articulos": articulos_grupo,
             })
 
-    # Ordena por número de fuentes: las historias más cubiertas primero
     grupos_finales.sort(key=lambda g: len(g["articulos"]), reverse=True)
 
     print(f"  ✓ {len(grupos_finales)} historia(s) detectada(s)")
