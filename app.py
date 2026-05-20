@@ -22,9 +22,10 @@ import time
 import threading
 import traceback
 from datetime import datetime
-from flask import Flask, Response, redirect, jsonify
+from flask import Flask, Response, redirect, jsonify, request
 
 _INTERVALO_HORAS = 12  # regenerar el digest cada N horas
+_PASSWORD = os.getenv("DIGEST_PASSWORD", "dipe")
 
 # Importamos solo los módulos que no usan sys.stdout.reconfigure
 from fetcher import obtener_todas_las_noticias, obtener_noticias_alternativas
@@ -33,6 +34,20 @@ from synthesizer import sintetizar_noticias
 from renderer import renderizar_html
 
 app = Flask(__name__)
+
+_RUTAS_PUBLICAS = {"/sw.js", "/manifest.json", "/icon.svg"}
+
+@app.before_request
+def _auth():
+    if request.path in _RUTAS_PUBLICAS:
+        return
+    auth = request.authorization
+    if not auth or auth.password != _PASSWORD:
+        return Response(
+            "Acceso restringido",
+            401,
+            {"WWW-Authenticate": 'Basic realm="Noticias Digest"'},
+        )
 
 # ---------------------------------------------------------------------------
 # Estado global (compartido entre hilos con un lock)
