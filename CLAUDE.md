@@ -43,6 +43,12 @@ Digest personal de noticias en español. Descarga feeds RSS de ~51 fuentes organ
 - **Validación de API key al arrancar** — aviso inmediato en logs si falta ANTHROPIC_API_KEY
 - **`/estado` mejorado** — ahora incluye `anthropic_key_ok`, `cache_articulos`, `cache_sintesis`
 
+## Última sesión (continuación)
+- Añadidas categorías **Historia** y **Antropología** a `config.py` con 4 fuentes RSS cada una
+- Añadida **barra de ordenación** en el UI: por defecto, más recientes, más antiguos, destacados primero, sesgo izquierda/derecha, más alarmistas
+- La ordenación actúa sobre los grids de la pestaña activa sin recargar la página
+- Pendiente verificar que las URLs RSS de Historia y Antropología funcionan en producción (usar discoverer.py si alguna falla)
+
 ## Problema pendiente importante
 El disco de Render gratuito es efímero: `article_cache.json` se pierde cada vez que el servidor se reinicia. Soluciones posibles (no implementadas aún):
 1. **Upstash Redis** (gratis hasta cierto límite) — sustituir el JSON por Redis

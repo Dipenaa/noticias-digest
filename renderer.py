@@ -936,6 +936,34 @@ footer {
 .keywords-input:focus { border-color: #f59e0b; }
 .kw-sep { color: var(--border); font-size: 1.1rem; user-select: none; }
 
+/* ── Barra de ordenación ─────────────────────────────────────────────── */
+.sort-bar {
+  position: sticky;
+  top: 140px;
+  z-index: 89;
+  background: var(--bg);
+  padding: .35rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--border-sub);
+}
+.sort-label { font-size: .72rem; color: var(--txt-3); margin-right: .15rem; white-space: nowrap; }
+.sort-btn {
+  font-size: .7rem;
+  padding: .18rem .55rem;
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--txt-2);
+  cursor: pointer;
+  transition: background .15s, color .15s;
+  white-space: nowrap;
+}
+.sort-btn:hover { background: var(--surface-2); color: var(--txt-1); }
+.sort-btn.active { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
+
 /* ── Pestaña Para Leer ───────────────────────────────────────────────── */
 .para-leer-header { margin-bottom: 1.5rem; padding-bottom: .875rem; border-bottom: 1px solid var(--border-sub); }
 .para-leer-header h2 { font-size: 1rem; font-weight: 700; color: var(--txt-1); letter-spacing: -.02em; margin-bottom: .3rem; }
@@ -1030,7 +1058,7 @@ def _badge_sentimiento(sentimiento: str) -> str:
     return f'<span class="badge-sent {cls}" title="Tono: {sentimiento}">{icon} {sentimiento.upper()}</span>'
 
 
-def _tarjeta(articulo: dict, verificados: frozenset = frozenset()) -> str:
+def _tarjeta(articulo: dict, verificados: frozenset = frozenset(), orden: int = 0) -> str:
     sesgo_fuente = articulo.get("sesgo_fuente") or "desconocido"
     sesgo_ia     = articulo.get("sesgo_ia")     or "desconocido"
     sentimiento  = articulo.get("sentimiento")  or ""
@@ -1055,6 +1083,8 @@ def _tarjeta(articulo: dict, verificados: frozenset = frozenset()) -> str:
         "sentimiento": sentimiento,
     }.items()}
 
+    importante = "true" if articulo.get("importante") else "false"
+
     return f"""
 <div class="tarjeta"
      data-search="{_html.escape(search_data, quote=True)}"
@@ -1063,6 +1093,7 @@ def _tarjeta(articulo: dict, verificados: frozenset = frozenset()) -> str:
      data-fecha="{da['fecha']}"   data-enlace="{da['enlace']}"
      data-resumen="{da['resumen']}" data-critica="{da['critica']}"
      data-sentimiento="{da['sentimiento']}"
+     data-importante="{importante}" data-order="{orden}"
      onclick="if(!event.target.closest('a,.bookmark-btn'))abrirArticulo(this)">
   <div class="tarjeta-meta">
     <div class="fuente-bloque">
@@ -1097,7 +1128,7 @@ def _seccion(categoria: str, articulos: list[dict], analisis: str,
     id_seccion = categoria.lower().replace(" ", "-")
 
     if articulos:
-        tarjetas = "\n".join(_tarjeta(a, verificados) for a in articulos)
+        tarjetas = "\n".join(_tarjeta(a, verificados, i) for i, a in enumerate(articulos))
         contenido = f'<div class="grid">{tarjetas}</div>'
     else:
         contenido = '<p class="sin-articulos">No se encontraron artículos.</p>'
@@ -1537,6 +1568,17 @@ def renderizar_html(
   <span class="search-count" id="search-count"></span>
 </div>
 
+<div class="sort-bar" id="sort-bar">
+  <span class="sort-label">Ordenar:</span>
+  <button class="sort-btn active" onclick="sortCards('defecto',this)">Por defecto</button>
+  <button class="sort-btn" onclick="sortCards('fecha-desc',this)">Más recientes</button>
+  <button class="sort-btn" onclick="sortCards('fecha-asc',this)">Más antiguos</button>
+  <button class="sort-btn" onclick="sortCards('importante',this)">Destacados primero</button>
+  <button class="sort-btn" onclick="sortCards('sesgo-izq',this)">Sesgo ← izquierda</button>
+  <button class="sort-btn" onclick="sortCards('sesgo-der',this)">Sesgo → derecha</button>
+  <button class="sort-btn" onclick="sortCards('alarmista',this)">Más alarmistas</button>
+</div>
+
 {_nav(list(noticias.keys()))}
 
 <main>
@@ -1636,8 +1678,11 @@ function switchTab(name) {{
   if (nav) nav.style.display = name === 'todas' ? 'flex' : 'none';
 
   // La barra de búsqueda y el filtro solo tienen sentido fuera de Estadísticas
+  var noSearch = name === 'estadisticas' || name === 'para-leer';
   var barra = document.querySelector('.search-bar');
-  if (barra) barra.style.display = name === 'estadisticas' ? 'none' : 'flex';
+  if (barra) barra.style.display = noSearch ? 'none' : 'flex';
+  var sortBar = document.getElementById('sort-bar');
+  if (sortBar) sortBar.style.display = (noSearch || name === 'sintesis') ? 'none' : 'flex';
 
   try {{
     if (name === 'estadisticas') {{
@@ -2091,6 +2136,58 @@ function lanzarAnalisisIA() {{
 
   switchTab(last);
 }})();
+</script>
+
+<script>
+// ── Ordenación de artículos ───────────────────────────────────────────────
+var _SESGO_ORD = {{
+  'izquierda': 0, 'centro-izquierda': 1, 'centro': 2,
+  'centro-derecha': 3, 'derecha': 4, 'desconocido': 5
+}};
+var _SENT_ORD = {{'alarmista': 0, 'neutral': 1, 'optimista': 2}};
+
+function _parseFecha(s) {{
+  if (!s || s === 'Fecha desconocida') return 0;
+  var p = s.split(' '), f = (p[0]||'').split('/'), h = (p[1]||'00:00').split(':');
+  return new Date(f[2], f[1]-1, f[0], h[0], h[1]).getTime();
+}}
+
+function sortCards(criterio, btn) {{
+  document.querySelectorAll('.sort-btn').forEach(function(b) {{ b.classList.remove('active'); }});
+  if (btn) btn.classList.add('active');
+
+  var tab = document.querySelector('.tab-content[style*="block"]');
+  if (!tab) return;
+
+  tab.querySelectorAll('.grid, .grid-destacadas').forEach(function(grid) {{
+    var cards = Array.from(grid.querySelectorAll(':scope > .tarjeta, :scope > .tarjeta-destacada'));
+    if (cards.length < 2) return;
+
+    cards.sort(function(a, b) {{
+      switch (criterio) {{
+        case 'fecha-desc':
+          return _parseFecha(b.dataset.fecha) - _parseFecha(a.dataset.fecha);
+        case 'fecha-asc':
+          return _parseFecha(a.dataset.fecha) - _parseFecha(b.dataset.fecha);
+        case 'importante':
+          return (b.dataset.importante === 'true' ? 1 : 0) - (a.dataset.importante === 'true' ? 1 : 0);
+        case 'sesgo-izq':
+          return (_SESGO_ORD[a.dataset.sesgoIa] !== undefined ? _SESGO_ORD[a.dataset.sesgoIa] : 5)
+               - (_SESGO_ORD[b.dataset.sesgoIa] !== undefined ? _SESGO_ORD[b.dataset.sesgoIa] : 5);
+        case 'sesgo-der':
+          return (_SESGO_ORD[b.dataset.sesgoIa] !== undefined ? _SESGO_ORD[b.dataset.sesgoIa] : 5)
+               - (_SESGO_ORD[a.dataset.sesgoIa] !== undefined ? _SESGO_ORD[a.dataset.sesgoIa] : 5);
+        case 'alarmista':
+          return (_SENT_ORD[a.dataset.sentimiento] !== undefined ? _SENT_ORD[a.dataset.sentimiento] : 1)
+               - (_SENT_ORD[b.dataset.sentimiento] !== undefined ? _SENT_ORD[b.dataset.sentimiento] : 1);
+        default:
+          return parseInt(a.dataset.order || 0) - parseInt(b.dataset.order || 0);
+      }}
+    }});
+
+    cards.forEach(function(c) {{ grid.appendChild(c); }});
+  }});
+}}
 </script>
 
 <script>

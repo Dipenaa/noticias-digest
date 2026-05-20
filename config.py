@@ -78,6 +78,18 @@ FUENTES = {
         {"nombre": "BBC Science",      "url": "https://feeds.bbci.co.uk/news/science_and_environment/rss.xml",     "sesgo": "centro"},
         {"nombre": "New Scientist",    "url": "https://www.newscientist.com/feed/home/",                           "sesgo": "centro"},
     ],
+    "Historia": [
+        {"nombre": "National Geo Historia", "url": "https://www.nationalgeographic.com.es/historia/rss",           "sesgo": "centro"},
+        {"nombre": "Muy Historia",          "url": "https://www.muyinteresante.es/historia/rss",                   "sesgo": "centro"},
+        {"nombre": "History Extra (BBC)",   "url": "https://www.historyextra.com/feed/",                           "sesgo": "centro"},
+        {"nombre": "History Today",         "url": "https://www.historytoday.com/feed",                            "sesgo": "centro"},
+    ],
+    "Antropología": [
+        {"nombre": "Sapiens",               "url": "https://www.sapiens.org/feed/",                                "sesgo": "centro"},
+        {"nombre": "SINC Agencia",          "url": "https://www.agenciasinc.es/rss/biologia-y-biomedicina",        "sesgo": "centro"},
+        {"nombre": "Archaeology Magazine",  "url": "https://www.archaeology.org/feed",                             "sesgo": "centro"},
+        {"nombre": "The Conversation ES",   "url": "https://theconversation.com/es/feeds",                         "sesgo": "centro"},
+    ],
 }
 
 # ---------------------------------------------------------------------------
