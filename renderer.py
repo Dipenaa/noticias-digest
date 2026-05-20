@@ -318,7 +318,7 @@ footer {
   display: flex;
   gap: 0;
   position: sticky;
-  top: 53px;
+  top: 60px;
   z-index: 150;
 }
 
@@ -326,7 +326,7 @@ footer {
   background: none;
   border: none;
   border-bottom: 2px solid transparent;
-  color: var(--txt-3);
+  color: #7ab08a;
   cursor: pointer;
   font-size: 0.82rem;
   font-weight: 500;
@@ -336,7 +336,7 @@ footer {
   transition: color 0.15s, border-color 0.15s;
   margin-bottom: -1px;
 }
-.tab-btn:hover { color: var(--txt-2); }
+.tab-btn:hover { color: #a7d9b5; }
 .tab-btn.active {
   color: var(--txt-1);
   border-bottom-color: var(--accent);
@@ -344,7 +344,7 @@ footer {
 
 /* ── Navegación de categorías (solo en pestaña Todas) ────────────────── */
 #cat-nav {
-  top: 93px;   /* debajo de header + tab-bar */
+  top: 140px;   /* debajo de header (60px) + tab-bar (40px) + search-bar (40px) */
 }
 
 /* ── Tarjeta destacada (portada) ─────────────────────────────────────── */
@@ -436,7 +436,7 @@ footer {
   background: var(--bg);
   border-bottom: 1px solid var(--border-sub);
   position: sticky;
-  top: 93px;   /* debajo de header + tab-bar */
+  top: 100px;   /* debajo de header (60px) + tab-bar (40px) */
   z-index: 90;
 }
 
