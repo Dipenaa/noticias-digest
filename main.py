@@ -11,7 +11,7 @@ import sys
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 import time
 
-from config import ANTHROPIC_API_KEY, CLAUDE_MODEL
+from config import ANTHROPIC_API_KEY, CLAUDE_MODEL, CLAUDE_MODEL_ANALISIS
 from fetcher import obtener_todas_las_noticias, obtener_noticias_alternativas
 from analyzer import analizar_todas_las_noticias
 from synthesizer import sintetizar_noticias
@@ -55,7 +55,7 @@ def main() -> None:
 
     if not sin_ia:
         _verificar_configuracion()
-        print(f"\n  Modelo IA : {CLAUDE_MODEL}")
+        print(f"\n  Modelos IA : análisis={CLAUDE_MODEL_ANALISIS}, síntesis={CLAUDE_MODEL}")
     else:
         print("\n  Modo: solo RSS (sin análisis de IA)")
 
