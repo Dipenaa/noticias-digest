@@ -7,6 +7,7 @@ una respuesta JSON estructurada.  Así el coste es O(categorías), no O(artícul
 """
 
 import json
+import time
 import requests
 
 from config import GEMINI_API_KEY, GEMINI_MODEL, IDIOMA_ANALISIS
@@ -75,45 +76,79 @@ Responde ÚNICAMENTE con este JSON (sin bloques de código, sin texto extra):
 # Llamada a la API
 # ---------------------------------------------------------------------------
 
+_REINTENTOS_MAX  = 4      # intentos totales por llamada
+_ESPERA_BASE_429 = 30     # segundos de espera inicial tras un 429
+_ESPERA_BASE_5XX = 5      # segundos de espera inicial tras error de servidor
+
+
 def _llamar_gemini(prompt: str) -> dict | None:
     """
     Envía un prompt a la API de Gemini y devuelve el dict parseado.
-    Devuelve None si hay cualquier error (HTTP, JSON inválido, timeout).
+    Reintenta automáticamente con espera exponencial en 429 y errores 5xx.
+    Devuelve None si se agotan los reintentos o hay un error no recuperable.
     """
     payload = {
         "contents": [{"parts": [{"text": prompt}]}],
         "generationConfig": {
-            # Temperatura baja → respuestas más deterministas y estructuradas
-            "temperature":    0.2,
+            "temperature":     0.2,
             "maxOutputTokens": 4096,
         },
     }
 
-    try:
-        resp = requests.post(_GEMINI_URL, json=payload, timeout=90)
-        resp.raise_for_status()
+    for intento in range(1, _REINTENTOS_MAX + 1):
+        try:
+            resp = requests.post(_GEMINI_URL, json=payload, timeout=90)
 
-        texto = (
-            resp.json()["candidates"][0]["content"]["parts"][0]["text"]
-            .strip()
-        )
+            # 429 — cuota agotada: espera larga con backoff exponencial
+            if resp.status_code == 429:
+                if intento == _REINTENTOS_MAX:
+                    print(f"  ✗ 429 cuota agotada — reintentos agotados ({_REINTENTOS_MAX})")
+                    return None
+                espera = _ESPERA_BASE_429 * (2 ** (intento - 1))  # 30 s, 60 s, 120 s
+                print(f"  ⏳ 429 cuota agotada — esperando {espera} s (intento {intento}/{_REINTENTOS_MAX})...")
+                time.sleep(espera)
+                continue
 
-        # Gemini a veces envuelve el JSON en ```json ... ``` aunque le dijimos
-        # que no lo hiciera; lo limpiamos por si acaso.
-        if texto.startswith("```"):
-            lineas = texto.splitlines()
-            texto = "\n".join(lineas[1:-1]).strip()
+            # 5xx — error de servidor: espera corta con backoff
+            if resp.status_code >= 500:
+                if intento == _REINTENTOS_MAX:
+                    print(f"  ✗ Error {resp.status_code} — reintentos agotados")
+                    return None
+                espera = _ESPERA_BASE_5XX * (2 ** (intento - 1))  # 5 s, 10 s, 20 s
+                print(f"  ⏳ Error {resp.status_code} — esperando {espera} s (intento {intento}/{_REINTENTOS_MAX})...")
+                time.sleep(espera)
+                continue
 
-        return json.loads(texto)
+            resp.raise_for_status()
 
-    except requests.exceptions.HTTPError as e:
-        print(f"  ✗ Error HTTP {e.response.status_code}: {e.response.text[:300]}")
-    except requests.exceptions.Timeout:
-        print("  ✗ Gemini tardó demasiado (timeout 90 s)")
-    except json.JSONDecodeError as e:
-        print(f"  ✗ JSON inválido en la respuesta de Gemini: {e}")
-    except Exception as e:
-        print(f"  ✗ Error inesperado: {e}")
+            texto = (
+                resp.json()["candidates"][0]["content"]["parts"][0]["text"]
+                .strip()
+            )
+
+            # Gemini a veces envuelve el JSON en ```json ... ``` aunque le dijimos
+            # que no lo hiciera; lo limpiamos por si acaso.
+            if texto.startswith("```"):
+                lineas = texto.splitlines()
+                texto = "\n".join(lineas[1:-1]).strip()
+
+            return json.loads(texto)
+
+        except requests.exceptions.Timeout:
+            if intento == _REINTENTOS_MAX:
+                print("  ✗ Gemini tardó demasiado (timeout 90 s) — reintentos agotados")
+                return None
+            print(f"  ⏳ Timeout — reintentando ({intento}/{_REINTENTOS_MAX})...")
+            time.sleep(_ESPERA_BASE_5XX * intento)
+        except requests.exceptions.HTTPError as e:
+            print(f"  ✗ Error HTTP {e.response.status_code}: {e.response.text[:300]}")
+            return None
+        except json.JSONDecodeError as e:
+            print(f"  ✗ JSON inválido en la respuesta de Gemini: {e}")
+            return None
+        except Exception as e:
+            print(f"  ✗ Error inesperado: {e}")
+            return None
 
     return None
 
