@@ -24,7 +24,7 @@ import traceback
 from datetime import datetime
 from flask import Flask, Response, redirect, jsonify
 
-_INTERVALO_HORAS = 6   # regenerar el digest cada N horas
+_INTERVALO_HORAS = 12  # regenerar el digest cada N horas
 
 # Importamos solo los módulos que no usan sys.stdout.reconfigure
 from fetcher import obtener_todas_las_noticias, obtener_noticias_alternativas

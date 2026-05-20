@@ -24,32 +24,28 @@ from config import ARCHIVO_SALIDA
 # ---------------------------------------------------------------------------
 
 _CSS = """
-/* ── Variables de diseño — tema Bosque Vivo ──────────────────────────── */
+/* ── Variables — tema Papel Natural ─────────────────────────────────── */
 :root {
-  --bg:          #060e08;   /* verde casi negro */
-  --surface:     #0c1a10;   /* superficie de tarjetas — bosque oscuro */
-  --surface-2:   #132018;   /* hover / elevado */
-  --border:      #2a5435;   /* borde visible — verde selva */
-  --border-sub:  #162b1c;   /* borde sutil */
-  --txt-1:       #edfaf1;   /* texto principal — blanco ligeramente verde */
-  --txt-2:       #86efac;   /* texto secundario — verde suave */
-  --txt-3:       #4a7a58;   /* texto muted — verde apagado */
-  --accent:      #22c55e;   /* esmeralda vivo */
-  --accent-blue: #34d399;   /* teal-verde (reemplaza azul) */
-  --accent-green:#4ade80;   /* verde claro */
-  --accent-gold: #fbbf24;   /* dorado — contraste cálido */
-  --r:           0.5rem;    /* radio base de bordes */
+  --bg:          #f4f1eb;   /* pergamino suave */
+  --surface:     #ffffff;   /* blanco limpio */
+  --surface-2:   #ece8de;   /* hover / elevado */
+  --border:      #c8beb0;   /* borde visible, tierra */
+  --border-sub:  #e3ddd3;   /* borde sutil */
+  --txt-1:       #1c2b1e;   /* texto principal — verde muy oscuro */
+  --txt-2:       #3a5c45;   /* texto secundario — verde bosque */
+  --txt-3:       #8a7f6e;   /* texto muted — tierra */
+  --accent:      #2d6a4f;   /* verde bosque principal */
+  --accent-blue: #3b7a6a;   /* teal oscuro */
+  --accent-green:#4a9e6b;   /* verde claro */
+  --accent-gold: #8b6914;   /* dorado tierra */
+  --r:           0.375rem;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
   font-family: system-ui, 'Segoe UI', -apple-system, sans-serif;
-  background:
-    radial-gradient(ellipse 80% 40% at 15% 10%, rgba(34,197,94,0.07) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 50% at 85% 80%, rgba(52,211,153,0.06) 0%, transparent 60%),
-    radial-gradient(ellipse 40% 30% at 50% 50%, rgba(16,185,129,0.03) 0%, transparent 70%),
-    var(--bg);
+  background: var(--bg);
   color: var(--txt-1);
   line-height: 1.65;
   font-size: 15px;
@@ -58,11 +54,9 @@ body {
 
 /* ── Cabecera ────────────────────────────────────────────────────────── */
 header {
-  background: linear-gradient(135deg, rgba(10,22,13,0.97) 0%, rgba(6,14,8,0.97) 100%);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: #ffffff;
   border-bottom: 1px solid var(--border-sub);
-  box-shadow: 0 1px 0 rgba(34,197,94,0.15), 0 4px 24px rgba(0,0,0,0.5);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
   padding: 0.875rem 2rem;
   position: sticky;
   top: 0;
@@ -78,14 +72,13 @@ header {
 .header-logo .icono {
   width: 32px;
   height: 32px;
-  background: linear-gradient(135deg, #16a34a 0%, #22c55e 50%, #4ade80 100%);
+  background: linear-gradient(135deg, #2d6a4f 0%, #4a9e6b 100%);
   border-radius: 9px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 16px;
   flex-shrink: 0;
-  box-shadow: 0 0 12px rgba(34,197,94,0.45);
 }
 
 .header-logo h1 {
@@ -104,9 +97,9 @@ header .meta {
 
 /* ── Navegación ──────────────────────────────────────────────────────── */
 nav {
-  background: rgba(9, 9, 11, 0.9);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: rgba(249,247,242,0.97);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   padding: 0.45rem 2rem;
   display: flex;
   gap: 0.2rem;
@@ -170,10 +163,9 @@ main { max-width: 1340px; margin: 0 auto; padding: 2.5rem 2rem; }
 .seccion-acento {
   width: 4px;
   height: 1.2rem;
-  background: linear-gradient(180deg, #4ade80, #22c55e, #16a34a);
+  background: linear-gradient(180deg, #4a9e6b, #2d6a4f);
   border-radius: 9999px;
   flex-shrink: 0;
-  box-shadow: 0 0 6px rgba(34,197,94,0.5);
 }
 
 .seccion-titulo {
@@ -185,13 +177,13 @@ main { max-width: 1340px; margin: 0 auto; padding: 2.5rem 2rem; }
 
 /* ── Bloque de análisis crítico general ──────────────────────────────── */
 .analisis-general {
-  background: #071409;
-  border: 1px solid #1e4827;
+  background: #f0f7f3;
+  border: 1px solid #c8ddd2;
   border-left: 3px solid var(--accent);
   border-radius: var(--r);
   padding: 0.9rem 1.2rem;
   margin-bottom: 1.5rem;
-  color: #86efac;
+  color: #2d5040;
   font-size: 0.855rem;
   line-height: 1.7;
 }
@@ -200,7 +192,7 @@ main { max-width: 1340px; margin: 0 auto; padding: 2.5rem 2rem; }
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: #4ade80;
+  color: var(--accent);
   margin-bottom: 0.45rem;
 }
 
@@ -224,7 +216,7 @@ main { max-width: 1340px; margin: 0 auto; padding: 2.5rem 2rem; }
 }
 .tarjeta:hover {
   border-color: var(--accent);
-  box-shadow: 0 0 0 1px rgba(34,197,94,0.3), 0 0 20px rgba(34,197,94,0.08), 0 12px 32px rgba(0,0,0,0.5);
+  box-shadow: 0 2px 12px rgba(45,106,79,0.12), 0 1px 3px rgba(0,0,0,0.06);
 }
 
 .tarjeta-meta {
@@ -242,7 +234,7 @@ main { max-width: 1340px; margin: 0 auto; padding: 2.5rem 2rem; }
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.09em;
-  color: var(--txt-2);
+  color: var(--accent);
 }
 .fecha { font-size: 0.62rem; color: var(--txt-3); }
 
@@ -267,7 +259,7 @@ main { max-width: 1340px; margin: 0 auto; padding: 2.5rem 2rem; }
   letter-spacing: -0.015em;
 }
 .titulo a { color: var(--txt-1); text-decoration: none; transition: color 0.12s; }
-.titulo a:hover { color: var(--accent-green); }
+.titulo a:hover { color: var(--accent); }
 
 /* ── Resumen ─────────────────────────────────────────────────────────── */
 .resumen {
@@ -281,15 +273,15 @@ main { max-width: 1340px; margin: 0 auto; padding: 2.5rem 2rem; }
   flex-grow: 1;
 }
 
-/* ── Crítica de IA (verde) ───────────────────────────────────────────── */
+/* ── Crítica de IA ───────────────────────────────────────────────────── */
 .critica {
-  background: linear-gradient(135deg, #071409 0%, #091c0c 100%);
-  border: 1px solid #1a4a27;
-  border-left: 2px solid #22c55e;
+  background: #f0f7f3;
+  border: 1px solid #c8ddd2;
+  border-left: 2px solid var(--accent);
   border-radius: calc(var(--r) - 1px);
   padding: 0.55rem 0.875rem;
   font-size: 0.77rem;
-  color: #86efac;
+  color: #2d5040;
   line-height: 1.55;
   margin-top: auto;
 }
@@ -315,7 +307,7 @@ footer {
 
 /* ── Barra de pestañas ───────────────────────────────────────────────── */
 .tab-bar {
-  background: linear-gradient(180deg, rgba(8,16,10,0.98) 0%, rgba(6,14,8,0.98) 100%);
+  background: #f9f7f2;
   border-bottom: 1px solid var(--border-sub);
   padding: 0 2rem;
   display: flex;
@@ -329,7 +321,7 @@ footer {
   background: none;
   border: none;
   border-bottom: 2px solid transparent;
-  color: #7ab08a;
+  color: var(--txt-3);
   cursor: pointer;
   font-size: 0.82rem;
   font-weight: 500;
@@ -339,7 +331,7 @@ footer {
   transition: color 0.15s, border-color 0.15s;
   margin-bottom: -1px;
 }
-.tab-btn:hover { color: #a7d9b5; }
+.tab-btn:hover { color: var(--txt-1); }
 .tab-btn.active {
   color: var(--txt-1);
   border-bottom-color: var(--accent);
@@ -371,7 +363,7 @@ footer {
 }
 .tarjeta-destacada:hover {
   border-color: var(--accent);
-  box-shadow: 0 0 0 1px rgba(34,197,94,0.4), 0 0 30px rgba(34,197,94,0.1), 0 16px 40px rgba(0,0,0,0.5);
+  box-shadow: 0 2px 16px rgba(45,106,79,0.14), 0 1px 4px rgba(0,0,0,0.06);
 }
 
 /* Indicador de categoría en la tarjeta destacada */
@@ -485,9 +477,9 @@ footer {
 }
 
 .sintesis-card {
-  background: linear-gradient(160deg, #0c1a10 0%, #0a1a0d 100%);
+  background: var(--surface);
   border: 1px solid var(--border-sub);
-  border-top: 3px solid #22c55e;
+  border-top: 3px solid var(--accent);
   border-radius: var(--r);
   padding: 1.5rem;
   display: flex;
@@ -496,8 +488,7 @@ footer {
   transition: border-color 0.18s, box-shadow 0.18s;
 }
 .sintesis-card:hover {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 1px rgba(34,197,94,0.25), 0 0 24px rgba(34,197,94,0.08), 0 12px 32px rgba(0,0,0,0.4);
+  box-shadow: 0 2px 12px rgba(45,106,79,0.12);
 }
 
 .sintesis-meta {
@@ -512,11 +503,11 @@ footer {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  background: #052e16;
-  color: #4ade80;
+  background: #e8f5ee;
+  color: var(--accent);
   padding: 0.2rem 0.6rem;
   border-radius: 9999px;
-  border: 1px solid #166534;
+  border: 1px solid #c8ddd2;
 }
 
 .sintesis-titulo {
@@ -565,11 +556,11 @@ footer {
   line-height: 1.4;
   transition: color 0.12s;
 }
-.sintesis-fuente-link:hover { color: var(--accent-green); }
+.sintesis-fuente-link:hover { color: var(--accent); }
 
 .sintesis-fuente-alt {
   font-size: 0.6rem;
-  color: #f87171;
+  color: #dc2626;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -592,25 +583,25 @@ footer {
 #tab-libertaria .seccion-titulo { color: var(--txt-1); }
 
 #tab-libertaria .analisis-general {
-  background: #1a0a0a;
-  border-color: #7f1d1d;
+  background: #fff8f5;
+  border-color: #fbd5c5;
   border-left-color: #dc2626;
-  color: #fca5a5;
+  color: #7f1d1d;
 }
-#tab-libertaria .analisis-general-titulo { color: #f87171; }
+#tab-libertaria .analisis-general-titulo { color: #dc2626; }
 
 .libertaria-header {
-  background: #1a0a0a;
-  border: 1px solid #7f1d1d;
+  background: #fff8f5;
+  border: 1px solid #fbd5c5;
   border-left: 4px solid #dc2626;
   border-radius: var(--r);
   padding: 1rem 1.25rem;
   margin-bottom: 2.5rem;
-  color: #fca5a5;
+  color: #7f1d1d;
   font-size: 0.85rem;
   line-height: 1.65;
 }
-.libertaria-header strong { color: #f87171; display: block; margin-bottom: 0.3rem; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; }
+.libertaria-header strong { color: #dc2626; display: block; margin-bottom: 0.3rem; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; }
 
 #tab-libertaria .tab-btn.active { border-bottom-color: #dc2626; }
 
@@ -635,7 +626,7 @@ footer {
 .stat-kpi-valor {
   font-size: 2.2rem;
   font-weight: 800;
-  background: linear-gradient(135deg, #22c55e, #4ade80);
+  background: linear-gradient(135deg, var(--accent), var(--accent-green));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -710,7 +701,7 @@ footer {
 }
 .leyenda-items .badge:hover { opacity: .8; }
 .leyenda-items .badge.filtro-activo {
-  box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--accent);
+  box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
 }
 .leyenda-tip {
   font-size: .65rem;
@@ -739,13 +730,13 @@ footer {
 .drawer-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.65);
+  background: rgba(0, 0, 0, 0.4);
   z-index: 500;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.25s;
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
 }
 .drawer-overlay.open { opacity: 1; pointer-events: all; }
 
@@ -835,12 +826,12 @@ footer {
   line-height: 1.8;
 }
 .drawer-critica {
-  background: #0a1a0a;
-  border: 1px solid #14532d;
+  background: #f0f7f3;
+  border: 1px solid #c8ddd2;
   border-radius: calc(var(--r) - 1px);
   padding: 0.875rem 1rem;
   font-size: 0.82rem;
-  color: #4ade80;
+  color: #2d5040;
   line-height: 1.65;
 }
 
@@ -850,6 +841,7 @@ footer {
   display: flex;
   gap: 0.75rem;
   flex-shrink: 0;
+  flex-wrap: wrap;
 }
 .drawer-btn {
   flex: 1;
@@ -868,9 +860,11 @@ footer {
   gap: 0.4rem;
 }
 .drawer-btn-primary { background: var(--accent); color: #fff; }
-.drawer-btn-primary:hover { background: #4f46e5; }
+.drawer-btn-primary:hover { background: #1e5c3d; }
 .drawer-btn-secondary { background: var(--surface-2); color: var(--txt-1); border: 1px solid var(--border-sub); }
-.drawer-btn-secondary:hover { background: var(--border); }
+.drawer-btn-secondary:hover { background: var(--border-sub); }
+.drawer-btn-translate { background: #eef7ff; color: #1e5c8a; border: 1px solid #bdd8f0; }
+.drawer-btn-translate:hover { background: #daedf9; }
 
 /* Clic en tarjeta abre el drawer */
 .tarjeta, .tarjeta-destacada { cursor: pointer; }
@@ -885,9 +879,9 @@ footer {
   padding: 0.15rem 0.45rem;
   border-radius: 9999px;
 }
-.badge-sent-alarmista { background: #450a0a; color: #fca5a5; }
-.badge-sent-neutral   { background: #27272a; color: #71717a; }
-.badge-sent-optimista { background: #052e16; color: #86efac; }
+.badge-sent-alarmista { background: #fef2f2; color: #b91c1c; }
+.badge-sent-neutral   { background: #f3f4f6; color: #6b7280; }
+.badge-sent-optimista { background: #f0f7f3; color: #2d6a4f; }
 
 /* ── Badge multi-fuente verificado ───────────────────────────────────── */
 .badge-verified {
@@ -896,8 +890,9 @@ footer {
   letter-spacing: 0.04em;
   padding: 0.15rem 0.5rem;
   border-radius: 9999px;
-  background: #1e1b4b;
-  color: #a5b4fc;
+  background: #eef2ff;
+  color: #4338ca;
+  border: 1px solid #c7d2fe;
 }
 
 /* ── Bookmark ────────────────────────────────────────────────────────── */
@@ -951,13 +946,13 @@ footer {
   transition: transform .15s, border-color .15s, box-shadow .15s;
 }
 .asombro-card:hover { transform: translateY(-2px); border-color: #7c3aed; box-shadow: 0 4px 20px rgba(124,58,237,.15); }
-.asombro-score { font-size: 1rem; color: #a78bfa; margin-bottom: .45rem; letter-spacing: .1em; }
+.asombro-score { font-size: 1rem; color: #7c3aed; margin-bottom: .45rem; letter-spacing: .1em; }
 .asombro-cat { display: inline-block; font-size: .65rem; text-transform: uppercase; letter-spacing: .08em; color: #7c3aed; background: rgba(124,58,237,.1); border: 1px solid rgba(124,58,237,.3); border-radius: 9999px; padding: .1rem .5rem; margin-bottom: .6rem; }
 .asombro-titulo { font-size: .95rem; font-weight: 600; color: var(--txt-1); margin-bottom: .35rem; line-height: 1.4; }
 .asombro-titulo a { color: inherit; text-decoration: none; }
 .asombro-titulo a:hover { color: #a78bfa; }
 .asombro-fuente { font-size: .72rem; color: var(--txt-3); margin-bottom: .6rem; }
-.asombro-razon { font-size: .8rem; color: #c4b5fd; font-style: italic; margin-bottom: .6rem; line-height: 1.5; }
+.asombro-razon { font-size: .8rem; color: #6d28d9; font-style: italic; margin-bottom: .6rem; line-height: 1.5; }
 .asombro-resumen { font-size: .8rem; color: var(--txt-2); line-height: 1.6; }
 .asombro-empty { text-align: center; padding: 5rem 1rem; color: var(--txt-3); }
 .asombro-empty-icon { font-size: 3rem; margin-bottom: 1rem; }
@@ -989,7 +984,7 @@ footer {
   white-space: nowrap;
 }
 .sort-btn:hover { background: var(--surface-2); color: var(--txt-1); }
-.sort-btn.active { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
+.sort-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; }
 
 /* ── Pestaña Para Leer ───────────────────────────────────────────────── */
 .para-leer-header { margin-bottom: 1.5rem; padding-bottom: .875rem; border-bottom: 1px solid var(--border-sub); }
@@ -1024,18 +1019,18 @@ footer {
   display: none;
   align-items: center;
   gap: .75rem;
-  background: #1c1917;
-  border: 1px solid #78350f;
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
   border-radius: var(--r);
   padding: .6rem 1rem;
   margin: .75rem var(--pad-x);
   font-size: .8rem;
-  color: #fbbf24;
+  color: #92400e;
 }
 #ia-banner .ia-msg { flex: 1; }
 #ia-banner .ia-regen {
-  background: #92400e;
-  color: #fef3c7;
+  background: #d97706;
+  color: #fff;
   border: none;
   border-radius: var(--r);
   padding: .35rem .875rem;
@@ -1051,7 +1046,7 @@ footer {
 #ia-banner .ia-close {
   background: none;
   border: none;
-  color: #92400e;
+  color: #b45309;
   cursor: pointer;
   font-size: 1.1rem;
   line-height: 1;
@@ -1764,10 +1759,14 @@ def renderizar_html(
     <p class="drawer-resumen" id="d-resumen"></p>
     <div class="drawer-critica" id="d-critica" style="display:none"></div>
   </div>
-  <div class="drawer-footer">
+  <div class="drawer-footer" style="flex-wrap:wrap">
     <a class="drawer-btn drawer-btn-primary" id="d-btn-leer" href="#"
        target="_blank" rel="noopener noreferrer">
-      Leer art&#237;culo completo &#8599;
+      Leer art&#237;culo &#8599;
+    </a>
+    <a class="drawer-btn drawer-btn-translate" id="d-btn-traducir" href="#"
+       target="_blank" rel="noopener noreferrer">
+      &#127760; Traducir
     </a>
     <button class="drawer-btn drawer-btn-secondary" id="d-btn-compartir"
             onclick="compartirArticulo()">
@@ -2156,6 +2155,7 @@ function abrirArticulo(el) {{
   }}
 
   document.getElementById('d-btn-leer').href = enlace;
+  document.getElementById('d-btn-traducir').href = 'https://translate.google.com/translate?sl=auto&tl=es&u=' + encodeURIComponent(enlace);
 
   document.getElementById('drawer-overlay').classList.add('open');
   document.getElementById('drawer').classList.add('open');

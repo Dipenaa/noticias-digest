@@ -102,7 +102,7 @@ def _llamar_claude(prompt: str) -> dict | None:
         try:
             message = client.messages.create(
                 model=CLAUDE_MODEL_ANALISIS,
-                max_tokens=4096,
+                max_tokens=2048,
                 temperature=0.2,
                 messages=[{"role": "user", "content": prompt}],
             )

@@ -14,15 +14,9 @@ CLAUDE_MODEL          = "claude-sonnet-4-6"           # síntesis cruzada
 CLAUDE_MODEL_ANALISIS = "claude-haiku-4-5-20251001"   # análisis masivo (20× más barato)
 
 # ---------------------------------------------------------------------------
-# API de Gemini — descubrimiento de fuentes (discoverer.py)
-# ---------------------------------------------------------------------------
-ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
-CLAUDE_MODEL      = "claude-sonnet-4-6"
-
-# ---------------------------------------------------------------------------
 # Parámetros generales
 # ---------------------------------------------------------------------------
-MAX_ARTICULOS_POR_FUENTE = 5
+MAX_ARTICULOS_POR_FUENTE = 3   # 3 por fuente ≈ 40% menos tokens de análisis
 ARCHIVO_SALIDA           = "noticias.html"
 IDIOMA_ANALISIS          = "español"
 

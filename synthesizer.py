@@ -15,7 +15,7 @@ import time
 import hashlib
 import anthropic
 
-from config import ANTHROPIC_API_KEY, CLAUDE_MODEL, IDIOMA_ANALISIS
+from config import ANTHROPIC_API_KEY, CLAUDE_MODEL, CLAUDE_MODEL_ANALISIS, IDIOMA_ANALISIS
 from article_cache import shared as _cache
 
 # Máximo de artículos que se envían a Claude.
@@ -68,8 +68,8 @@ def _llamar_claude(prompt: str) -> dict | None:
     for intento in range(1, _REINTENTOS_MAX + 1):
         try:
             message = client.messages.create(
-                model=CLAUDE_MODEL,
-                max_tokens=8192,
+                model=CLAUDE_MODEL_ANALISIS,
+                max_tokens=4096,
                 temperature=0.3,
                 messages=[{"role": "user", "content": prompt}],
             )
