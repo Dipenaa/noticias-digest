@@ -310,6 +310,10 @@ footer {
   text-transform: uppercase;
 }
 
+/* ── Contenido de pestañas (oculto por defecto; JS muestra el activo) ── */
+.tab-content { display: none; }
+#tab-destacadas { display: block; }   /* visible sin JS */
+
 /* ── Barra de pestañas ───────────────────────────────────────────────── */
 .tab-bar {
   background: linear-gradient(180deg, rgba(8,16,10,0.98) 0%, rgba(6,14,8,0.98) 100%);
@@ -2046,22 +2050,27 @@ function lanzarAnalisisIA() {{
   }} catch(e) {{}}
 
   // Actualizar contador de bookmarks
-  _actualizarContadorBK();
+  try {{ _actualizarContadorBK(); }} catch(e) {{}}
 
   // Detectar artículos sin análisis IA y mostrar banner
-  var sinIA = document.querySelectorAll('[data-sesgo-ia="desconocido"]').length;
-  if (sinIA > 0) {{
-    document.getElementById('ia-banner-count').textContent = sinIA;
-    document.getElementById('ia-banner').style.display = 'flex';
-    // En modo archivo local (file://), ajustar el botón
-    if (window.location.protocol === 'file:') {{
-      var btn = document.getElementById('ia-regen-btn');
-      btn.textContent = 'Iniciar servidor Flask';
-      btn.onclick = function() {{
-        alert('Inicia el servidor Flask (app.py) o el .bat del escritorio para poder regenerar el análisis IA.');
-      }};
+  try {{
+    var sinIA = document.querySelectorAll('[data-sesgo-ia="desconocido"]').length;
+    if (sinIA > 0) {{
+      var bannerCount = document.getElementById('ia-banner-count');
+      var bannerEl    = document.getElementById('ia-banner');
+      if (bannerCount) bannerCount.textContent = sinIA;
+      if (bannerEl)    bannerEl.style.display = 'flex';
+      if (window.location.protocol === 'file:') {{
+        var regenBtn = document.getElementById('ia-regen-btn');
+        if (regenBtn) {{
+          regenBtn.textContent = 'Iniciar servidor Flask';
+          regenBtn.onclick = function() {{
+            alert('Inicia el servidor Flask (app.py) o el .bat del escritorio para regenerar el análisis IA.');
+          }};
+        }}
+      }}
     }}
-  }}
+  }} catch(e) {{}}
 
   switchTab(last);
 }})();
