@@ -2038,7 +2038,11 @@ function lanzarAnalisisIA() {{
 /* ── Inicio ──────────────────────────────────────────────────────────── */
 (function() {{
   var last = 'destacadas';
-  try {{ last = localStorage.getItem('digestTab') || 'destacadas'; }} catch(e) {{}}
+  try {{
+    var saved = localStorage.getItem('digestTab') || 'destacadas';
+    // 'todas' muestra todo en scroll continuo — no restaurar como tab de inicio
+    last = (saved === 'todas') ? 'destacadas' : saved;
+  }} catch(e) {{}}
 
   // Restaurar palabras clave
   try {{
