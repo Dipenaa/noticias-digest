@@ -2053,7 +2053,7 @@ function _renderizarParaLeer() {{
       '<span class="fuente-nombre">' + src + '</span>' +
       '<span class="fecha">' + fch + '</span>' +
       '</div>' +
-      '<button class="bookmark-btn guardado" title="Quitar de la lista" onclick="_eliminarBookmark(\'' + url.replace(/'/g,"\\u0027") + '\',this)">&#9733;</button>' +
+      '<button class="bookmark-btn guardado" title="Quitar de la lista" data-enlace-rm="' + url.replace(/"/g,'&quot;') + '" onclick="_eliminarBookmark(this.dataset.enlaceRm,this)">&#9733;</button>' +
       '</div>' +
       '<div class="titulo"><a href="' + url + '" target="_blank" rel="noopener noreferrer">' + tit + '</a></div>' +
       '</div>';
