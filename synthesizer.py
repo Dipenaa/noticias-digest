@@ -12,9 +12,11 @@ El resultado alimenta la pestaña "Síntesis" del digest HTML.
 
 import json
 import time
+import hashlib
 import anthropic
 
 from config import ANTHROPIC_API_KEY, CLAUDE_MODEL, IDIOMA_ANALISIS
+from article_cache import shared as _cache
 
 # Máximo de artículos que se envían a Claude.
 _MAX_ARTICULOS_SINTESIS = 120
@@ -153,6 +155,15 @@ def sintetizar_noticias(
               f"(de {len(todos)} totales)")
         todos = todos[:_MAX_ARTICULOS_SINTESIS]
 
+    # Comprobar caché antes de llamar a Claude
+    _clave_cache = hashlib.md5(
+        "|".join(sorted(a["enlace"] for a in todos)).encode()
+    ).hexdigest()
+    cached = _cache.get_sintesis(_clave_cache)
+    if cached is not None:
+        print(f"  ✓ Síntesis desde caché ({len(cached)} historia(s), 0 tokens)")
+        return cached
+
     payload = [
         {
             "id":      i,
@@ -202,5 +213,7 @@ def sintetizar_noticias(
 
     grupos_finales.sort(key=lambda g: len(g["articulos"]), reverse=True)
 
+    _cache.set_sintesis(_clave_cache, grupos_finales)
+    _cache.guardar()
     print(f"  ✓ {len(grupos_finales)} historia(s) detectada(s)")
     return grupos_finales

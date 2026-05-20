@@ -1,4 +1,5 @@
 noticias.html
+article_cache.json
 __pycache__/
 *.pyc
 *.pyo
