@@ -24,19 +24,20 @@ from config import ARCHIVO_SALIDA
 # ---------------------------------------------------------------------------
 
 _CSS = """
-/* ── Variables de diseño ─────────────────────────────────────────────── */
+/* ── Variables de diseño — tema Bosque Vivo ──────────────────────────── */
 :root {
-  --bg:          #09090b;   /* negro casi puro */
-  --surface:     #18181b;   /* superficie de tarjetas */
-  --surface-2:   #27272a;   /* hover / elevado */
-  --border:      #3f3f46;   /* borde visible */
-  --border-sub:  #27272a;   /* borde sutil */
-  --txt-1:       #fafafa;   /* texto principal — máximo contraste */
-  --txt-2:       #a1a1aa;   /* texto secundario */
-  --txt-3:       #52525b;   /* texto muted */
-  --accent:      #6366f1;   /* índigo */
-  --accent-blue: #3b82f6;
-  --accent-green:#22c55e;
+  --bg:          #060e08;   /* verde casi negro */
+  --surface:     #0c1a10;   /* superficie de tarjetas — bosque oscuro */
+  --surface-2:   #132018;   /* hover / elevado */
+  --border:      #2a5435;   /* borde visible — verde selva */
+  --border-sub:  #162b1c;   /* borde sutil */
+  --txt-1:       #edfaf1;   /* texto principal — blanco ligeramente verde */
+  --txt-2:       #86efac;   /* texto secundario — verde suave */
+  --txt-3:       #4a7a58;   /* texto muted — verde apagado */
+  --accent:      #22c55e;   /* esmeralda vivo */
+  --accent-blue: #34d399;   /* teal-verde (reemplaza azul) */
+  --accent-green:#4ade80;   /* verde claro */
+  --accent-gold: #fbbf24;   /* dorado — contraste cálido */
   --r:           0.5rem;    /* radio base de bordes */
 }
 
@@ -44,7 +45,11 @@ _CSS = """
 
 body {
   font-family: system-ui, 'Segoe UI', -apple-system, sans-serif;
-  background: var(--bg);
+  background:
+    radial-gradient(ellipse 80% 40% at 15% 10%, rgba(34,197,94,0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 85% 80%, rgba(52,211,153,0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 30% at 50% 50%, rgba(16,185,129,0.03) 0%, transparent 70%),
+    var(--bg);
   color: var(--txt-1);
   line-height: 1.65;
   font-size: 15px;
@@ -53,10 +58,11 @@ body {
 
 /* ── Cabecera ────────────────────────────────────────────────────────── */
 header {
-  background: rgba(24, 24, 27, 0.94);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: linear-gradient(135deg, rgba(10,22,13,0.97) 0%, rgba(6,14,8,0.97) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border-sub);
+  box-shadow: 0 1px 0 rgba(34,197,94,0.15), 0 4px 24px rgba(0,0,0,0.5);
   padding: 0.875rem 2rem;
   position: sticky;
   top: 0;
@@ -70,15 +76,16 @@ header {
 .header-logo { display: flex; align-items: center; gap: 0.625rem; }
 
 .header-logo .icono {
-  width: 30px;
-  height: 30px;
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-blue) 100%);
-  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #16a34a 0%, #22c55e 50%, #4ade80 100%);
+  border-radius: 9px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 15px;
+  font-size: 16px;
   flex-shrink: 0;
+  box-shadow: 0 0 12px rgba(34,197,94,0.45);
 }
 
 .header-logo h1 {
@@ -161,11 +168,12 @@ main { max-width: 1340px; margin: 0 auto; padding: 2.5rem 2rem; }
 
 /* barra de color vertical que identifica la sección */
 .seccion-acento {
-  width: 3px;
-  height: 1.1rem;
-  background: linear-gradient(180deg, var(--accent), var(--accent-blue));
+  width: 4px;
+  height: 1.2rem;
+  background: linear-gradient(180deg, #4ade80, #22c55e, #16a34a);
   border-radius: 9999px;
   flex-shrink: 0;
+  box-shadow: 0 0 6px rgba(34,197,94,0.5);
 }
 
 .seccion-titulo {
@@ -177,13 +185,13 @@ main { max-width: 1340px; margin: 0 auto; padding: 2.5rem 2rem; }
 
 /* ── Bloque de análisis crítico general ──────────────────────────────── */
 .analisis-general {
-  background: #0d1a2d;
-  border: 1px solid #1e3a5f;
-  border-left: 3px solid var(--accent-blue);
+  background: #071409;
+  border: 1px solid #1e4827;
+  border-left: 3px solid var(--accent);
   border-radius: var(--r);
   padding: 0.9rem 1.2rem;
   margin-bottom: 1.5rem;
-  color: #93c5fd;
+  color: #86efac;
   font-size: 0.855rem;
   line-height: 1.7;
 }
@@ -192,7 +200,7 @@ main { max-width: 1340px; margin: 0 auto; padding: 2.5rem 2rem; }
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: #60a5fa;
+  color: #4ade80;
   margin-bottom: 0.45rem;
 }
 
@@ -215,8 +223,8 @@ main { max-width: 1340px; margin: 0 auto; padding: 2.5rem 2rem; }
   transition: border-color 0.18s, box-shadow 0.18s;
 }
 .tarjeta:hover {
-  border-color: var(--border);
-  box-shadow: 0 0 0 1px var(--border), 0 12px 32px rgba(0, 0, 0, 0.5);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px rgba(34,197,94,0.3), 0 0 20px rgba(34,197,94,0.08), 0 12px 32px rgba(0,0,0,0.5);
 }
 
 .tarjeta-meta {
@@ -259,7 +267,7 @@ main { max-width: 1340px; margin: 0 auto; padding: 2.5rem 2rem; }
   letter-spacing: -0.015em;
 }
 .titulo a { color: var(--txt-1); text-decoration: none; transition: color 0.12s; }
-.titulo a:hover { color: #93c5fd; }
+.titulo a:hover { color: var(--accent-green); }
 
 /* ── Resumen ─────────────────────────────────────────────────────────── */
 .resumen {
@@ -275,12 +283,13 @@ main { max-width: 1340px; margin: 0 auto; padding: 2.5rem 2rem; }
 
 /* ── Crítica de IA (verde) ───────────────────────────────────────────── */
 .critica {
-  background: #0a1a0a;
-  border: 1px solid #14532d;
+  background: linear-gradient(135deg, #071409 0%, #091c0c 100%);
+  border: 1px solid #1a4a27;
+  border-left: 2px solid #22c55e;
   border-radius: calc(var(--r) - 1px);
   padding: 0.55rem 0.875rem;
   font-size: 0.77rem;
-  color: #4ade80;
+  color: #86efac;
   line-height: 1.55;
   margin-top: auto;
 }
@@ -303,7 +312,7 @@ footer {
 
 /* ── Barra de pestañas ───────────────────────────────────────────────── */
 .tab-bar {
-  background: var(--bg);
+  background: linear-gradient(180deg, rgba(8,16,10,0.98) 0%, rgba(6,14,8,0.98) 100%);
   border-bottom: 1px solid var(--border-sub);
   padding: 0 2rem;
   display: flex;
@@ -359,7 +368,7 @@ footer {
 }
 .tarjeta-destacada:hover {
   border-color: var(--accent);
-  box-shadow: 0 0 0 1px var(--accent), 0 16px 40px rgba(0,0,0,0.5);
+  box-shadow: 0 0 0 1px rgba(34,197,94,0.4), 0 0 30px rgba(34,197,94,0.1), 0 16px 40px rgba(0,0,0,0.5);
 }
 
 /* Indicador de categoría en la tarjeta destacada */
@@ -473,9 +482,9 @@ footer {
 }
 
 .sintesis-card {
-  background: var(--surface);
+  background: linear-gradient(160deg, #0c1a10 0%, #0a1a0d 100%);
   border: 1px solid var(--border-sub);
-  border-top: 3px solid #7c3aed;
+  border-top: 3px solid #22c55e;
   border-radius: var(--r);
   padding: 1.5rem;
   display: flex;
@@ -484,8 +493,8 @@ footer {
   transition: border-color 0.18s, box-shadow 0.18s;
 }
 .sintesis-card:hover {
-  border-color: #7c3aed;
-  box-shadow: 0 0 0 1px #7c3aed40, 0 12px 32px rgba(0,0,0,0.4);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px rgba(34,197,94,0.25), 0 0 24px rgba(34,197,94,0.08), 0 12px 32px rgba(0,0,0,0.4);
 }
 
 .sintesis-meta {
@@ -500,10 +509,11 @@ footer {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  background: #3b0764;
-  color: #c4b5fd;
+  background: #052e16;
+  color: #4ade80;
   padding: 0.2rem 0.6rem;
   border-radius: 9999px;
+  border: 1px solid #166534;
 }
 
 .sintesis-titulo {
@@ -552,7 +562,7 @@ footer {
   line-height: 1.4;
   transition: color 0.12s;
 }
-.sintesis-fuente-link:hover { color: #c4b5fd; }
+.sintesis-fuente-link:hover { color: var(--accent-green); }
 
 .sintesis-fuente-alt {
   font-size: 0.6rem;
@@ -622,7 +632,10 @@ footer {
 .stat-kpi-valor {
   font-size: 2.2rem;
   font-weight: 800;
-  color: var(--accent);
+  background: linear-gradient(135deg, #22c55e, #4ade80);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   letter-spacing: -.04em;
   line-height: 1;
 }
