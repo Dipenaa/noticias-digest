@@ -121,6 +121,20 @@ def obtener_todas_las_noticias(
             except Exception as e:
                 print(f"  ✗ Error inesperado en {fuente['nombre']}: {e}")
 
+    # Eliminar artículos duplicados por URL dentro de cada categoría
+    total_antes = sum(len(v) for v in resultado.values())
+    for cat in resultado:
+        vistos: set[str] = set()
+        unicos = []
+        for a in resultado[cat]:
+            if a["enlace"] not in vistos:
+                vistos.add(a["enlace"])
+                unicos.append(a)
+        resultado[cat] = unicos
+    total_despues = sum(len(v) for v in resultado.values())
+    if total_antes != total_despues:
+        print(f"  ℹ Deduplicación: {total_antes - total_despues} artículo(s) duplicado(s) eliminado(s)")
+
     return resultado
 
 

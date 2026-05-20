@@ -17,7 +17,7 @@ import anthropic
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from config import ANTHROPIC_API_KEY, CLAUDE_MODEL_ANALISIS, IDIOMA_ANALISIS
-from article_cache import ArticleCache
+from article_cache import shared as _cache
 
 
 # ---------------------------------------------------------------------------
@@ -69,12 +69,6 @@ Responde ÚNICAMENTE con este JSON (sin bloques de código, sin texto extra):
   "analisis_general": "..."
 }}
 """
-
-# ---------------------------------------------------------------------------
-# Caché de artículos
-# ---------------------------------------------------------------------------
-
-_cache = ArticleCache()
 
 # ---------------------------------------------------------------------------
 # Llamada a la API

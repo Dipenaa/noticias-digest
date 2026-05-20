@@ -1477,6 +1477,12 @@ def renderizar_html(
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Digest de Noticias — {ahora}</title>
+  <meta name="theme-color" content="#22c55e">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Noticias Digest">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
   <style>{_CSS}</style>
 </head>
 <body>
@@ -2085,6 +2091,12 @@ function lanzarAnalisisIA() {{
 
   switchTab(last);
 }})();
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {{
+  navigator.serviceWorker.register('/sw.js');
+}}
 </script>
 
 </body>

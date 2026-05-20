@@ -268,15 +268,74 @@ def analizar():
     return jsonify({"ok": True, "mensaje": "Análisis IA iniciado en background"})
 
 
+@app.route("/manifest.json")
+def manifest():
+    return jsonify({
+        "name":             "Noticias Digest",
+        "short_name":       "Noticias",
+        "description":      "Digest de noticias con análisis de sesgo por IA",
+        "start_url":        "/",
+        "display":          "standalone",
+        "background_color": "#060e08",
+        "theme_color":      "#22c55e",
+        "icons": [
+            {"src": "/icon.svg", "sizes": "any", "type": "image/svg+xml"},
+        ],
+    })
+
+
+@app.route("/icon.svg")
+def icon_svg():
+    svg = (
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">'
+        '<rect width="192" height="192" rx="28" fill="#060e08"/>'
+        '<text x="96" y="138" font-size="108" text-anchor="middle">📰</text>'
+        '</svg>'
+    )
+    return Response(svg, mimetype="image/svg+xml")
+
+
+@app.route("/sw.js")
+def service_worker():
+    js = """
+const CACHE = 'digest-v1';
+self.addEventListener('install', e => {
+  e.waitUntil(caches.open(CACHE).then(c => c.add('/')));
+  self.skipWaiting();
+});
+self.addEventListener('activate', e => {
+  e.waitUntil(caches.keys().then(keys =>
+    Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+  ));
+  self.clients.claim();
+});
+self.addEventListener('fetch', e => {
+  if (e.request.method !== 'GET') return;
+  e.respondWith(
+    fetch(e.request)
+      .then(r => { caches.open(CACHE).then(c => c.put(e.request, r.clone())); return r; })
+      .catch(() => caches.match(e.request))
+  );
+});
+"""
+    return Response(js, mimetype="application/javascript")
+
+
 @app.route("/estado")
 def estado():
     """Devuelve el estado actual en JSON (útil para monitorización)."""
+    from config import ANTHROPIC_API_KEY
+    from article_cache import shared as _cache
+    stats = _cache.stats()
     with _lock:
         return jsonify({
-            "generando":     _generando,
-            "tiene_cache":   _html_cache is not None,
-            "ultimo_update": _ultimo_update.isoformat() if _ultimo_update else None,
-            "ultimo_error":  _ultimo_error is not None,
+            "generando":              _generando,
+            "tiene_cache":            _html_cache is not None,
+            "ultimo_update":          _ultimo_update.isoformat() if _ultimo_update else None,
+            "ultimo_error":           _ultimo_error is not None,
+            "anthropic_key_ok":       ANTHROPIC_API_KEY not in ("", None),
+            "cache_articulos":        stats["articulos_cacheados"],
+            "cache_sintesis":         stats["sintesis_cacheadas"],
         })
 
 
@@ -285,6 +344,12 @@ def estado():
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
+    # Validar API key antes de arrancar para detectar el error rápido
+    from config import ANTHROPIC_API_KEY as _key
+    if _key in ("", None):
+        print(f"[{datetime.now():%H:%M:%S}] ⚠  ANTHROPIC_API_KEY no configurada — "
+              "el análisis IA estará desactivado. Usa SIN_IA=1 para silenciar este aviso.")
+
     # Genera el digest al arrancar (en background para no bloquear el bind del puerto)
     _lanzar_generacion()
 

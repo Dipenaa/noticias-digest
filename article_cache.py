@@ -1,12 +1,17 @@
 """
-article_cache.py — Caché persistente de análisis de artículos.
+article_cache.py — Caché persistente de análisis de artículos y síntesis.
 
 Evita re-enviar a Claude artículos ya analizados, reduciendo tokens consumidos
 en ciclos donde la mayoría de noticias ya fueron procesadas.
 
-- Artículos: TTL de 24 horas (la noticia no cambia, su análisis tampoco)
-- Análisis general por categoría: TTL de 6 horas (refleja el ciclo de regeneración)
-- Persistido en article_cache.json (sobrevive reinicios del scheduler, no del servidor)
+TTLs:
+- Artículos individuales: 24 horas
+- Análisis general por categoría: 6 horas
+- Síntesis cruzada: 6 horas
+
+Uso: importa el singleton `shared` en lugar de crear nuevas instancias,
+para que analyzer.py y synthesizer.py compartan el mismo estado en memoria
+y no se pisoteen al escribir el archivo.
 """
 
 import json
@@ -18,6 +23,7 @@ from pathlib import Path
 _CACHE_FILE    = Path("article_cache.json")
 _TTL_ARTICULO  = 24 * 3600   # 24 horas
 _TTL_CATEGORIA =  6 * 3600   #  6 horas
+_TTL_SINTESIS  =  6 * 3600   #  6 horas
 
 
 class ArticleCache:
@@ -32,13 +38,13 @@ class ArticleCache:
                 return json.loads(_CACHE_FILE.read_text(encoding="utf-8"))
         except Exception:
             pass
-        return {"articulos": {}, "categorias": {}}
+        return {"articulos": {}, "categorias": {}, "sintesis": {}}
 
     @staticmethod
-    def _clave(url: str) -> str:
-        return hashlib.md5(url.encode()).hexdigest()
+    def _clave(texto: str) -> str:
+        return hashlib.md5(texto.encode()).hexdigest()
 
-    # ── Artículos ────────────────────────────────────────────────────────
+    # ── Artículos individuales ────────────────────────────────────────────
 
     def get_articulo(self, url: str) -> dict | None:
         clave = self._clave(url)
@@ -76,12 +82,32 @@ class ArticleCache:
             self._data["categorias"][categoria] = {"v": texto, "ts": time.time()}
             self._dirty = True
 
+    # ── Síntesis cruzada ─────────────────────────────────────────────────
+
+    def get_sintesis(self, clave: str) -> list | None:
+        with self._lock:
+            entrada = self._data["sintesis"].get(clave)
+            if not entrada:
+                return None
+            if time.time() - entrada["ts"] > _TTL_SINTESIS:
+                del self._data["sintesis"][clave]
+                self._dirty = True
+                return None
+            return entrada["v"]
+
+    def set_sintesis(self, clave: str, grupos: list) -> None:
+        with self._lock:
+            self._data["sintesis"][clave] = {"v": grupos, "ts": time.time()}
+            self._dirty = True
+
     # ── Persistencia ─────────────────────────────────────────────────────
 
     def guardar(self) -> None:
         with self._lock:
             if not self._dirty:
                 return
+            # Asegurar que la clave "sintesis" existe (migración de caché antiguo)
+            self._data.setdefault("sintesis", {})
             _CACHE_FILE.write_text(
                 json.dumps(self._data, ensure_ascii=False, indent=2),
                 encoding="utf-8",
@@ -91,6 +117,11 @@ class ArticleCache:
     def stats(self) -> dict:
         with self._lock:
             return {
-                "articulos_cacheados": len(self._data["articulos"]),
+                "articulos_cacheados":  len(self._data["articulos"]),
                 "categorias_cacheadas": len(self._data["categorias"]),
+                "sintesis_cacheadas":   len(self._data.get("sintesis", {})),
             }
+
+
+# Singleton compartido: importar esto en lugar de crear instancias nuevas
+shared = ArticleCache()
