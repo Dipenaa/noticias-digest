@@ -24,20 +24,20 @@ from config import ARCHIVO_SALIDA
 # ---------------------------------------------------------------------------
 
 _CSS = """
-/* ── Variables — tema Otoño ──────────────────────────────────────────── */
+/* ── Variables — tema Bosque Otoñal (Axios) ──────────────────────────── */
 :root {
-  --bg:          #f0e6d3;   /* pergamino otoñal */
-  --surface:     #faf5ec;   /* papel cálido */
-  --surface-2:   #e8d9c0;   /* hover / elevado */
-  --border:      #c4a882;   /* ocre tierra */
-  --border-sub:  #ddd0b8;   /* borde sutil */
-  --txt-1:       #2a1a0e;   /* nogal oscuro */
-  --txt-2:       #6b3f20;   /* corteza marrón */
-  --txt-3:       #9a7355;   /* siena muted */
-  --accent:      #b5451b;   /* calabaza / siena tostada */
-  --accent-blue: #7b5e3a;   /* roble cálido */
-  --accent-green:#8b7a1e;   /* olivo dorado */
-  --accent-gold: #d4860a;   /* ámbar */
+  --bg:          #f4f1eb;   /* blanco cálido, casi imperceptible */
+  --surface:     #ffffff;   /* blanco puro para cards */
+  --surface-2:   #f0ece4;   /* hover muy sutil */
+  --border:      #d0c9bf;   /* borde visible cálido */
+  --border-sub:  #e6e0d8;   /* borde sutil */
+  --txt-1:       #1a1208;   /* casi negro cálido */
+  --txt-2:       #4a3828;   /* marrón medio */
+  --txt-3:       #8a7868;   /* marrón muted */
+  --accent:      #2d5a2d;   /* verde bosque — principal */
+  --accent-blue: #5a4030;   /* marrón tierra */
+  --accent-green:#557820;   /* olivo */
+  --accent-gold: #a06010;   /* ámbar oscuro */
   --r:           0.375rem;
   --font-serif:  'Playfair Display', Georgia, 'Times New Roman', serif;
 }
@@ -47,7 +47,6 @@ _CSS = """
 body {
   font-family: system-ui, 'Segoe UI', -apple-system, sans-serif;
   background-color: var(--bg);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E");
   color: var(--txt-1);
   line-height: 1.65;
   font-size: 15px;
@@ -74,7 +73,7 @@ header {
 .header-logo .icono {
   width: 32px;
   height: 32px;
-  background: linear-gradient(135deg, #b5451b 0%, #d4860a 100%);
+  background: linear-gradient(135deg, #2d5a2d 0%, #557820 100%);
   border-radius: 9px;
   display: flex;
   align-items: center;
@@ -99,7 +98,7 @@ header .meta {
 
 /* ── Navegación ──────────────────────────────────────────────────────── */
 nav {
-  background: rgba(240,230,211,0.97);
+  background: rgba(244,241,235,0.97);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   padding: 0.45rem 2rem;
@@ -125,7 +124,7 @@ nav a {
 nav a:hover { background: var(--surface-2); color: var(--txt-1); }
 
 /* ── Layout principal ────────────────────────────────────────────────── */
-main { max-width: 1340px; margin: 0 auto; padding: 2.5rem 2rem; }
+main { max-width: 1340px; margin: 0 auto; padding: 3rem 2.5rem; }
 
 /* ── Leyenda de sesgo ────────────────────────────────────────────────── */
 .leyenda {
@@ -165,7 +164,7 @@ main { max-width: 1340px; margin: 0 auto; padding: 2.5rem 2rem; }
 .seccion-acento {
   width: 4px;
   height: 1.2rem;
-  background: linear-gradient(180deg, #d4860a, #b5451b);
+  background: linear-gradient(180deg, #557820, #2d5a2d);
   border-radius: 9999px;
   flex-shrink: 0;
 }
@@ -180,13 +179,13 @@ main { max-width: 1340px; margin: 0 auto; padding: 2.5rem 2rem; }
 
 /* ── Bloque de análisis crítico general ──────────────────────────────── */
 .analisis-general {
-  background: #fdf0dc;
-  border: 1px solid #e0c080;
+  background: #edf5ed;
+  border: 1px solid #9cc89c;
   border-left: 3px solid var(--accent);
   border-radius: var(--r);
   padding: 0.9rem 1.2rem;
   margin-bottom: 1.5rem;
-  color: #5a2e0a;
+  color: #1a3a1a;
   font-size: 0.855rem;
   line-height: 1.7;
 }
@@ -202,30 +201,26 @@ main { max-width: 1340px; margin: 0 auto; padding: 2.5rem 2rem; }
 /* ── Grid de tarjetas ────────────────────────────────────────────────── */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 1rem;
 }
 
 /* ── Tarjeta de artículo ─────────────────────────────────────────────── */
 .tarjeta {
   background: var(--surface);
   border: 1px solid var(--border-sub);
-  border-left: 3px solid var(--border);
   border-radius: var(--r);
-  padding: 1.1rem 1.15rem;
+  padding: 1.25rem 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 0.7rem;
-  box-shadow: 0 1px 3px rgba(42,26,14,0.06);
-  transition: border-color 0.2s, border-left-color 0.2s, box-shadow 0.2s, transform 0.15s;
+  transition: box-shadow 0.2s, transform 0.15s, border-color 0.2s;
 }
 .tarjeta:hover {
   border-color: var(--border);
-  border-left-color: var(--accent);
   box-shadow:
-    0 1px 3px rgba(181,69,27,0.08),
-    0 4px 14px rgba(181,69,27,0.14),
-    0 8px 28px rgba(181,69,27,0.07);
+    0 1px 4px rgba(45,90,45,0.08),
+    0 4px 16px rgba(45,90,45,0.12);
   transform: translateY(-1px);
 }
 
@@ -286,13 +281,13 @@ main { max-width: 1340px; margin: 0 auto; padding: 2.5rem 2rem; }
 
 /* ── Crítica de IA ───────────────────────────────────────────────────── */
 .critica {
-  background: #fdf0dc;
-  border: 1px solid #e0c080;
+  background: #edf5ed;
+  border: 1px solid #9cc89c;
   border-left: 2px solid var(--accent);
   border-radius: calc(var(--r) - 1px);
   padding: 0.55rem 0.875rem;
   font-size: 0.77rem;
-  color: #5a2e0a;
+  color: #1a3a1a;
   line-height: 1.55;
   margin-top: auto;
 }
@@ -318,7 +313,7 @@ footer {
 
 /* ── Barra de pestañas ───────────────────────────────────────────────── */
 .tab-bar {
-  background: #ede4d0;
+  background: #ffffff;
   border-bottom: 1px solid var(--border-sub);
   padding: 0 2rem;
   display: flex;
@@ -367,19 +362,18 @@ footer {
   border: 1px solid var(--border-sub);
   border-top: 3px solid var(--accent);
   border-radius: var(--r);
-  padding: 1.5rem;
+  padding: 1.75rem;
   display: flex;
   flex-direction: column;
   gap: 0.875rem;
-  box-shadow: 0 1px 4px rgba(42,26,14,0.07);
-  transition: box-shadow 0.2s, transform 0.15s;
+  transition: box-shadow 0.2s, transform 0.15s, border-color 0.2s;
   position: relative;
 }
 .tarjeta-destacada:hover {
+  border-color: var(--border);
   box-shadow:
-    0 2px 6px rgba(181,69,27,0.1),
-    0 6px 20px rgba(181,69,27,0.16),
-    0 12px 36px rgba(181,69,27,0.08);
+    0 2px 8px rgba(45,90,45,0.1),
+    0 8px 24px rgba(45,90,45,0.14);
   transform: translateY(-2px);
 }
 
@@ -507,7 +501,8 @@ footer {
   transition: border-color 0.18s, box-shadow 0.18s;
 }
 .sintesis-card:hover {
-  box-shadow: 0 2px 12px rgba(181,69,27,0.13);
+  box-shadow: 0 4px 16px rgba(45,90,45,0.14);
+  transform: translateY(-1px);
 }
 
 .sintesis-meta {
@@ -522,11 +517,11 @@ footer {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  background: #fdefd0;
+  background: #e8f0e8;
   color: var(--accent);
   padding: 0.2rem 0.6rem;
   border-radius: 9999px;
-  border: 1px solid #e0c080;
+  border: 1px solid #9cc89c;
 }
 
 .sintesis-titulo {
@@ -846,12 +841,12 @@ footer {
   line-height: 1.8;
 }
 .drawer-critica {
-  background: #fdf0dc;
-  border: 1px solid #e0c080;
+  background: #edf5ed;
+  border: 1px solid #9cc89c;
   border-radius: calc(var(--r) - 1px);
   padding: 0.875rem 1rem;
   font-size: 0.82rem;
-  color: #5a2e0a;
+  color: #1a3a1a;
   line-height: 1.65;
 }
 
@@ -880,11 +875,11 @@ footer {
   gap: 0.4rem;
 }
 .drawer-btn-primary { background: var(--accent); color: #fff; }
-.drawer-btn-primary:hover { background: #8b3112; }
+.drawer-btn-primary:hover { background: #1b3d1b; }
 .drawer-btn-secondary { background: var(--surface-2); color: var(--txt-1); border: 1px solid var(--border-sub); }
 .drawer-btn-secondary:hover { background: var(--border-sub); }
-.drawer-btn-translate { background: #fdf5e0; color: #7b5c1a; border: 1px solid #e0c87a; }
-.drawer-btn-translate:hover { background: #f5e8c0; }
+.drawer-btn-translate { background: #e8f5e8; color: #2d5a2d; border: 1px solid #9cc89c; }
+.drawer-btn-translate:hover { background: #d8ecd8; }
 
 /* Clic en tarjeta abre el drawer */
 .tarjeta, .tarjeta-destacada { cursor: pointer; }
@@ -901,7 +896,7 @@ footer {
 }
 .badge-sent-alarmista { background: #fef2f2; color: #b91c1c; }
 .badge-sent-neutral   { background: #f3f4f6; color: #6b7280; }
-.badge-sent-optimista { background: #fef3d0; color: #8b6914; }
+.badge-sent-optimista { background: #e8f5e8; color: #2d5a2d; }
 
 /* ── Badge multi-fuente verificado ───────────────────────────────────── */
 .badge-verified {
@@ -910,9 +905,9 @@ footer {
   letter-spacing: 0.04em;
   padding: 0.15rem 0.5rem;
   border-radius: 9999px;
-  background: #fdf0e0;
-  color: #8b4513;
-  border: 1px solid #d4a87a;
+  background: #e8f0e0;
+  color: #2d5a2d;
+  border: 1px solid #8ab48a;
 }
 
 /* ── Bookmark ────────────────────────────────────────────────────────── */
@@ -1039,17 +1034,17 @@ footer {
   display: none;
   align-items: center;
   gap: .75rem;
-  background: #fffbeb;
-  border: 1px solid #fcd34d;
+  background: #f0f8f0;
+  border: 1px solid #9cc89c;
   border-radius: var(--r);
   padding: .6rem 1rem;
   margin: .75rem var(--pad-x);
   font-size: .8rem;
-  color: #92400e;
+  color: #1a3a1a;
 }
 #ia-banner .ia-msg { flex: 1; }
 #ia-banner .ia-regen {
-  background: #d97706;
+  background: #2d5a2d;
   color: #fff;
   border: none;
   border-radius: var(--r);
@@ -1061,12 +1056,12 @@ footer {
   white-space: nowrap;
   transition: background .15s;
 }
-#ia-banner .ia-regen:hover { background: #b45309; }
+#ia-banner .ia-regen:hover { background: #1b3d1b; }
 #ia-banner .ia-regen:disabled { opacity: .5; cursor: default; }
 #ia-banner .ia-close {
   background: none;
   border: none;
-  color: #b45309;
+  color: #1b3d1b;
   cursor: pointer;
   font-size: 1.1rem;
   line-height: 1;
