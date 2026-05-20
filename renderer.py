@@ -39,6 +39,7 @@ _CSS = """
   --accent-green:#8b7a1e;   /* olivo dorado */
   --accent-gold: #d4860a;   /* ámbar */
   --r:           0.375rem;
+  --font-serif:  'Playfair Display', Georgia, 'Times New Roman', serif;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -170,10 +171,11 @@ main { max-width: 1340px; margin: 0 auto; padding: 2.5rem 2rem; }
 }
 
 .seccion-titulo {
-  font-size: 1rem;
+  font-family: var(--font-serif);
+  font-size: 1.2rem;
   font-weight: 700;
   color: var(--txt-1);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
 }
 
 /* ── Bloque de análisis crítico general ──────────────────────────────── */
@@ -208,16 +210,23 @@ main { max-width: 1340px; margin: 0 auto; padding: 2.5rem 2rem; }
 .tarjeta {
   background: var(--surface);
   border: 1px solid var(--border-sub);
+  border-left: 3px solid var(--border);
   border-radius: var(--r);
   padding: 1.1rem 1.15rem;
   display: flex;
   flex-direction: column;
   gap: 0.7rem;
-  transition: border-color 0.18s, box-shadow 0.18s;
+  box-shadow: 0 1px 3px rgba(42,26,14,0.06);
+  transition: border-color 0.2s, border-left-color 0.2s, box-shadow 0.2s, transform 0.15s;
 }
 .tarjeta:hover {
-  border-color: var(--accent);
-  box-shadow: 0 2px 12px rgba(181,69,27,0.14), 0 1px 3px rgba(0,0,0,0.06);
+  border-color: var(--border);
+  border-left-color: var(--accent);
+  box-shadow:
+    0 1px 3px rgba(181,69,27,0.08),
+    0 4px 14px rgba(181,69,27,0.14),
+    0 8px 28px rgba(181,69,27,0.07);
+  transform: translateY(-1px);
 }
 
 .tarjeta-meta {
@@ -254,10 +263,11 @@ main { max-width: 1340px; margin: 0 auto; padding: 2.5rem 2rem; }
 
 /* ── Título del artículo ─────────────────────────────────────────────── */
 .titulo {
-  font-size: 0.93rem;
-  font-weight: 600;
-  line-height: 1.45;
-  letter-spacing: -0.015em;
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
 }
 .titulo a { color: var(--txt-1); text-decoration: none; transition: color 0.12s; }
 .titulo a:hover { color: var(--accent); }
@@ -335,6 +345,7 @@ footer {
 .tab-btn:hover { color: var(--txt-1); }
 .tab-btn.active {
   color: var(--txt-1);
+  font-weight: 700;
   border-bottom-color: var(--accent);
 }
 
@@ -354,17 +365,22 @@ footer {
 .tarjeta-destacada {
   background: var(--surface);
   border: 1px solid var(--border-sub);
+  border-top: 3px solid var(--accent);
   border-radius: var(--r);
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 0.875rem;
-  transition: border-color 0.18s, box-shadow 0.18s;
+  box-shadow: 0 1px 4px rgba(42,26,14,0.07);
+  transition: box-shadow 0.2s, transform 0.15s;
   position: relative;
 }
 .tarjeta-destacada:hover {
-  border-color: var(--accent);
-  box-shadow: 0 2px 16px rgba(181,69,27,0.14), 0 1px 4px rgba(0,0,0,0.06);
+  box-shadow:
+    0 2px 6px rgba(181,69,27,0.1),
+    0 6px 20px rgba(181,69,27,0.16),
+    0 12px 36px rgba(181,69,27,0.08);
+  transform: translateY(-2px);
 }
 
 /* Indicador de categoría en la tarjeta destacada */
@@ -378,10 +394,11 @@ footer {
 }
 
 .tarjeta-destacada .titulo {
-  font-size: 1.15rem;
+  font-family: var(--font-serif);
+  font-size: clamp(1.2rem, 1.5vw, 1.5rem);
   font-weight: 700;
-  line-height: 1.35;
-  letter-spacing: -0.02em;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
 }
 
 .tarjeta-destacada .resumen {
@@ -405,10 +422,11 @@ footer {
   border-bottom: 1px solid var(--border-sub);
 }
 .destacadas-header h2 {
-  font-size: 1rem;
+  font-family: var(--font-serif);
+  font-size: 1.3rem;
   font-weight: 700;
   color: var(--txt-1);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
   margin-bottom: 0.3rem;
 }
 .destacadas-header p {
@@ -468,7 +486,7 @@ footer {
   padding-bottom: 0.875rem;
   border-bottom: 1px solid var(--border-sub);
 }
-.sintesis-header h2 { font-size: 1rem; font-weight: 700; color: var(--txt-1); letter-spacing: -0.02em; margin-bottom: 0.3rem; }
+.sintesis-header h2 { font-family: var(--font-serif); font-size: 1.3rem; font-weight: 700; color: var(--txt-1); letter-spacing: -0.01em; margin-bottom: 0.3rem; }
 .sintesis-header p  { font-size: 0.78rem; color: var(--txt-3); }
 
 .grid-sintesis {
@@ -512,11 +530,12 @@ footer {
 }
 
 .sintesis-titulo {
-  font-size: 1.05rem;
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
   font-weight: 700;
   color: var(--txt-1);
-  line-height: 1.35;
-  letter-spacing: -0.02em;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
 }
 
 .sintesis-texto {
@@ -1626,6 +1645,9 @@ def renderizar_html(
   <meta name="apple-mobile-web-app-title" content="Noticias Digest">
   <link rel="manifest" href="/manifest.json">
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
   <style>{_CSS}</style>
 </head>
 <body>
