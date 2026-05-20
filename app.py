@@ -303,7 +303,7 @@ def manifest():
 def icon_svg():
     svg = (
         '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">'
-        '<rect width="192" height="192" rx="28" fill="#060e08"/>'
+        '<rect width="192" height="192" rx="28" fill="#b5451b"/>'
         '<text x="96" y="138" font-size="108" text-anchor="middle">📰</text>'
         '</svg>'
     )
@@ -313,7 +313,7 @@ def icon_svg():
 @app.route("/sw.js")
 def service_worker():
     js = """
-const CACHE = 'digest-v1';
+const CACHE = 'digest-v3';
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.add('/')));
   self.skipWaiting();
