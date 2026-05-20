@@ -75,7 +75,7 @@ def main() -> None:
 
     print(f"\n📊 Total descargado: {total + total_alt} artículo(s)")
 
-    # ── 3. Análisis con Gemini ───────────────────────────────────────────
+    # ── 3. Análisis con Claude ───────────────────────────────────────────
     analisis:     dict[str, str] = {}
     analisis_alt: dict[str, str] = {}
     grupos_sintesis: list[dict]  = []

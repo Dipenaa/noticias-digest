@@ -16,8 +16,11 @@ services:
     #  como cron-job.org apuntando a https://tu-app.onrender.com/regenerar)
 
     envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false          # clave de Claude — análisis de sesgo y síntesis
+
       - key: GEMINI_API_KEY
-        sync: false          # debes introducirla manualmente en Render Dashboard
+        sync: false          # clave de Gemini — solo para discoverer.py (opcional)
 
       # Descomenta para desactivar el análisis IA (solo RSS, gratis, sin cuota):
       # - key: SIN_IA

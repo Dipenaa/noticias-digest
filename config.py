@@ -7,7 +7,13 @@ Modifica este archivo para personalizar fuentes, temas y comportamiento.
 import os
 
 # ---------------------------------------------------------------------------
-# API de Gemini
+# API de Anthropic (Claude) — análisis de sesgo y síntesis
+# ---------------------------------------------------------------------------
+ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
+CLAUDE_MODEL      = "claude-sonnet-4-6"
+
+# ---------------------------------------------------------------------------
+# API de Gemini — descubrimiento de fuentes (discoverer.py)
 # ---------------------------------------------------------------------------
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyCoSQ7Vcgr9g6qxLs9CDOpk-FZsXyBbl8k")
 GEMINI_MODEL   = "gemini-2.0-flash"

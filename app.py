@@ -13,7 +13,8 @@ Flujo al arrancar:
   4. Render puede hacer cron de /regenerar para mantenerlo fresco
 
 Variables de entorno requeridas:
-  GEMINI_API_KEY   → tu clave de la API de Gemini (configúrala en Render Dashboard)
+  ANTHROPIC_API_KEY → tu clave de la API de Claude (configúrala en Render Dashboard)
+  GEMINI_API_KEY    → tu clave de la API de Gemini (solo para discoverer.py; opcional)
 """
 
 import os
@@ -52,7 +53,7 @@ _alternativas_raw = None          # último dict de noticias alternativas sin en
 # ---------------------------------------------------------------------------
 
 def _generar():
-    """Descarga feeds, analiza con Gemini (si procede) y actualiza _html_cache."""
+    """Descarga feeds, analiza con Claude (si procede) y actualiza _html_cache."""
     global _generando, _html_cache, _ultimo_update, _ultimo_error
     global _noticias_raw, _alternativas_raw
 
@@ -79,16 +80,16 @@ def _generar():
         analisis_alt:  dict = {}
         grupos_sintesis: list = []
 
-        from config import GEMINI_API_KEY
-        ia_disponible = (not _sin_ia) and GEMINI_API_KEY not in ("TU_API_KEY_AQUÍ", "", None)
+        from config import ANTHROPIC_API_KEY
+        ia_disponible = (not _sin_ia) and ANTHROPIC_API_KEY not in ("TU_API_KEY_AQUÍ", "", None)
 
         if ia_disponible:
-            print(f"[{datetime.now():%H:%M:%S}] Analizando con Gemini...")
+            print(f"[{datetime.now():%H:%M:%S}] Analizando con Claude...")
             noticias,     analisis     = analizar_todas_las_noticias(noticias)
             alternativas, analisis_alt = analizar_todas_las_noticias(alternativas)
             grupos_sintesis            = sintetizar_noticias(noticias, alternativas)
         else:
-            print(f"[{datetime.now():%H:%M:%S}] Modo sin IA (SIN_IA=1 o API key no configurada)")
+            print(f"[{datetime.now():%H:%M:%S}] Modo sin IA (SIN_IA=1 o ANTHROPIC_API_KEY no configurada)")
 
         # 3. Renderiza
         html = renderizar_html(
@@ -143,8 +144,8 @@ def _solo_analizar_ia():
 
         print(f"[{datetime.now():%H:%M:%S}] Lanzando análisis IA sobre noticias en caché...")
 
-        from config import GEMINI_API_KEY
-        ia_disponible = (not _sin_ia) and GEMINI_API_KEY not in ("TU_API_KEY_AQUÍ", "", None)
+        from config import ANTHROPIC_API_KEY
+        ia_disponible = (not _sin_ia) and ANTHROPIC_API_KEY not in ("TU_API_KEY_AQUÍ", "", None)
 
         analisis:      dict = {}
         analisis_alt:  dict = {}
@@ -155,7 +156,7 @@ def _solo_analizar_ia():
             alternativas, analisis_alt = analizar_todas_las_noticias(alternativas)
             grupos_sintesis            = sintetizar_noticias(noticias, alternativas)
         else:
-            print(f"[{datetime.now():%H:%M:%S}] IA no disponible — SIN_IA o API key ausente")
+            print(f"[{datetime.now():%H:%M:%S}] IA no disponible — SIN_IA o ANTHROPIC_API_KEY ausente")
 
         html = renderizar_html(
             noticias, analisis,
