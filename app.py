@@ -35,7 +35,7 @@ from renderer import renderizar_html
 
 app = Flask(__name__)
 
-_RUTAS_PUBLICAS = {"/sw.js", "/manifest.json", "/icon.svg"}
+_RUTAS_PUBLICAS = {"/sw.js", "/manifest.json", "/icon.svg", "/estado"}
 
 @app.before_request
 def _auth():
