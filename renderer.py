@@ -305,7 +305,7 @@ def _tab_sintesis(grupos: list[dict]) -> str:
     return f"""
 <div class="sintesis-header">
   <h2>Síntesis de historias</h2>
-  <p>{len(grupos)} historia(s) detectada(s) en múltiples fuentes · perspectivas cruzadas generadas por Gemini</p>
+  <p>{len(grupos)} historia(s) detectada(s) en múltiples fuentes · perspectivas cruzadas generadas por Claude</p>
 </div>
 <div class="grid-sintesis">
 {cards}
@@ -338,7 +338,7 @@ def _tab_destacadas(noticias: dict[str, list[dict]],
     Genera el contenido de la pestaña Destacadas.
 
     Selección:
-      - Si Gemini marcó artículos como importantes (importante=True): esos.
+      - Si Claude marcó artículos como importantes (importante=True): esos.
       - Fallback (--sin-ia): el primer artículo de cada categoría.
     """
     seleccionados: list[tuple[str, dict]] = []
@@ -355,7 +355,7 @@ def _tab_destacadas(noticias: dict[str, list[dict]],
         return '<p class="sin-destacadas">No hay artículos destacados disponibles.</p>'
 
     cards = "\n".join(_featured_card(a, cat, verificados) for cat, a in seleccionados)
-    fuente_label = "seleccionadas por Gemini" if any(
+    fuente_label = "seleccionadas por Claude" if any(
         a.get("importante") for arts in noticias.values() for a in arts
     ) else "primera noticia de cada sección (ejecuta con análisis IA para selección automática)"
 
@@ -384,14 +384,24 @@ def _tab_para_leer() -> str:
 </div>"""
 
 
-def _tab_estadisticas() -> str:
+def _tab_estadisticas(fuentes_fallidas: list[str] | None = None) -> str:
     """Pestaña de estadísticas de sesgo y cobertura (datos calculados por JS en cliente)."""
-    return """
+    bloque_fallidas = ""
+    if fuentes_fallidas:
+        items = "".join(f"<li>{n}</li>" for n in fuentes_fallidas)
+        bloque_fallidas = f"""
+<div class="stats-fallidas">
+  <strong>⚠ Fuentes sin artículos en esta generación ({len(fuentes_fallidas)})</strong>
+  <ul>{items}</ul>
+  <span>Puede ser una caída temporal del feed o URL incorrecta.</span>
+</div>"""
+
+    return f"""
 <div class="stats-header">
   <h2>Estadísticas del digest</h2>
   <p>Distribución ideológica, cobertura por fuente y diversidad — calculado en tiempo real</p>
 </div>
-
+{bloque_fallidas}
 <div class="stats-kpi-row">
   <div class="stat-kpi">
     <div class="stat-kpi-valor" id="kpi-total">—</div>
@@ -417,7 +427,7 @@ def _tab_estadisticas() -> str:
     <div id="stat-sesgo-chart"><span style="color:var(--txt-3);font-size:.8rem">Calculando…</span></div>
   </div>
   <div class="stat-card">
-    <div class="stat-card-title">Sesgo según análisis IA (requiere Gemini)</div>
+    <div class="stat-card-title">Sesgo según análisis IA</div>
     <div id="stat-sesgo-ia-chart"><span style="color:var(--txt-3);font-size:.8rem">Calculando…</span></div>
   </div>
   <div class="stat-card">
@@ -529,6 +539,7 @@ def renderizar_html(
     alternativas: dict[str, list[dict]] | None = None,
     analisis_alt: dict[str, str] | None = None,
     grupos_sintesis: list[dict] | None = None,
+    fuentes_fallidas: list[str] | None = None,
 ) -> str:
     """
     Construye el HTML completo del digest.
@@ -570,7 +581,7 @@ def renderizar_html(
     libertaria          = _tab_libertaria(alternativas or {}, analisis_alt or {}, verificados)
     sintesis            = _tab_sintesis(grupos_sintesis or [])
     para_leer           = _tab_para_leer()
-    estadisticas        = _tab_estadisticas()
+    estadisticas        = _tab_estadisticas(fuentes_fallidas or [])
     asombro_html, n_asombro = _tab_asombro(noticias, alternativas or {})
     total_alt           = sum(len(a) for a in (alternativas or {}).values())
     n_sintesis          = len(grupos_sintesis) if grupos_sintesis else 0
@@ -606,7 +617,7 @@ def renderizar_html(
   </div>
   <div class="meta">
     {ahora}<br>
-    {total} principales · {total_alt} alternativas · Gemini
+    {total} principales · {total_alt} alternativas · Claude
   </div>
 </header>
 
@@ -700,7 +711,7 @@ def renderizar_html(
 
 <footer>
   Sin publicidad · Sin algoritmos · Generado localmente ·
-  Análisis por Google Gemini
+  Análisis por Claude (Anthropic)
 </footer>
 
 <!-- ── Vista inmersiva ─────────────────────────────────────────────── -->

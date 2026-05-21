@@ -8,66 +8,53 @@ Responde siempre en español, independientemente del idioma en que se escriba el
 # Estado del proyecto
 
 ## Qué es esto
-Digest personal de noticias en español. Descarga feeds RSS de ~51 fuentes organizadas por categoría, las analiza con Claude (sesgo, crítica, sentimiento) y genera un HTML interactivo con filtros, síntesis cruzada y vista inmersiva. Se despliega en Render como servidor Flask.
+Digest personal de noticias en español. Descarga feeds RSS de ~51 fuentes organizadas por categoría, las analiza con Claude (sesgo, crítica, sentimiento, asombro) y genera un HTML interactivo con filtros, síntesis cruzada, pestaña Asombro y vista inmersiva. Se despliega en Render como servidor Flask.
 
 ## Despliegue
 - **Repositorio:** https://github.com/Dipenaa/noticias-digest
 - **URL en producción:** https://noticias-digest.onrender.com
 - **Plataforma:** Render (plan gratuito)
 - **Variables de entorno requeridas en Render:**
-  - `ANTHROPIC_API_KEY` — para el análisis con Claude (el usuario aún no la tiene, tiene que comprarla en console.anthropic.com)
+  - `ANTHROPIC_API_KEY` — para el análisis con Claude (requerida)
+  - `REDIS_URL` — para caché persistente (opcional, Upstash Redis gratuito)
   - `GEMINI_API_KEY` — solo para discoverer.py (opcional)
-- **Keep-alive:** configurar cron-job.org para hacer ping a `/estado` cada 14 minutos (el usuario lo tiene que hacer desde casa)
-
-## Lo que se hizo en esta sesión
-
-### Bugs corregidos
-- `config.py` no tenía `ANTHROPIC_API_KEY` ni `CLAUDE_MODEL` → causaba ImportError al arrancar
-- `app.py` comprobaba `GEMINI_API_KEY` para activar la IA en vez de `ANTHROPIC_API_KEY`
-- Comentarios y docstrings que decían "Gemini" cuando el análisis lo hace Claude
-
-### Optimizaciones de coste (muy importantes)
-- **`article_cache.py`** — nuevo módulo de caché persistente en disco (article_cache.json):
-  - Artículos ya analizados se guardan 24h → en ciclos normales solo se mandan a Claude los artículos nuevos
-  - Caché de síntesis cruzada 6h → si los artículos no cambiaron, no se llama a Sonnet
-  - Singleton `shared` para que analyzer.py y synthesizer.py compartan el mismo estado
-- **Haiku para análisis** (`claude-haiku-4-5-20251001`) en vez de Sonnet → 20× más barato
-- **Sonnet** (`claude-sonnet-4-6`) se reserva solo para la síntesis cruzada
-- **Deduplicación de artículos** en fetcher.py → elimina URLs duplicadas antes del análisis
-
-### Nuevas funcionalidades
-- **PWA (Progressive Web App):** el usuario puede instalar el digest en el móvil como app
-  - `/manifest.json` — configuración de la app
-  - `/icon.svg` — icono
-  - `/sw.js` — service worker (funciona sin conexión con el último digest cacheado)
-- **Validación de API key al arrancar** — aviso inmediato en logs si falta ANTHROPIC_API_KEY
-- **`/estado` mejorado** — ahora incluye `anthropic_key_ok`, `cache_articulos`, `cache_sintesis`
-
-## Última sesión (continuación)
-- Añadidas categorías **Historia** y **Antropología** a `config.py` con 4 fuentes RSS cada una
-- Añadida **barra de ordenación** en el UI: por defecto, más recientes, más antiguos, destacados primero, sesgo izquierda/derecha, más alarmistas
-- La ordenación actúa sobre los grids de la pestaña activa sin recargar la página
-- Pendiente verificar que las URLs RSS de Historia y Antropología funcionan en producción (usar discoverer.py si alguna falla)
-- Añadida pestaña **Asombro** (✨): Claude puntúa cada artículo de 0-3 en "asombro" (independiente del sesgo), los artículos con puntuación ≥2 aparecen aquí con estrellas y una frase explicando por qué son fascinantes. Diseño violeta/índigo para diferenciarlo del resto.
-
-## Problema pendiente importante
-El disco de Render gratuito es efímero: `article_cache.json` se pierde cada vez que el servidor se reinicia. Soluciones posibles (no implementadas aún):
-1. **Upstash Redis** (gratis hasta cierto límite) — sustituir el JSON por Redis
-2. **Render Disk** (de pago) — añadir disco persistente en Render
-3. **Render plan Starter** (7$/mes) — el servidor no duerme nunca y la caché aguanta más
+  - `DIGEST_PASSWORD` — contraseña de acceso básico (por defecto: "dipe")
+- **Keep-alive:** configurar cron-job.org para hacer ping a `/estado` cada 14 minutos
 
 ## Arquitectura resumida
 ```
 config.py          — API keys, modelos, fuentes RSS
-fetcher.py         — Descarga feeds RSS en paralelo (ThreadPoolExecutor)
+fetcher.py         — Descarga feeds RSS en paralelo; rastrea fuentes fallidas
 analyzer.py        — Análisis de sesgo con Claude Haiku (con caché)
 synthesizer.py     — Síntesis cruzada con Claude Sonnet (con caché)
 renderer.py        — Genera el HTML completo autocontenido
-article_cache.py   — Caché persistente (singleton `shared`)
+styles.py          — CSS separado del renderer
+article_cache.py   — Caché persistente: Redis si REDIS_URL está configurada, sino JSON en disco
 app.py             — Servidor Flask: /, /regenerar, /analizar, /estado, /manifest.json, /sw.js
 main.py            — Alternativa CLI para ejecutar localmente
 discoverer.py      — Herramienta para descubrir nuevos feeds RSS con Gemini
 ```
+
+## Modelos Claude
+- **Análisis masivo:** `claude-haiku-4-5-20251001` (20× más barato que Sonnet)
+- **Síntesis cruzada:** `claude-sonnet-4-6` (solo para detectar historias comunes)
+
+## Lo que se arregló
+- **Seguridad:** clave Gemini real eliminada del código fuente (config.py)
+- **Caché persistente en Render:** article_cache.py ahora usa Redis si se configura REDIS_URL
+  - Sin Redis → sigue usando JSON en disco (se pierde al reiniciar en Render gratuito)
+  - Con Redis (Upstash) → la caché sobrevive reinicios → ahorro real de tokens
+- **Referencias "Gemini" eliminadas:** todos los textos visibles al usuario ya dicen "Claude"
+- **Feeds fallidos visibles:** la pestaña Estadísticas muestra qué fuentes no devolvieron artículos
+- **Móvil:** la barra de pestañas ahora hace scroll horizontal (no desborda)
+- **CSS separado:** styles.py contiene todo el CSS; renderer.py solo lógica Python
+- **Autenticación básica:** app.py protege todas las rutas con contraseña (DIGEST_PASSWORD)
+
+## Cómo activar Redis (Upstash — gratuito)
+1. Ir a https://upstash.com y crear una base de datos Redis gratuita
+2. Copiar la "Redis URL" (formato `rediss://default:xxx@host:port`)
+3. Añadir `REDIS_URL=rediss://...` en las variables de entorno de Render
+4. Redeploy — el servidor usará Redis automáticamente
 
 ## Cómo ejecutar localmente
 ```bash
@@ -79,3 +66,8 @@ python main.py          # genera noticias.html y lo abre
 # o
 python app.py           # servidor web en localhost:5000
 ```
+
+## Pendiente
+- Configurar cron-job.org para keep-alive (ping a /estado cada 14 min)
+- Verificar que las URLs RSS de Historia y Antropología funcionan en producción
+- Si los feeds de Historia/Antropología fallan, usar discoverer.py para encontrar alternativas

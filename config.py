@@ -14,6 +14,12 @@ CLAUDE_MODEL          = "claude-sonnet-4-6"           # síntesis cruzada
 CLAUDE_MODEL_ANALISIS = "claude-haiku-4-5-20251001"   # análisis masivo (20× más barato)
 
 # ---------------------------------------------------------------------------
+# API de Gemini — descubrimiento de fuentes (discoverer.py)
+# ---------------------------------------------------------------------------
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+GEMINI_MODEL   = "gemini-2.0-flash"
+
+# ---------------------------------------------------------------------------
 # Parámetros generales
 # ---------------------------------------------------------------------------
 MAX_ARTICULOS_POR_FUENTE = 3   # 3 por fuente ≈ 40% menos tokens de análisis

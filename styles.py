@@ -702,6 +702,17 @@ header    { top: 0; }
 .stats-header { margin-bottom: 2rem; padding-bottom: .875rem; border-bottom: 1px solid var(--border-sub); }
 .stats-header h2 { font-size: 1rem; font-weight: 700; color: var(--txt-1); letter-spacing: -.02em; margin-bottom: .3rem; }
 .stats-header p  { font-size: .78rem; color: var(--txt-3); }
+.stats-fallidas {
+  background: rgba(251,191,36,.07);
+  border: 1px solid rgba(251,191,36,.25);
+  border-radius: 8px;
+  padding: .75rem 1rem;
+  margin-bottom: 1.5rem;
+  font-size: .8rem;
+  color: #fbbf24;
+}
+.stats-fallidas ul { margin: .4rem 0; padding-left: 1.2rem; color: var(--txt-2); }
+.stats-fallidas span { font-size: .75rem; color: var(--txt-3); }
 
 .stats-kpi-row {
   display: flex;

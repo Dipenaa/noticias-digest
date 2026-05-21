@@ -14,6 +14,14 @@ from config import FUENTES, FUENTES_ALTERNATIVAS, MAX_ARTICULOS_POR_FUENTE
 
 _MAX_WORKERS = 12  # feeds descargados en paralelo
 
+# Lista de fuentes que fallaron en la última descarga (se limpia al inicio de cada run)
+_fuentes_fallidas: list[str] = []
+
+
+def get_fuentes_fallidas() -> list[str]:
+    """Devuelve los nombres de fuentes que no devolvieron artículos en la última descarga."""
+    return list(_fuentes_fallidas)
+
 
 # ---------------------------------------------------------------------------
 # Utilidades de limpieza
@@ -52,6 +60,7 @@ def _articulos_de_fuente(fuente: dict) -> list[dict]:
         if not feed.entries:
             print(f"  ⚠ Sin artículos en {fuente['nombre']} "
                   f"(¿feed caído o URL incorrecta?)")
+            _fuentes_fallidas.append(fuente["nombre"])
             return []
 
         articulos = []
@@ -75,6 +84,7 @@ def _articulos_de_fuente(fuente: dict) -> list[dict]:
 
     except Exception as e:
         print(f"  ✗ {fuente['nombre']}: {e}")
+        _fuentes_fallidas.append(fuente["nombre"])
         return []
 
 
@@ -98,6 +108,9 @@ def obtener_todas_las_noticias(
 
     # Preserva el orden de categorías; los artículos dentro de cada categoría
     # llegan en orden de as_completed, pero eso es aceptable.
+    global _fuentes_fallidas
+    _fuentes_fallidas = []   # limpiar antes de cada run
+
     resultado: dict[str, list[dict]] = {cat: [] for cat in fuentes_dict}
     tareas = [
         (cat, fuente)

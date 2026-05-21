@@ -28,7 +28,7 @@ _INTERVALO_HORAS = 12  # regenerar el digest cada N horas
 _PASSWORD = os.getenv("DIGEST_PASSWORD", "dipe")
 
 # Importamos solo los módulos que no usan sys.stdout.reconfigure
-from fetcher import obtener_todas_las_noticias, obtener_noticias_alternativas
+from fetcher import obtener_todas_las_noticias, obtener_noticias_alternativas, get_fuentes_fallidas
 from analyzer import analizar_todas_las_noticias
 from synthesizer import sintetizar_noticias
 from renderer import renderizar_html
@@ -111,6 +111,7 @@ def _generar():
             noticias, analisis,
             alternativas, analisis_alt,
             grupos_sintesis,
+            fuentes_fallidas=get_fuentes_fallidas(),
         )
 
         with _lock:
@@ -177,6 +178,7 @@ def _solo_analizar_ia():
             noticias, analisis,
             alternativas, analisis_alt,
             grupos_sintesis,
+            fuentes_fallidas=get_fuentes_fallidas(),
         )
 
         with _lock:
@@ -229,7 +231,7 @@ _HTML_CARGANDO = """<!DOCTYPE html>
 </head>
 <body>
   <h1>📰 Generando digest<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></h1>
-  <p>Descargando feeds RSS y analizando con Gemini.<br>
+  <p>Descargando feeds RSS y analizando con Claude.<br>
      Esta página se recargará automáticamente cada 8 segundos.</p>
 </body>
 </html>"""
