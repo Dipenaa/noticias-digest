@@ -1,0 +1,187 @@
+"""
+macro_tracker.py — Identifica los 3-5 procesos mundiales más importantes del día.
+
+Estrategia de coste mínimo:
+- Haiku (no Sonnet) para identificar procesos: ~0.3 céntimos/día
+- Caché Redis 24h: solo ejecuta una vez aunque el digest se regenere varias veces
+- Guarda snapshot diario en Redis (TTL 15 días) para el historial de cobertura
+"""
+
+import json
+import hashlib
+from datetime import datetime, timedelta
+
+from config import CLAUDE_MODEL_ANALISIS, IDIOMA_ANALISIS
+from article_cache import shared as _cache
+from claude_client import llamar_claude
+
+_TTL_PROCESOS  = 24 * 3600       # 24h — no recalcular si se regenera hoy
+_TTL_HISTORIAL = 15 * 24 * 3600  # 15 días de historial
+
+_KEY_HOY       = "macro:hoy"
+_KEY_SNAP      = "macro:snap:{fecha}"  # {proceso_id: n_articulos}
+
+_ESTADOS = {"escalada", "estable", "resolucion", "silencio"}
+_HORIZONTES = {"dias", "semanas", "meses", "anos"}
+
+_SYSTEM = """Eres un analista geopolítico senior. Identificas los grandes procesos del mundo,
+no las noticias del día. Un proceso es un conflicto, crisis, transición o fenómeno estructural
+que lleva semanas o meses activo y tiene impacto significativo en vidas humanas o en el orden global."""
+
+_PROMPT = """Analiza estos artículos de noticias de hoy e identifica los 3-5 PROCESOS MUNDIALES
+más importantes que están en curso. No son noticias del día — son situaciones abiertas con historia
+y continuidad.
+
+Artículos disponibles (id | fuente | título | resumen):
+{articulos}
+
+Responde ÚNICAMENTE con JSON válido:
+{{
+  "procesos": [
+    {{
+      "id": "slug-kebab-case-estable",
+      "nombre": "Nombre del proceso (máx 5 palabras)",
+      "descripcion": "Qué es y por qué importa en 1 frase",
+      "estado": "escalada|estable|resolucion|silencio",
+      "importancia": 8,
+      "horizonte": "dias|semanas|meses|anos",
+      "resumen_hoy": "2-3 frases sobre lo que está pasando HOY según los artículos",
+      "ids_articulos": [0, 3, 7]
+    }}
+  ]
+}}
+
+Ordena por importancia descendente. Sé exigente: solo procesos realmente significativos."""
+
+
+def _compactar_articulos(noticias: dict) -> tuple[list[dict], list[dict]]:
+    """Aplana y compacta todos los artículos para el prompt."""
+    compactos = []
+    todos = []
+    for cat, arts in noticias.items():
+        for a in arts:
+            todos.append(a)
+            compactos.append({
+                "id":      len(compactos),
+                "fuente":  a.get("fuente", ""),
+                "titulo":  a.get("titulo", ""),
+                "resumen": (a.get("resumen") or "")[:120],
+            })
+    return compactos, todos
+
+
+def _llamar_haiku(articulos_compactos: list[dict]) -> list[dict] | None:
+    lineas = [
+        f"{a['id']} | {a['fuente']} | {a['titulo']} | {a['resumen']}"
+        for a in articulos_compactos
+    ]
+    prompt = _PROMPT.format(articulos="\n".join(lineas))
+    resultado = llamar_claude(
+        prompt,
+        system=_SYSTEM,
+        model=CLAUDE_MODEL_ANALISIS,
+        max_tokens=1500,
+        temperature=0.3,
+    )
+    if resultado is None:
+        return None
+    return resultado.get("procesos", [])
+
+
+def _enriquecer_con_articulos(procesos: list[dict], todos_articulos: list[dict]) -> list[dict]:
+    """Añade los objetos artículo completos a cada proceso."""
+    for p in procesos:
+        ids = p.get("ids_articulos", [])
+        p["articulos"] = [
+            {
+                "titulo":  todos_articulos[i].get("titulo", ""),
+                "fuente":  todos_articulos[i].get("fuente", ""),
+                "enlace":  todos_articulos[i].get("enlace", "#"),
+                "fecha":   datetime.now().strftime("%Y-%m-%d"),
+            }
+            for i in ids if 0 <= i < len(todos_articulos)
+        ]
+        # Normalizar campos
+        if p.get("estado") not in _ESTADOS:
+            p["estado"] = "estable"
+        if p.get("horizonte") not in _HORIZONTES:
+            p["horizonte"] = "meses"
+        p["importancia"] = max(1, min(10, int(p.get("importancia") or 5)))
+    return procesos
+
+
+def _guardar_snapshot(procesos: list[dict]) -> None:
+    """Guarda cuántos artículos tuvo cada proceso hoy."""
+    fecha = datetime.now().strftime("%Y-%m-%d")
+    snap = {p["id"]: len(p.get("articulos", [])) for p in procesos}
+    key = _KEY_SNAP.format(fecha=fecha)
+    _cache._redis_set(key, json.dumps(snap), ex=_TTL_HISTORIAL)
+
+
+def _cargar_historial(proceso_id: str, dias: int = 15) -> list[dict]:
+    """Devuelve lista de {fecha, cobertura} para los últimos N días."""
+    historial = []
+    hoy = datetime.now()
+    for i in range(dias - 1, -1, -1):
+        fecha = (hoy - timedelta(days=i)).strftime("%Y-%m-%d")
+        key = _KEY_SNAP.format(fecha=fecha)
+        raw = _cache._redis_get(key)
+        cobertura = 0
+        if raw:
+            try:
+                snap = json.loads(raw)
+                cobertura = snap.get(proceso_id, 0)
+            except Exception:
+                pass
+        historial.append({"fecha": fecha, "cobertura": cobertura})
+    return historial
+
+
+# ---------------------------------------------------------------------------
+# Punto de entrada público
+# ---------------------------------------------------------------------------
+
+def obtener_procesos(noticias: dict) -> list[dict]:
+    """
+    Identifica los procesos del día a partir de los artículos.
+
+    Usa caché Redis 24h: si ya se calculó hoy, devuelve el resultado sin coste.
+    Si no hay Redis disponible, calcula sin guardar historial.
+
+    Devuelve lista de procesos con artículos relacionados e historial de cobertura.
+    """
+    # Intentar caché de hoy
+    cached_raw = _cache._redis_get(_KEY_HOY)
+    if cached_raw:
+        try:
+            procesos = json.loads(cached_raw)
+            print(f"  ✓ Macro: {len(procesos)} proceso(s) desde caché (0 tokens)")
+            # Añadir historial aunque venga de caché
+            for p in procesos:
+                p["historial"] = _cargar_historial(p["id"])
+            return procesos
+        except Exception:
+            pass
+
+    # Calcular desde cero
+    compactos, todos = _compactar_articulos(noticias)
+    if not compactos:
+        return []
+
+    print(f"  → Macro: identificando procesos en {len(compactos)} artículos...")
+    procesos = _llamar_haiku(compactos)
+    if not procesos:
+        return []
+
+    procesos = _enriquecer_con_articulos(procesos, todos)
+
+    # Guardar en Redis
+    _cache._redis_set(_KEY_HOY, json.dumps(procesos, ensure_ascii=False), ex=_TTL_PROCESOS)
+    _guardar_snapshot(procesos)
+
+    # Añadir historial (el de hoy ya está guardado)
+    for p in procesos:
+        p["historial"] = _cargar_historial(p["id"])
+
+    print(f"  ✓ Macro: {len(procesos)} proceso(s) identificado(s)")
+    return procesos

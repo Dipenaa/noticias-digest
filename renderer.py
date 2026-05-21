@@ -11,6 +11,7 @@ Construye un documento HTML autocontenido (CSS incluido) con:
 """
 
 import html as _html
+import json
 import os
 import webbrowser
 from datetime import datetime
@@ -532,6 +533,98 @@ def _tab_asombro(
 </div>""", len(candidatos))
 
 
+_ESTADO_META = {
+    "escalada":   ("&#8593;", "estado-escalada",   "Escalada"),
+    "estable":    ("&#61;",   "estado-estable",    "Estable"),
+    "resolucion": ("&#8595;", "estado-resolucion", "Resolviendo"),
+    "silencio":   ("&#9675;", "estado-silencio",   "En silencio"),
+}
+_HORIZONTE_LABEL = {"dias": "días", "semanas": "semanas", "meses": "meses", "anos": "años"}
+
+
+def _proceso_card(p: dict, hero: bool = False) -> str:
+    estado = p.get("estado", "estable")
+    icono, cls_estado, label_estado = _ESTADO_META.get(estado, ("=", "estado-estable", "Estable"))
+    importancia = int(p.get("importancia") or 5)
+    horizonte = _HORIZONTE_LABEL.get(p.get("horizonte", "meses"), p.get("horizonte", "meses"))
+    historial_json = _html.escape(json.dumps(p.get("historial", []), ensure_ascii=False), quote=True)
+    n_arts_hoy = len(p.get("articulos") or [])
+
+    arts_html = ""
+    for a in (p.get("articulos") or [])[:5]:
+        titulo_a = _html.escape(a.get("titulo", ""))
+        fuente_a = _html.escape(a.get("fuente", ""))
+        enlace_a = _html.escape(a.get("enlace", "#"), quote=True)
+        arts_html += f'<li><a href="{enlace_a}" target="_blank" rel="noopener">{titulo_a}</a> <span class="proceso-art-fuente">— {fuente_a}</span></li>'
+    arts_section = f'<ul class="proceso-articulos">{arts_html}</ul>' if arts_html else ""
+
+    resumen    = _html.escape(p.get("resumen_hoy", ""))
+    descripcion = _html.escape(p.get("descripcion", ""))
+    nombre     = _html.escape(p.get("nombre", ""))
+    hero_cls   = " proceso-card-hero" if hero else ""
+
+    return f"""
+<div class="proceso-card{hero_cls}" data-historial="{historial_json}" data-estado="{estado}" data-importancia="{importancia}">
+  <div class="proceso-header">
+    <div class="proceso-nombre">{nombre}</div>
+    <span class="proceso-estado {cls_estado}">{icono} {label_estado}</span>
+  </div>
+  <div class="proceso-descripcion">{descripcion}</div>
+  <div class="proceso-meta-row">
+    <span class="proceso-horizonte">{horizonte}</span>
+    <div class="proceso-imp-wrap" title="Importancia {importancia}/10">
+      <div class="proceso-imp-bar" style="width:{importancia * 10}%"></div>
+      <span class="proceso-imp-label">{importancia}/10</span>
+    </div>
+    <span class="proceso-art-count">{n_arts_hoy} art. hoy</span>
+  </div>
+  <p class="proceso-resumen">{resumen}</p>
+  {arts_section}
+  <div class="proceso-spark-wrap">
+    <span class="proceso-spark-label">Cobertura &#9660;</span>
+    <div class="proceso-sparkline"></div>
+  </div>
+</div>"""
+
+
+def _tab_actualidad(procesos: list[dict]) -> str:
+    if not procesos:
+        return """
+<div class="actualidad-header">
+  <h2>Actualidad Absoluta</h2>
+  <p>Los grandes procesos del mundo, m&#225;s all&#225; de las noticias del d&#237;a.</p>
+</div>
+<div class="actualidad-empty">
+  <p>No hay procesos identificados a&#250;n. Se generan autom&#225;ticamente con el digest.</p>
+</div>"""
+
+    # El proceso más importante va como hero; el resto en grid
+    ordered = sorted(procesos, key=lambda x: int(x.get("importancia") or 0), reverse=True)
+    hero_html = _proceso_card(ordered[0], hero=True) if ordered else ""
+    rest_html = "\n".join(_proceso_card(p) for p in ordered[1:]) if len(ordered) > 1 else ""
+    grid_html = f'<div class="proceso-grid">{rest_html}</div>' if rest_html else ""
+
+    n = len(procesos)
+    return f"""
+<div class="actualidad-header">
+  <h2>Actualidad Absoluta</h2>
+  <p>{n} proceso(s) en curso &mdash; situaciones que llevan semanas o meses activas y tienen impacto global.</p>
+  <div class="historial-filtros">
+    <span class="historial-filtro-label">Historial:</span>
+    <button class="historial-filter-btn" data-dias="5" onclick="setHistorialDias(5)">5 d&#237;as</button>
+    <button class="historial-filter-btn active" data-dias="10" onclick="setHistorialDias(10)">10 d&#237;as</button>
+    <button class="historial-filter-btn" data-dias="15" onclick="setHistorialDias(15)">15 d&#237;as</button>
+    <span class="historial-filtro-sep">|</span>
+    <button class="historial-filter-btn" data-estado="escalada" onclick="filtrarProcesos('escalada',this)">&#8593; Escala</button>
+    <button class="historial-filter-btn" data-estado="estable" onclick="filtrarProcesos('estable',this)">= Estable</button>
+    <button class="historial-filter-btn" data-estado="resolucion" onclick="filtrarProcesos('resolucion',this)">&#8595; Resuelve</button>
+    <button class="historial-filter-btn" data-estado="todos" onclick="filtrarProcesos('todos',this)">Todos</button>
+  </div>
+</div>
+{hero_html}
+{grid_html}"""
+
+
 def renderizar_html(
     noticias: dict[str, list[dict]],
     analisis: dict[str, str],
@@ -539,6 +632,7 @@ def renderizar_html(
     analisis_alt: dict[str, str] | None = None,
     grupos_sintesis: list[dict] | None = None,
     fuentes_fallidas: list[str] | None = None,
+    procesos: list[dict] | None = None,
 ) -> str:
     """
     Construye el HTML completo del digest.
@@ -582,8 +676,10 @@ def renderizar_html(
     para_leer           = _tab_para_leer()
     estadisticas        = _tab_estadisticas(fuentes_fallidas or [])
     asombro_html, n_asombro = _tab_asombro(noticias, alternativas or {})
+    actualidad_html     = _tab_actualidad(procesos or [])
     total_alt           = sum(len(a) for a in (alternativas or {}).values())
     n_sintesis          = len(grupos_sintesis) if grupos_sintesis else 0
+    n_procesos          = len(procesos) if procesos else 0
 
     # colores de sesgo para el JS del cliente
     sesgo_colores_js = "{" + ",".join(
@@ -629,6 +725,9 @@ def renderizar_html(
 <div class="tab-bar">
   <button class="tab-btn active" data-tab="destacadas" onclick="switchTab('destacadas')">
     &#9733; Destacadas
+  </button>
+  <button class="tab-btn" data-tab="actualidad" onclick="switchTab('actualidad')">
+    &#127758; Actualidad{f'<span class="tab-count">{n_procesos}</span>' if n_procesos else ''}
   </button>
   <button class="tab-btn" data-tab="asombro" onclick="switchTab('asombro')">
     &#10024; Asombro{f'<span class="tab-count">{n_asombro}</span>' if n_asombro else ''}
@@ -688,6 +787,10 @@ def renderizar_html(
 
   <div id="tab-asombro" class="tab-content">
     {asombro_html}
+  </div>
+
+  <div id="tab-actualidad" class="tab-content">
+    {actualidad_html}
   </div>
 
   <div id="tab-sintesis" class="tab-content">
@@ -780,7 +883,7 @@ function switchTab(name) {{
   if (nav) nav.style.display = name === 'todas' ? 'flex' : 'none';
 
   // La barra de búsqueda y el filtro solo tienen sentido fuera de Estadísticas
-  var noSearch = name === 'estadisticas' || name === 'para-leer';
+  var noSearch = name === 'estadisticas' || name === 'para-leer' || name === 'actualidad';
   var barra = document.querySelector('.search-bar');
   if (barra) barra.style.display = noSearch ? 'none' : 'flex';
   var sortBar = document.getElementById('sort-bar');
@@ -1318,6 +1421,55 @@ function sortCards(criterio, btn) {{
     cards.forEach(function(c) {{ grid.appendChild(c); }});
   }});
 }}
+</script>
+
+<script>
+/* ── Actualidad Absoluta — sparklines e historial ────────────────────── */
+var _historialDias = 10;
+var _procesoEstadoFiltro = 'todos';
+
+function setHistorialDias(n) {{
+  _historialDias = n;
+  document.querySelectorAll('.historial-filter-btn[data-dias]').forEach(function(b) {{
+    b.classList.toggle('active', parseInt(b.dataset.dias) === n);
+  }});
+  document.querySelectorAll('.proceso-sparkline').forEach(_renderSparkline);
+}}
+
+function filtrarProcesos(estado, btn) {{
+  _procesoEstadoFiltro = estado;
+  document.querySelectorAll('.historial-filter-btn[data-estado]').forEach(function(b) {{
+    b.classList.remove('active');
+  }});
+  if (btn) btn.classList.add('active');
+  document.querySelectorAll('.proceso-card, .proceso-card-hero').forEach(function(card) {{
+    var ok = estado === 'todos' || card.dataset.estado === estado;
+    card.style.display = ok ? '' : 'none';
+  }});
+}}
+
+function _renderSparkline(el) {{
+  var card = el.closest('[data-historial]');
+  if (!card) return;
+  var historial;
+  try {{ historial = JSON.parse(card.dataset.historial || '[]'); }} catch(e) {{ historial = []; }}
+  var slice = historial.slice(-_historialDias);
+  var max = 0;
+  slice.forEach(function(d) {{ if ((d.cobertura||0) > max) max = d.cobertura; }});
+  if (max === 0) max = 1;
+  el.innerHTML = slice.map(function(d) {{
+    var pct = d.cobertura > 0 ? Math.max(10, Math.round((d.cobertura / max) * 100)) : 4;
+    var parts = (d.fecha || '').split('-');
+    var label = parts.length === 3 ? parts[2] + '/' + parts[1] : d.fecha;
+    var title = label + ': ' + (d.cobertura || 0) + ' artículo(s)';
+    var opacity = d.cobertura > 0 ? '1' : '0.25';
+    return '<div class="spark-bar" style="height:' + pct + '%;opacity:' + opacity + '" title="' + title + '"></div>';
+  }}).join('');
+}}
+
+(function() {{
+  document.querySelectorAll('.proceso-sparkline').forEach(_renderSparkline);
+}})();
 </script>
 
 <script>

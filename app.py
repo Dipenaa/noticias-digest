@@ -105,6 +105,9 @@ def _generar():
         else:
             print(f"[{datetime.now():%H:%M:%S}] Modo sin IA (SIN_IA=1 o ANTHROPIC_API_KEY no configurada)")
 
+        from macro_tracker import obtener_procesos as _obtener_procesos
+        procesos = _obtener_procesos(noticias) if ia_disponible else []
+
         import copy as _copy
         with _lock:
             _render_data = {
@@ -112,6 +115,7 @@ def _generar():
                 "analisis":     analisis,
                 "alternativas": _copy.deepcopy(alternativas),
                 "analisis_alt": analisis_alt,
+                "procesos":     procesos,
             }
 
         # 3. Renderiza (sin síntesis — se genera cuando el usuario la pide)
@@ -120,6 +124,7 @@ def _generar():
             alternativas, analisis_alt,
             [],
             fuentes_fallidas=get_fuentes_fallidas(),
+            procesos=procesos,
         )
 
         with _lock:
@@ -182,6 +187,9 @@ def _solo_analizar_ia():
         else:
             print(f"[{datetime.now():%H:%M:%S}] IA no disponible — SIN_IA o ANTHROPIC_API_KEY ausente")
 
+        from macro_tracker import obtener_procesos as _obtener_procesos
+        procesos = _obtener_procesos(noticias) if ia_disponible else []
+
         import copy as _copy
         with _lock:
             _render_data = {
@@ -189,6 +197,7 @@ def _solo_analizar_ia():
                 "analisis":     analisis,
                 "alternativas": _copy.deepcopy(alternativas),
                 "analisis_alt": analisis_alt,
+                "procesos":     procesos,
             }
 
         html = renderizar_html(
@@ -196,6 +205,7 @@ def _solo_analizar_ia():
             alternativas, analisis_alt,
             [],
             fuentes_fallidas=get_fuentes_fallidas(),
+            procesos=procesos,
         )
 
         with _lock:
@@ -243,6 +253,7 @@ def _solo_sintetizar():
             data["alternativas"], data["analisis_alt"],
             grupos,
             fuentes_fallidas=get_fuentes_fallidas(),
+            procesos=data.get("procesos", []),
         )
 
         with _lock:

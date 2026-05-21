@@ -162,6 +162,28 @@ class ArticleCache:
                 "backend":              "redis" if self._redis else "disco",
             }
 
+    # ── Redis directo (claves arbitrarias para uso externo) ──────────────────
+
+    def _redis_set(self, key: str, value: str, ex: int | None = None) -> bool:
+        if not self._redis:
+            return False
+        try:
+            if ex:
+                self._redis.setex(key, ex, value)
+            else:
+                self._redis.set(key, value)
+            return True
+        except Exception:
+            return False
+
+    def _redis_get(self, key: str) -> str | None:
+        if not self._redis:
+            return None
+        try:
+            return self._redis.get(key)
+        except Exception:
+            return None
+
 
 # Singleton compartido: importar esto en lugar de crear instancias nuevas
 shared = ArticleCache()
