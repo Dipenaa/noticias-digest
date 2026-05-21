@@ -23,32 +23,69 @@ Digest personal de noticias en español. Descarga feeds RSS de ~51 fuentes organ
 
 ## Arquitectura resumida
 ```
-config.py          — API keys, modelos, fuentes RSS
-fetcher.py         — Descarga feeds RSS en paralelo; rastrea fuentes fallidas
-analyzer.py        — Análisis de sesgo con Claude Haiku (con caché)
-synthesizer.py     — Síntesis cruzada con Claude Sonnet (con caché)
-renderer.py        — Genera el HTML completo autocontenido
-styles.py          — CSS separado del renderer
-article_cache.py   — Caché persistente: Redis si REDIS_URL está configurada, sino JSON en disco
-app.py             — Servidor Flask: /, /regenerar, /analizar, /estado, /manifest.json, /sw.js
-main.py            — Alternativa CLI para ejecutar localmente
-discoverer.py      — Herramienta para descubrir nuevos feeds RSS con Gemini
+config.py             — API keys, modelos, fuentes RSS
+fetcher.py            — Descarga feeds RSS en paralelo; rastrea fuentes fallidas
+analyzer.py           — Análisis de sesgo con Claude Haiku (con caché y prompt caching)
+synthesizer.py        — Síntesis cruzada con Claude Sonnet (con caché)
+claude_client.py      — Cliente Claude compartido: reintentos, rate limit, prompt caching
+renderer.py           — Genera el HTML completo autocontenido
+styles.py             — Todo el CSS (separado del renderer)
+article_cache.py      — Caché persistente: Redis si REDIS_URL existe, sino JSON en disco
+app.py                — Servidor Flask: /, /regenerar, /analizar, /estado, /manifest.json, /sw.js
+main.py               — Alternativa CLI para ejecutar localmente
+discoverer.py         — Herramienta para descubrir nuevos feeds RSS con Gemini
+preview.py            — Servidor local en localhost:5001 para iterar diseño sin gastar tokens
+autoresearch_analyzer.py     — Script de autoresearch para optimizar el prompt de analyzer.py
+autoresearch_synthesizer.py  — Script de autoresearch para optimizar el prompt de synthesizer.py
 ```
 
 ## Modelos Claude
 - **Análisis masivo:** `claude-haiku-4-5-20251001` (20× más barato que Sonnet)
 - **Síntesis cruzada:** `claude-sonnet-4-6` (solo para detectar historias comunes)
+- **Prompt caching:** el system prompt de analyzer.py se cachea entre llamadas (~80% menos tokens en ciclos normales)
 
-## Lo que se arregló
-- **Seguridad:** clave Gemini real eliminada del código fuente (config.py)
-- **Caché persistente en Render:** article_cache.py ahora usa Redis si se configura REDIS_URL
-  - Sin Redis → sigue usando JSON en disco (se pierde al reiniciar en Render gratuito)
-  - Con Redis (Upstash) → la caché sobrevive reinicios → ahorro real de tokens
-- **Referencias "Gemini" eliminadas:** todos los textos visibles al usuario ya dicen "Claude"
-- **Feeds fallidos visibles:** la pestaña Estadísticas muestra qué fuentes no devolvieron artículos
-- **Móvil:** la barra de pestañas ahora hace scroll horizontal (no desborda)
+## Skills disponibles
+
+### Skills de proyecto (`.claude/skills/`)
+- **`redisenar`** — Workflow completo para iterar el diseño visual sin gastar tokens. Usa `preview.py`.
+- **`crear-skill`** — Crea o mejora skills para este proyecto.
+
+### Skills globales (`~/.claude/skills/`) — disponibles en todos los proyectos
+| Skill | Trigger | Qué hace |
+|---|---|---|
+| `/pensar` | Manual | Análisis profundo con ultrathink + effort max. Para decisiones importantes. |
+| `/explorar` | Automático | Brainstorming, posibilidades, ángulos no obvios. |
+| `/criticar` | Automático | Crítica honesta de código, planes o textos. |
+| `/sintetizar` | Automático | Síntesis densa de información compleja. |
+| `/autoresearch` | Manual | Loop autónomo de experimentación: optimiza un fichero iterando y midiendo. |
+| `/auto-mejora` | Manual | Convierte lo aprendido en sesiones en reglas y skills duraderas. |
+| `/enjambre` | Manual | Divide tareas grandes en subtareas paralelas (hasta 12 agentes). |
+| `/orientar` | Manual | Recupera contexto cuando se pierde el hilo entre sesiones. |
+| `/session-report` | Manual | Resumen de lo hecho en la sesión para handoff. |
+
+## Autoresearch de prompts (21 mayo 2026)
+Se ejecutó `/autoresearch` sobre los dos prompts principales con artículos ficticios de prueba:
+
+**analyzer.py** — baseline 8/9 → final 9/9
+- Mejora: las críticas deben empezar directamente con la observación, no con "El artículo presenta..."
+
+**synthesizer.py** — baseline 8/9 → final 9/9
+- Mejora: los títulos de grupos deben tener verbo activo que capture la tensión de la historia
+- Bug corregido: usaba Haiku en vez de Sonnet (modelo equivocado)
+
+Coste total del autoresearch: ~1.5 céntimos.
+
+Scripts reutilizables guardados: `autoresearch_analyzer.py` y `autoresearch_synthesizer.py`.
+
+## Lo que se arregló (historial)
+- **Seguridad:** clave Gemini real eliminada del código fuente
+- **Caché persistente en Render:** article_cache.py usa Redis si REDIS_URL está configurada
+- **claude_client.py:** cliente Claude centralizado con reintentos, rate limit y prompt caching
+- **Feeds fallidos visibles:** la pestaña Estadísticas muestra fuentes que no devolvieron artículos
+- **Móvil:** barra de pestañas con scroll horizontal
 - **CSS separado:** styles.py contiene todo el CSS; renderer.py solo lógica Python
 - **Autenticación básica:** app.py protege todas las rutas con contraseña (DIGEST_PASSWORD)
+- **synthesizer.py:** corregido modelo incorrecto (era Haiku, debe ser Sonnet)
 
 ## Cómo activar Redis (Upstash — gratuito)
 1. Ir a https://upstash.com y crear una base de datos Redis gratuita
@@ -65,9 +102,11 @@ export ANTHROPIC_API_KEY=tu_clave
 python main.py          # genera noticias.html y lo abre
 # o
 python app.py           # servidor web en localhost:5000
+# o (para iterar diseño sin tokens)
+python preview.py       # vista previa en localhost:5001
 ```
 
 ## Pendiente
 - Configurar cron-job.org para keep-alive (ping a /estado cada 14 min)
-- Verificar que las URLs RSS de Historia y Antropología funcionan en producción
-- Si los feeds de Historia/Antropología fallan, usar discoverer.py para encontrar alternativas
+- Verificar feeds RSS de Historia y Antropología en producción; usar discoverer.py si fallan
+- Considerar Upstash Redis para que la caché sobreviva reinicios de Render
