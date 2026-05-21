@@ -5,7 +5,7 @@ Evita re-enviar a Claude artículos ya analizados, reduciendo tokens consumidos
 en ciclos donde la mayoría de noticias ya fueron procesadas.
 
 TTLs:
-- Artículos individuales: 24 horas
+- Artículos individuales: 72 horas
 - Análisis general por categoría: 6 horas
 - Síntesis cruzada: 6 horas
 
@@ -26,7 +26,7 @@ import threading
 from pathlib import Path
 
 _CACHE_FILE    = Path("article_cache.json")
-_TTL_ARTICULO  = 24 * 3600   # 24 horas
+_TTL_ARTICULO  = 72 * 3600   # 72 horas
 _TTL_CATEGORIA =  6 * 3600   #  6 horas
 _TTL_SINTESIS  =  6 * 3600   #  6 horas
 
@@ -183,6 +183,30 @@ class ArticleCache:
             return self._redis.get(key)
         except Exception:
             return None
+
+    # ── Pool de artículos (últimos 3 días) ──────────────────────────────────
+
+    def get_pool(self, categoria: str) -> list[dict]:
+        """Devuelve artículos del pool de los últimos 3 días para esta categoría."""
+        raw = self._redis_get(f"noticias:pool:{categoria}")
+        if not raw:
+            return []
+        try:
+            return json.loads(raw)
+        except Exception:
+            return []
+
+    def update_pool(self, categoria: str, articulos: list[dict]) -> None:
+        """Fusiona los artículos nuevos en el pool (dedup por enlace), TTL 72h."""
+        pool = {a["enlace"]: a for a in self.get_pool(categoria)}
+        for a in articulos:
+            if a.get("enlace"):
+                pool[a["enlace"]] = a
+        self._redis_set(
+            f"noticias:pool:{categoria}",
+            json.dumps(list(pool.values()), ensure_ascii=False),
+            ex=72 * 3600,
+        )
 
 
 # Singleton compartido: importar esto en lugar de crear instancias nuevas
