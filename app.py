@@ -35,7 +35,7 @@ from renderer import renderizar_html
 
 app = Flask(__name__)
 
-_RUTAS_PUBLICAS = {"/sw.js", "/manifest.json", "/icon.svg", "/estado"}
+_RUTAS_PUBLICAS = {"/sw.js", "/manifest.json", "/icon.svg", "/estado", "/sintetizar"}
 
 @app.before_request
 def _auth():
@@ -61,6 +61,7 @@ _ultimo_error     = None          # texto del último error, si lo hubo
 _sin_ia           = os.getenv("SIN_IA", "").lower() in ("1", "true", "yes")
 _noticias_raw     = None          # último dict de noticias principales sin enriquecer
 _alternativas_raw = None          # último dict de noticias alternativas sin enriquecer
+_render_data      = None          # datos completos para re-renderizar (con análisis IA)
 
 
 # ---------------------------------------------------------------------------
@@ -70,7 +71,7 @@ _alternativas_raw = None          # último dict de noticias alternativas sin en
 def _generar():
     """Descarga feeds, analiza con Claude (si procede) y actualiza _html_cache."""
     global _generando, _html_cache, _ultimo_update, _ultimo_error
-    global _noticias_raw, _alternativas_raw
+    global _noticias_raw, _alternativas_raw, _render_data
 
     with _lock:
         if _generando:
@@ -102,15 +103,24 @@ def _generar():
             print(f"[{datetime.now():%H:%M:%S}] Analizando con Claude...")
             noticias,     analisis     = analizar_todas_las_noticias(noticias)
             alternativas, analisis_alt = analizar_todas_las_noticias(alternativas)
-            grupos_sintesis            = sintetizar_noticias(noticias, alternativas)
+            # síntesis bajo demanda — no se llama aquí
         else:
             print(f"[{datetime.now():%H:%M:%S}] Modo sin IA (SIN_IA=1 o ANTHROPIC_API_KEY no configurada)")
 
-        # 3. Renderiza
+        import copy
+        with _lock:
+            _render_data = {
+                "noticias":     copy.deepcopy(noticias),
+                "analisis":     analisis,
+                "alternativas": copy.deepcopy(alternativas),
+                "analisis_alt": analisis_alt,
+            }
+
+        # 3. Renderiza (sin síntesis — se genera cuando el usuario la pide)
         html = renderizar_html(
             noticias, analisis,
             alternativas, analisis_alt,
-            grupos_sintesis,
+            [],
             fuentes_fallidas=get_fuentes_fallidas(),
         )
 
@@ -141,7 +151,7 @@ def _lanzar_generacion():
 def _solo_analizar_ia():
     """Corre solo el análisis IA sobre las noticias ya descargadas (sin re-fetch de feeds)."""
     global _generando, _html_cache, _ultimo_update, _ultimo_error
-    global _noticias_raw, _alternativas_raw
+    global _noticias_raw, _alternativas_raw, _render_data
 
     with _lock:
         if _generando:
@@ -170,14 +180,23 @@ def _solo_analizar_ia():
         if ia_disponible:
             noticias,     analisis     = analizar_todas_las_noticias(noticias)
             alternativas, analisis_alt = analizar_todas_las_noticias(alternativas)
-            grupos_sintesis            = sintetizar_noticias(noticias, alternativas)
+            # síntesis bajo demanda
         else:
             print(f"[{datetime.now():%H:%M:%S}] IA no disponible — SIN_IA o ANTHROPIC_API_KEY ausente")
+
+        import copy as _copy
+        with _lock:
+            _render_data = {
+                "noticias":     _copy.deepcopy(noticias),
+                "analisis":     analisis,
+                "alternativas": _copy.deepcopy(alternativas),
+                "analisis_alt": analisis_alt,
+            }
 
         html = renderizar_html(
             noticias, analisis,
             alternativas, analisis_alt,
-            grupos_sintesis,
+            [],
             fuentes_fallidas=get_fuentes_fallidas(),
         )
 
@@ -204,6 +223,42 @@ def _scheduler():
         time.sleep(_INTERVALO_HORAS * 3600)
         print(f"[{datetime.now():%H:%M:%S}] Regeneración automática ({_INTERVALO_HORAS}h)")
         _lanzar_generacion()
+
+
+def _solo_sintetizar():
+    """Genera la síntesis cruzada con los datos ya analizados y re-renderiza el HTML."""
+    global _html_cache, _ultimo_update, _ultimo_error
+
+    with _lock:
+        data = _render_data
+
+    if not data:
+        print(f"[{datetime.now():%H:%M:%S}] Síntesis solicitada pero no hay datos analizados")
+        return
+
+    try:
+        print(f"[{datetime.now():%H:%M:%S}] Generando síntesis cruzada con Claude...")
+        grupos = sintetizar_noticias(data["noticias"], data["alternativas"])
+
+        html = renderizar_html(
+            data["noticias"], data["analisis"],
+            data["alternativas"], data["analisis_alt"],
+            grupos,
+            fuentes_fallidas=get_fuentes_fallidas(),
+        )
+
+        with _lock:
+            _html_cache    = html
+            _ultimo_update = datetime.now()
+            _ultimo_error  = None
+
+        print(f"[{datetime.now():%H:%M:%S}] Síntesis completada — {len(grupos)} historia(s).")
+
+    except Exception:
+        err = traceback.format_exc()
+        print(f"[{datetime.now():%H:%M:%S}] ERROR en síntesis:\n{err}")
+        with _lock:
+            _ultimo_error = err
 
 
 # ---------------------------------------------------------------------------
@@ -277,12 +332,18 @@ def regenerar():
 
 @app.route("/analizar", methods=["GET", "POST"])
 def analizar():
-    """Lanza solo el análisis IA sobre las noticias ya cacheadas (sin re-fetch de feeds).
-    Devuelve JSON {ok: true} de inmediato; el cliente sondea /estado para saber cuándo acabó.
-    """
+    """Lanza solo el análisis IA sobre las noticias ya cacheadas (sin re-fetch de feeds)."""
     t = threading.Thread(target=_solo_analizar_ia, daemon=True)
     t.start()
     return jsonify({"ok": True, "mensaje": "Análisis IA iniciado en background"})
+
+
+@app.route("/sintetizar", methods=["GET", "POST"])
+def sintetizar():
+    """Genera la síntesis cruzada bajo demanda (solo cuando el usuario la pide)."""
+    t = threading.Thread(target=_solo_sintetizar, daemon=True)
+    t.start()
+    return jsonify({"ok": True, "mensaje": "Síntesis iniciada en background"})
 
 
 @app.route("/manifest.json")

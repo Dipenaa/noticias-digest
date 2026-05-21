@@ -662,11 +662,28 @@ header    { top: 0; }
 
 .sin-sintesis {
   text-align: center;
-  padding: 4rem 0;
+  padding: 4rem 2rem;
   color: var(--txt-3);
   font-size: 0.875rem;
   line-height: 1.7;
+  max-width: 480px;
+  margin: 0 auto;
 }
+.sin-sintesis h3 { color: var(--txt-1); font-size: 1rem; margin-bottom: .75rem; }
+.sin-sintesis-nota { font-size: .78rem; margin-bottom: 1.5rem; color: var(--txt-3); }
+.sin-sintesis button {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: .65rem 1.4rem;
+  font-size: .875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity .15s;
+}
+.sin-sintesis button:hover { opacity: .85; }
+.sin-sintesis button:disabled { opacity: .5; cursor: default; }
 
 /* ── Pestaña Prensa Libertaria — acento rojo ─────────────────────────── */
 #tab-libertaria .seccion-acento {

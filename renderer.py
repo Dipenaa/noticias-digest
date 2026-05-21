@@ -107,7 +107,6 @@ def _tarjeta(articulo: dict, verificados: frozenset = frozenset(), orden: int = 
       {articulo["titulo"]}
     </a>
   </div>
-  <p class="resumen">{articulo.get("resumen", "")}</p>
   {critica_html}
 </div>"""
 
@@ -230,7 +229,6 @@ def _featured_card(articulo: dict, categoria: str,
       {articulo["titulo"]}
     </a>
   </div>
-  <p class="resumen">{articulo.get("resumen", "")}</p>
   {critica_html}
 </div>"""
 
@@ -295,10 +293,11 @@ def _tab_sintesis(grupos: list[dict]) -> str:
     """Pestaña de síntesis cruzada de historias."""
     if not grupos:
         return """<div class="sin-sintesis">
-  <p>No hay síntesis disponible.</p>
-  <p style="margin-top:.5rem;font-size:.8rem">
-    Ejecuta <code>python main.py</code> (con análisis IA) para generar síntesis automáticas.
-  </p>
+  <h3>Síntesis cruzada</h3>
+  <p>Detecta historias que aparecen en múltiples fuentes con perspectivas distintas y las analiza con Claude.</p>
+  <p class="sin-sintesis-nota">No se genera automáticamente para ahorrar tokens. Pulsa cuando quieras verla.</p>
+  <button id="btn-sintetizar" onclick="generarSintesis()">Generar síntesis con Claude</button>
+  <p id="sintesis-estado" style="display:none;margin-top:1rem;font-size:.82rem;color:var(--txt-3)">Analizando… puede tardar 20-30 s</p>
 </div>"""
 
     cards = "\n".join(_synthesis_card(g) for g in grupos)
@@ -1196,6 +1195,32 @@ function lanzarAnalisisIA() {{
       // Sin servidor Flask (archivo local) o /analizar no existe: regenerar completo
       window.location.href = '/regenerar';
     }});
+}}
+
+function generarSintesis() {{
+  var btn = document.getElementById('btn-sintetizar');
+  var est = document.getElementById('sintesis-estado');
+  btn.disabled = true;
+  btn.textContent = 'Generando…';
+  est.style.display = 'block';
+  var tsAntes = null;
+  fetch('/estado').then(function(r){{return r.json();}}).then(function(s){{
+    tsAntes = s.ultimo_update;
+    return fetch('/sintetizar', {{method:'POST'}});
+  }}).then(function() {{
+    var poll = setInterval(function() {{
+      fetch('/estado').then(function(r){{return r.json();}}).then(function(s) {{
+        if (s.ultimo_update !== tsAntes) {{
+          clearInterval(poll);
+          window.location.reload();
+        }}
+      }}).catch(function(){{ clearInterval(poll); window.location.reload(); }});
+    }}, 3000);
+  }}).catch(function() {{
+    est.textContent = 'Error al conectar con el servidor.';
+    btn.disabled = false;
+    btn.textContent = 'Reintentar';
+  }});
 }}
 
 /* ── Inicio ──────────────────────────────────────────────────────────── */
