@@ -2,7 +2,7 @@
 fetcher.py — Descarga y parsea feeds RSS en paralelo.
 
 Responsabilidad única: dado el dict FUENTES de config.py,
-devuelve un dict {categoría: [lista de artículos]} listos para analizar.
+devuelve un dict {categoría: [artículos]} listos para analizar.
 """
 
 import re
@@ -12,14 +12,42 @@ from datetime import datetime
 
 from config import FUENTES, FUENTES_ALTERNATIVAS, MAX_ARTICULOS_POR_FUENTE
 
-_MAX_WORKERS = 12  # feeds descargados en paralelo
+_MAX_WORKERS = 12
 
-# Lista de fuentes que fallaron en la última descarga (se limpia al inicio de cada run)
 _fuentes_fallidas: list[str] = []
+
+# ---------------------------------------------------------------------------
+# Filtro de ruido — títulos que contienen estas palabras se descartan
+# ---------------------------------------------------------------------------
+
+_PALABRAS_RUIDO = {
+    # Deportes
+    "fútbol", "futbol", "gol", "liga", "champions", "mundial", "baloncesto",
+    "tenis", "moto gp", "formula 1", "f1", "ciclismo", "atletismo", "nadal",
+    "real madrid", "barcelona", "atlético", "atletico", "nba", "eurocopa",
+    # Famosos / televisión / corazón
+    "celebrities", "celebrity", "famoso", "famosa", "cantante", "actor",
+    "actriz", "influencer", "reality", "gran hermano", "supervivientes",
+    "masterchef", "got talent", "eurovisión", "eurovision", "boda real",
+    "alfombra roja", "look", "bikini", "novio", "novia", "ruptura",
+    # Sucesos menores / crónica negra local
+    "accidente de tráfico", "atropello", "incendio forestal", "herido leve",
+    "detenido por", "arrestado por", "robo en", "asalto a",
+    # Tiempo y lotería
+    "previsión del tiempo", "tiempo en", "ola de calor", "borrasca",
+    "lotería", "euromillones", "bonoloto", "primitiva", "cupón",
+    # Horóscopo / entretenimiento vacío
+    "horóscopo", "horoscopo", "tarot", "receta", "recetas de",
+    "los mejores restaurantes", "destinos para",
+}
+
+
+def _es_ruido(titulo: str) -> bool:
+    t = titulo.lower()
+    return any(p in t for p in _PALABRAS_RUIDO)
 
 
 def get_fuentes_fallidas() -> list[str]:
-    """Devuelve los nombres de fuentes que no devolvieron artículos en la última descarga."""
     return list(_fuentes_fallidas)
 
 
@@ -28,7 +56,6 @@ def get_fuentes_fallidas() -> list[str]:
 # ---------------------------------------------------------------------------
 
 def _quitar_html(texto: str) -> str:
-    """Elimina etiquetas HTML de un texto plano."""
     return re.sub(r"<[^>]+>", "", texto or "").strip()
 
 
@@ -47,29 +74,27 @@ def _formatear_fecha(entry) -> str:
 # ---------------------------------------------------------------------------
 
 def _articulos_de_fuente(fuente: dict) -> list[dict]:
-    """
-    Descarga el feed RSS de una fuente y devuelve artículos normalizados.
-
-    Cada artículo tiene estos campos:
-      titulo, enlace, resumen, fuente, sesgo_fuente, fecha
-      sesgo_ia, critica → se rellenan en analyzer.py (aquí quedan en None)
-    """
     try:
         feed = feedparser.parse(fuente["url"])
 
         if not feed.entries:
-            print(f"  ⚠ Sin artículos en {fuente['nombre']} "
-                  f"(¿feed caído o URL incorrecta?)")
+            print(f"  ⚠ Sin artículos en {fuente['nombre']}")
             _fuentes_fallidas.append(fuente["nombre"])
             return []
 
         articulos = []
-        for entry in feed.entries[:MAX_ARTICULOS_POR_FUENTE]:
+        # Leemos más entradas de las necesarias para poder filtrar ruido
+        for entry in feed.entries[:MAX_ARTICULOS_POR_FUENTE * 3]:
+            titulo = entry.get("title", "Sin título").strip()
+
+            if _es_ruido(titulo):
+                continue
+
             resumen_crudo = entry.get("summary", "") or entry.get("description", "")
             resumen = _quitar_html(resumen_crudo)
 
             articulos.append({
-                "titulo":       entry.get("title", "Sin título").strip(),
+                "titulo":       titulo,
                 "enlace":       entry.get("link", "#"),
                 "resumen":      resumen[:500],
                 "fuente":       fuente["nombre"],
@@ -78,6 +103,9 @@ def _articulos_de_fuente(fuente: dict) -> list[dict]:
                 "sesgo_ia":     None,
                 "critica":      None,
             })
+
+            if len(articulos) >= MAX_ARTICULOS_POR_FUENTE:
+                break
 
         print(f"  ✓ {fuente['nombre']}: {len(articulos)} artículo(s)")
         return articulos
@@ -95,21 +123,11 @@ def _articulos_de_fuente(fuente: dict) -> list[dict]:
 def obtener_todas_las_noticias(
     fuentes_dict: dict | None = None,
 ) -> dict[str, list[dict]]:
-    """
-    Descarga artículos de todas las categorías en paralelo.
-
-    Parámetros:
-        fuentes_dict — dict {categoría: [fuentes]}. Si es None usa FUENTES.
-
-    Devuelve {categoría: [artículos]}.
-    """
     if fuentes_dict is None:
         fuentes_dict = FUENTES
 
-    # Preserva el orden de categorías; los artículos dentro de cada categoría
-    # llegan en orden de as_completed, pero eso es aceptable.
     global _fuentes_fallidas
-    _fuentes_fallidas = []   # limpiar antes de cada run
+    _fuentes_fallidas = []
 
     resultado: dict[str, list[dict]] = {cat: [] for cat in fuentes_dict}
     tareas = [
@@ -118,8 +136,7 @@ def obtener_todas_las_noticias(
         for fuente in fuentes
     ]
 
-    total = len(tareas)
-    print(f"  Descargando {total} feed(s) en paralelo ({_MAX_WORKERS} workers)...")
+    print(f"  Descargando {len(tareas)} feed(s) en paralelo ({_MAX_WORKERS} workers)...")
 
     with ThreadPoolExecutor(max_workers=_MAX_WORKERS) as executor:
         future_map = {
@@ -134,7 +151,7 @@ def obtener_todas_las_noticias(
             except Exception as e:
                 print(f"  ✗ Error inesperado en {fuente['nombre']}: {e}")
 
-    # Eliminar artículos duplicados por URL dentro de cada categoría
+    # Deduplicar por URL
     total_antes = sum(len(v) for v in resultado.values())
     for cat in resultado:
         vistos: set[str] = set()
@@ -146,11 +163,10 @@ def obtener_todas_las_noticias(
         resultado[cat] = unicos
     total_despues = sum(len(v) for v in resultado.values())
     if total_antes != total_despues:
-        print(f"  ℹ Deduplicación: {total_antes - total_despues} artículo(s) duplicado(s) eliminado(s)")
+        print(f"  ℹ Deduplicación: {total_antes - total_despues} duplicado(s) eliminado(s)")
 
     return resultado
 
 
 def obtener_noticias_alternativas() -> dict[str, list[dict]]:
-    """Atajo para descargar las fuentes de FUENTES_ALTERNATIVAS."""
     return obtener_todas_las_noticias(FUENTES_ALTERNATIVAS)

@@ -22,7 +22,7 @@ GEMINI_MODEL   = "gemini-2.0-flash"
 # ---------------------------------------------------------------------------
 # Parámetros generales
 # ---------------------------------------------------------------------------
-MAX_ARTICULOS_POR_FUENTE = 3   # 3 por fuente ≈ 40% menos tokens de análisis
+MAX_ARTICULOS_POR_FUENTE = 2   # 2 por fuente — menos ruido, menos tokens
 ARCHIVO_SALIDA           = "noticias.html"
 IDIOMA_ANALISIS          = "español"
 
@@ -44,18 +44,14 @@ FUENTES = {
         {"nombre": "infoLibre",        "url": "https://www.infolibre.es/rss/portada.xml",                         "sesgo": "izquierda"},
         {"nombre": "El Español",       "url": "https://www.elespanol.com/rss/",                                    "sesgo": "centro-derecha"},
         {"nombre": "RTVE Noticias",    "url": "https://www.rtve.es/api/noticias.rss",                              "sesgo": "centro"},
-        {"nombre": "20minutos",        "url": "https://www.20minutos.es/rss/",                                     "sesgo": "centro"},
-        {"nombre": "Vozpópuli",        "url": "https://www.vozpopuli.com/feed/",                                   "sesgo": "centro-derecha"},
     ],
     "Internacional": [
         {"nombre": "BBC Mundo",        "url": "https://feeds.bbci.co.uk/mundo/rss.xml",                            "sesgo": "centro"},
         {"nombre": "Al Jazeera",       "url": "https://www.aljazeera.com/xml/rss/all.xml",                        "sesgo": "centro-izquierda"},
         {"nombre": "DW Español",       "url": "https://rss.dw.com/rdf/rss-sp-all",                                "sesgo": "centro"},
         {"nombre": "France 24",        "url": "https://www.france24.com/es/rss",                                   "sesgo": "centro"},
-        {"nombre": "Euronews",         "url": "https://es.euronews.com/rss?format=mrss&level=theme&name=news",     "sesgo": "centro"},
         {"nombre": "The Guardian",     "url": "https://www.theguardian.com/world/rss",                             "sesgo": "centro-izquierda"},
-        {"nombre": "RT en Español",    "url": "https://actualidad.rt.com/rss",                                     "sesgo": "desconocido"},  # medio estatal ruso
-        {"nombre": "CGTN Español",     "url": "https://spanish.cgtn.com/RSS/RSS.xml",                              "sesgo": "desconocido"},  # medio estatal chino
+        {"nombre": "Euronews",         "url": "https://es.euronews.com/rss?format=mrss&level=theme&name=news",     "sesgo": "centro"},
     ],
     "Tecnología": [
         {"nombre": "Xataka",           "url": "https://www.xataka.com/atom.xml",                                   "sesgo": "centro"},
