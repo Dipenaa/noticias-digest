@@ -61,6 +61,7 @@ def _tarjeta(articulo: dict, verificados: frozenset = frozenset(), orden: int = 
         '<span class="badge-verified" title="Confirmado por múltiples fuentes de distinto sesgo">&#10003; Multi-fuente</span>'
         if articulo.get("enlace") in verificados else ""
     )
+    novedad_html = _badge_novedad(articulo)
     search_data = f'{articulo["titulo"].lower()} {articulo["fuente"].lower()} {(articulo.get("resumen") or "").lower()}'
 
     da = {k: _html.escape(str(v), quote=True) for k, v in {
@@ -97,6 +98,7 @@ def _tarjeta(articulo: dict, verificados: frozenset = frozenset(), orden: int = 
       {_badge(sesgo_ia)}
       {_badge_sentimiento(sentimiento)}
       {verified_html}
+      {novedad_html}
       <button class="bookmark-btn" title="Guardar para leer"
               data-enlace="{da['enlace']}" data-titulo="{da['titulo']}"
               data-fuente="{da['fuente']}" data-fecha="{da['fecha']}"
@@ -184,6 +186,7 @@ def _featured_card(articulo: dict, categoria: str,
         '<span class="badge-verified">&#10003; Multi-fuente</span>'
         if articulo.get("enlace") in verificados else ""
     )
+    novedad_html  = _badge_novedad(articulo)
     search_data_d = f'{articulo["titulo"].lower()} {articulo["fuente"].lower()} {categoria.lower()}'
 
     da = {k: _html.escape(str(v), quote=True) for k, v in {
@@ -219,6 +222,7 @@ def _featured_card(articulo: dict, categoria: str,
       {_badge(sesgo_ia)}
       {_badge_sentimiento(sentimiento)}
       {verified_html}
+      {novedad_html}
       <button class="bookmark-btn" title="Guardar para leer"
               data-enlace="{da['enlace']}" data-titulo="{da['titulo']}"
               data-fuente="{da['fuente']}" data-fecha="{da['fecha']}"
@@ -597,7 +601,26 @@ def _proceso_card(p: dict, hero: bool = False) -> str:
 </div>"""
 
 
-def _tab_actualidad(procesos: list[dict]) -> str:
+def _conexiones_html(conexiones: list[dict], procesos: list[dict]) -> str:
+    if not conexiones:
+        return ""
+    nombre_map = {p["id"]: p.get("nombre", p["id"]) for p in procesos}
+    items = ""
+    for c in conexiones:
+        nom_a = _html.escape(nombre_map.get(c.get("proceso_a", ""), c.get("proceso_a", "")))
+        nom_b = _html.escape(nombre_map.get(c.get("proceso_b", ""), c.get("proceso_b", "")))
+        rel   = _html.escape(c.get("relacion", ""))
+        items += f"""<div class="conexion-item">
+  <span class="conexion-nombres">{nom_a} &#8594; {nom_b}</span>
+  <span class="conexion-rel">{rel}</span>
+</div>"""
+    return f"""<div class="conexiones-panel">
+  <div class="conexiones-titulo">&#128280; Conexiones entre procesos</div>
+  {items}
+</div>"""
+
+
+def _tab_actualidad(procesos: list[dict], conexiones: list[dict] | None = None) -> str:
     if not procesos:
         return """
 <div class="actualidad-header">
@@ -608,31 +631,69 @@ def _tab_actualidad(procesos: list[dict]) -> str:
   <p>No hay procesos identificados a&#250;n. Se generan autom&#225;ticamente con el digest.</p>
 </div>"""
 
-    # El proceso más importante va como hero; el resto en grid
     ordered = sorted(procesos, key=lambda x: int(x.get("importancia") or 0), reverse=True)
     hero_html = _proceso_card(ordered[0], hero=True) if ordered else ""
     rest_html = "\n".join(_proceso_card(p) for p in ordered[1:]) if len(ordered) > 1 else ""
     grid_html = f'<div class="proceso-grid">{rest_html}</div>' if rest_html else ""
-
+    conn_html = _conexiones_html(conexiones or [], procesos)
     n = len(procesos)
+
     return f"""
 <div class="actualidad-header">
   <h2>Actualidad Absoluta</h2>
-  <p>{n} proceso(s) en curso &mdash; situaciones que llevan semanas o meses activas y tienen impacto global.</p>
+  <p>{n} proceso(s) en curso &mdash; situaciones con impacto global sostenido.</p>
   <div class="historial-filtros">
     <span class="historial-filtro-label">Historial:</span>
     <button class="historial-filter-btn" data-dias="5" onclick="setHistorialDias(5)">5 d&#237;as</button>
     <button class="historial-filter-btn active" data-dias="10" onclick="setHistorialDias(10)">10 d&#237;as</button>
     <button class="historial-filter-btn" data-dias="15" onclick="setHistorialDias(15)">15 d&#237;as</button>
     <span class="historial-filtro-sep">|</span>
-    <button class="historial-filter-btn" data-estado="escalada" onclick="filtrarProcesos('escalada',this)">&#8593; Escala</button>
+    <button class="historial-filter-btn" data-estado="escalada" onclick="filtrarProcesos('escalada',this)">&#8593; Escalada</button>
     <button class="historial-filter-btn" data-estado="estable" onclick="filtrarProcesos('estable',this)">= Estable</button>
     <button class="historial-filter-btn" data-estado="resolucion" onclick="filtrarProcesos('resolucion',this)">&#8595; Resuelve</button>
     <button class="historial-filter-btn" data-estado="todos" onclick="filtrarProcesos('todos',this)">Todos</button>
+    <span class="historial-filtro-sep">|</span>
+    <button class="historial-filter-btn briefing-btn" onclick="generarBriefing()">&#128196; Briefing</button>
   </div>
 </div>
+
+<div id="briefing-panel" style="display:none">
+  <div class="briefing-header">
+    <strong>&#128196; Memo de situaci&#243;n</strong>
+    <button class="briefing-close" onclick="document.getElementById('briefing-panel').style.display='none'">&#215;</button>
+  </div>
+  <div id="briefing-texto" class="briefing-texto"></div>
+</div>
+
 {hero_html}
-{grid_html}"""
+{grid_html}
+{conn_html}"""
+
+
+def _badge_novedad(articulo: dict) -> str:
+    novedad = articulo.get("novedad", 2)
+    if novedad == 3:
+        return '<span class="badge-senal" title="Aporta información nueva">&#9670; Señal</span>'
+    if novedad <= 1:
+        return '<span class="badge-ruido" title="Repite información ya publicada">&#8762; Repetición</span>'
+    return ""
+
+
+def _alertas_watch_html(alertas: list[dict]) -> str:
+    if not alertas:
+        return ""
+    items = "".join(
+        f"""<div class="watch-alerta">
+  <span class="watch-icono">&#9888;</span>
+  <div>
+    <strong>{_html.escape(a.get('condicion',''))}</strong>
+    <p>{_html.escape(a.get('explicacion',''))}</p>
+  </div>
+  <span class="watch-confianza">{int(a.get('confianza',0)*100)}%</span>
+</div>"""
+        for a in alertas
+    )
+    return f'<div id="watch-panel">{items}</div>'
 
 
 def renderizar_html(
@@ -643,6 +704,8 @@ def renderizar_html(
     grupos_sintesis: list[dict] | None = None,
     fuentes_fallidas: list[str] | None = None,
     procesos: list[dict] | None = None,
+    conexiones: list[dict] | None = None,
+    alertas_watch: list[dict] | None = None,
 ) -> str:
     """
     Construye el HTML completo del digest.
@@ -686,10 +749,12 @@ def renderizar_html(
     para_leer           = _tab_para_leer()
     estadisticas        = _tab_estadisticas(fuentes_fallidas or [])
     asombro_html, n_asombro = _tab_asombro(noticias, alternativas or {})
-    actualidad_html     = _tab_actualidad(procesos or [])
+    actualidad_html     = _tab_actualidad(procesos or [], conexiones or [])
+    alertas_html        = _alertas_watch_html(alertas_watch or [])
     total_alt           = sum(len(a) for a in (alternativas or {}).values())
     n_sintesis          = len(grupos_sintesis) if grupos_sintesis else 0
     n_procesos          = len(procesos) if procesos else 0
+    n_alertas           = len(alertas_watch) if alertas_watch else 0
 
     # colores de sesgo para el JS del cliente
     sesgo_colores_js = "{" + ",".join(
@@ -725,6 +790,8 @@ def renderizar_html(
     {total} principales · {total_alt} alternativas · Claude
   </div>
 </header>
+
+{alertas_html}
 
 <div id="ia-banner">
   <span class="ia-msg">&#9888; <strong><span id="ia-banner-count">0</span> art&#237;culos</strong> sin an&#225;lisis IA &mdash; resumen, sesgo y s&#237;ntesis pueden estar incompletos</span>
@@ -1519,6 +1586,27 @@ function _renderTrend(card) {{
     _renderTrend(card);
   }});
 }})();
+
+function generarBriefing() {{
+  var panel = document.getElementById('briefing-panel');
+  var texto = document.getElementById('briefing-texto');
+  panel.style.display = 'block';
+  texto.innerHTML = '<span style="color:var(--txt-3);font-size:.85rem">Generando memo&#8230; puede tardar 15-20 s</span>';
+  fetch('/briefing', {{method:'POST'}})
+    .then(function(r) {{ return r.json(); }})
+    .then(function(d) {{
+      if (!d.ok) {{ texto.textContent = d.texto || 'Error'; return; }}
+      // Convertir **negrita** y bullets a HTML
+      var html = d.texto
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\n• /g, '\n<li>')
+        .replace(/\n/g, '<br>');
+      texto.innerHTML = html;
+    }})
+    .catch(function() {{
+      texto.textContent = 'Error al conectar con el servidor.';
+    }});
+}}
 </script>
 
 <script>

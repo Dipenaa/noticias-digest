@@ -33,7 +33,8 @@ def llamar_claude(
     max_tokens: int = 1024,
     temperature: float = 0.2,
     cache_system: bool = False,
-) -> dict | None:
+    raw_text: bool = False,
+) -> dict | str | None:
     """
     Llama a Claude y devuelve el JSON parseado, o None si falla.
 
@@ -66,6 +67,9 @@ def llamar_claude(
             message = client.messages.create(**kwargs)
             texto = message.content[0].text.strip()
 
+            if raw_text:
+                return texto
+
             if texto.startswith("```"):
                 texto = "\n".join(texto.splitlines()[1:-1]).strip()
 
@@ -92,6 +96,8 @@ def llamar_claude(
                 return None
 
         except json.JSONDecodeError as e:
+            if raw_text:
+                return texto  # type: ignore[possibly-undefined]
             print(f"  ✗ JSON inválido: {e}")
             return None
 

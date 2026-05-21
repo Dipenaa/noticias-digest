@@ -137,6 +137,62 @@ def _cargar_historial(proceso_id: str, dias: int = 15) -> list[dict]:
     return historial
 
 
+_KEY_CONEXIONES = "macro:conexiones:hoy"
+
+_SYSTEM_CONEXIONES = """Eres un analista geopolítico. Identificas relaciones causales y temáticas
+entre grandes procesos mundiales activos. Una conexión es una relación real, no trivial."""
+
+_PROMPT_CONEXIONES = """Dados estos procesos mundiales activos:
+{procesos}
+
+Identifica 2-4 CONEXIONES importantes entre ellos — relaciones causales, sinergias o tensiones.
+
+Responde ÚNICAMENTE con JSON válido:
+{{
+  "conexiones": [
+    {{
+      "proceso_a": "id-del-proceso",
+      "proceso_b": "id-del-otro-proceso",
+      "relacion": "Una frase que explique cómo A afecta a B o están relacionados causalmente."
+    }}
+  ]
+}}
+
+Solo conexiones reales y significativas. Máximo 4."""
+
+
+def _identificar_conexiones(procesos: list[dict]) -> list[dict]:
+    if len(procesos) < 2:
+        return []
+
+    cached = _cache._redis_get(_KEY_CONEXIONES)
+    if cached:
+        try:
+            return json.loads(cached)
+        except Exception:
+            pass
+
+    lineas = "\n".join(
+        f"- {p['id']}: {p.get('nombre','?')} — {p.get('descripcion','')}"
+        for p in procesos
+    )
+    prompt = _PROMPT_CONEXIONES.format(procesos=lineas)
+    resultado = llamar_claude(
+        prompt,
+        system=_SYSTEM_CONEXIONES,
+        model=CLAUDE_MODEL_ANALISIS,
+        max_tokens=600,
+        temperature=0.3,
+    )
+    if resultado is None:
+        return []
+
+    conexiones = resultado.get("conexiones", [])
+    _cache._redis_set(_KEY_CONEXIONES, json.dumps(conexiones, ensure_ascii=False), ex=_TTL_PROCESOS)
+    print(f"  ✓ Macro: {len(conexiones)} conexión(es) entre procesos")
+    return conexiones
+
+
 # ---------------------------------------------------------------------------
 # Punto de entrada público
 # ---------------------------------------------------------------------------
@@ -185,3 +241,13 @@ def obtener_procesos(noticias: dict) -> list[dict]:
 
     print(f"  ✓ Macro: {len(procesos)} proceso(s) identificado(s)")
     return procesos
+
+
+def obtener_macro_data(noticias: dict) -> dict:
+    """
+    Devuelve procesos + conexiones entre ellos.
+    Punto de entrada recomendado para el servidor.
+    """
+    procesos = obtener_procesos(noticias)
+    conexiones = _identificar_conexiones(procesos)
+    return {"procesos": procesos, "conexiones": conexiones}

@@ -35,7 +35,7 @@ from renderer import renderizar_html
 
 app = Flask(__name__)
 
-_RUTAS_PUBLICAS = {"/sw.js", "/manifest.json", "/icon.svg", "/estado", "/sintetizar", "/ping"}
+_RUTAS_PUBLICAS = {"/sw.js", "/manifest.json", "/icon.svg", "/estado", "/sintetizar", "/ping", "/briefing"}
 
 @app.before_request
 def _auth():
@@ -105,8 +105,15 @@ def _generar():
         else:
             print(f"[{datetime.now():%H:%M:%S}] Modo sin IA (SIN_IA=1 o ANTHROPIC_API_KEY no configurada)")
 
-        from macro_tracker import obtener_procesos as _obtener_procesos
-        procesos = _obtener_procesos(noticias) if ia_disponible else []
+        from macro_tracker import obtener_macro_data as _obtener_macro_data
+        from noise_filter import detectar_ruido as _detectar_ruido
+        from watch import verificar_condiciones as _verificar_condiciones
+
+        macro = _obtener_macro_data(noticias) if ia_disponible else {"procesos": [], "conexiones": []}
+        if ia_disponible:
+            noticias     = _detectar_ruido(noticias)
+            alternativas = _detectar_ruido(alternativas)
+        alertas_watch = _verificar_condiciones(noticias, alternativas) if ia_disponible else []
 
         import copy as _copy
         with _lock:
@@ -115,7 +122,9 @@ def _generar():
                 "analisis":     analisis,
                 "alternativas": _copy.deepcopy(alternativas),
                 "analisis_alt": analisis_alt,
-                "procesos":     procesos,
+                "procesos":     macro["procesos"],
+                "conexiones":   macro["conexiones"],
+                "alertas_watch": alertas_watch,
             }
 
         # 3. Renderiza (sin síntesis — se genera cuando el usuario la pide)
@@ -124,7 +133,9 @@ def _generar():
             alternativas, analisis_alt,
             [],
             fuentes_fallidas=get_fuentes_fallidas(),
-            procesos=procesos,
+            procesos=macro["procesos"],
+            conexiones=macro["conexiones"],
+            alertas_watch=alertas_watch,
         )
 
         with _lock:
@@ -187,8 +198,15 @@ def _solo_analizar_ia():
         else:
             print(f"[{datetime.now():%H:%M:%S}] IA no disponible — SIN_IA o ANTHROPIC_API_KEY ausente")
 
-        from macro_tracker import obtener_procesos as _obtener_procesos
-        procesos = _obtener_procesos(noticias) if ia_disponible else []
+        from macro_tracker import obtener_macro_data as _obtener_macro_data
+        from noise_filter import detectar_ruido as _detectar_ruido
+        from watch import verificar_condiciones as _verificar_condiciones
+
+        macro = _obtener_macro_data(noticias) if ia_disponible else {"procesos": [], "conexiones": []}
+        if ia_disponible:
+            noticias     = _detectar_ruido(noticias)
+            alternativas = _detectar_ruido(alternativas)
+        alertas_watch = _verificar_condiciones(noticias, alternativas) if ia_disponible else []
 
         import copy as _copy
         with _lock:
@@ -197,7 +215,9 @@ def _solo_analizar_ia():
                 "analisis":     analisis,
                 "alternativas": _copy.deepcopy(alternativas),
                 "analisis_alt": analisis_alt,
-                "procesos":     procesos,
+                "procesos":     macro["procesos"],
+                "conexiones":   macro["conexiones"],
+                "alertas_watch": alertas_watch,
             }
 
         html = renderizar_html(
@@ -205,7 +225,9 @@ def _solo_analizar_ia():
             alternativas, analisis_alt,
             [],
             fuentes_fallidas=get_fuentes_fallidas(),
-            procesos=procesos,
+            procesos=macro["procesos"],
+            conexiones=macro["conexiones"],
+            alertas_watch=alertas_watch,
         )
 
         with _lock:
@@ -254,6 +276,8 @@ def _solo_sintetizar():
             grupos,
             fuentes_fallidas=get_fuentes_fallidas(),
             procesos=data.get("procesos", []),
+            conexiones=data.get("conexiones", []),
+            alertas_watch=data.get("alertas_watch", []),
         )
 
         with _lock:
@@ -406,6 +430,22 @@ self.addEventListener('fetch', e => {
 });
 """
     return Response(js, mimetype="application/javascript")
+
+
+@app.route("/briefing", methods=["GET", "POST"])
+def briefing():
+    """Genera el memo de inteligencia bajo demanda y lo devuelve como JSON."""
+    from briefing_generator import generar_briefing as _generar_briefing
+    with _lock:
+        data = _render_data
+    if not data:
+        return jsonify({"ok": False, "texto": "Sin datos disponibles. Regenera el digest primero."})
+    texto = _generar_briefing(
+        data.get("procesos", []),
+        data.get("noticias", {}),
+        data.get("alternativas", {}),
+    )
+    return jsonify({"ok": True, "texto": texto})
 
 
 @app.route("/ping")
