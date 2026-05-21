@@ -35,7 +35,7 @@ from renderer import renderizar_html
 
 app = Flask(__name__)
 
-_RUTAS_PUBLICAS = {"/sw.js", "/manifest.json", "/icon.svg", "/estado", "/sintetizar"}
+_RUTAS_PUBLICAS = {"/sw.js", "/manifest.json", "/icon.svg", "/estado", "/sintetizar", "/ping"}
 
 @app.before_request
 def _auth():
@@ -397,6 +397,11 @@ self.addEventListener('fetch', e => {
 });
 """
     return Response(js, mimetype="application/javascript")
+
+
+@app.route("/ping")
+def ping():
+    return Response("ok", mimetype="text/plain")
 
 
 @app.route("/estado")
