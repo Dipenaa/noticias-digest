@@ -549,6 +549,7 @@ def _proceso_card(p: dict, hero: bool = False) -> str:
     horizonte = _HORIZONTE_LABEL.get(p.get("horizonte", "meses"), p.get("horizonte", "meses"))
     historial_json = _html.escape(json.dumps(p.get("historial", []), ensure_ascii=False), quote=True)
     n_arts_hoy = len(p.get("articulos") or [])
+    proceso_id = p.get("id", "")
 
     arts_html = ""
     for a in (p.get("articulos") or [])[:5]:
@@ -558,30 +559,39 @@ def _proceso_card(p: dict, hero: bool = False) -> str:
         arts_html += f'<li><a href="{enlace_a}" target="_blank" rel="noopener">{titulo_a}</a> <span class="proceso-art-fuente">— {fuente_a}</span></li>'
     arts_section = f'<ul class="proceso-articulos">{arts_html}</ul>' if arts_html else ""
 
-    resumen    = _html.escape(p.get("resumen_hoy", ""))
+    resumen     = _html.escape(p.get("resumen_hoy", ""))
     descripcion = _html.escape(p.get("descripcion", ""))
-    nombre     = _html.escape(p.get("nombre", ""))
-    hero_cls   = " proceso-card-hero" if hero else ""
+    nombre      = _html.escape(p.get("nombre", ""))
+    hero_cls    = " proceso-card-hero" if hero else ""
+    imp_pct     = importancia * 10
 
     return f"""
 <div class="proceso-card{hero_cls}" data-historial="{historial_json}" data-estado="{estado}" data-importancia="{importancia}">
-  <div class="proceso-header">
+  <div class="proceso-strip proceso-strip-{estado}">
+    <span class="proceso-strip-icono">{icono}</span>
+    <span class="proceso-strip-label">{label_estado.upper()}</span>
+    <span class="proceso-strip-dot">·</span>
+    <span class="proceso-strip-horizonte">{horizonte.upper()}</span>
+    <span class="proceso-strip-arts">{n_arts_hoy} art. hoy</span>
+  </div>
+  <div class="proceso-body">
+    <div class="proceso-watermark">{importancia}</div>
     <div class="proceso-nombre">{nombre}</div>
-    <span class="proceso-estado {cls_estado}">{icono} {label_estado}</span>
-  </div>
-  <div class="proceso-descripcion">{descripcion}</div>
-  <div class="proceso-meta-row">
-    <span class="proceso-horizonte">{horizonte}</span>
-    <div class="proceso-imp-wrap" title="Importancia {importancia}/10">
-      <div class="proceso-imp-bar" style="width:{importancia * 10}%"></div>
-      <span class="proceso-imp-label">{importancia}/10</span>
+    <div class="proceso-descripcion">{descripcion}</div>
+    <div class="proceso-imp-row">
+      <div class="proceso-imp-track">
+        <div class="proceso-imp-fill proceso-imp-fill-{estado}" style="width:{imp_pct}%"></div>
+      </div>
+      <span class="proceso-imp-num">{importancia}/10</span>
     </div>
-    <span class="proceso-art-count">{n_arts_hoy} art. hoy</span>
+    <p class="proceso-resumen">{resumen}</p>
+    {arts_section}
   </div>
-  <p class="proceso-resumen">{resumen}</p>
-  {arts_section}
-  <div class="proceso-spark-wrap">
-    <span class="proceso-spark-label">Cobertura &#9660;</span>
+  <div class="proceso-footer">
+    <div class="proceso-trend-wrap" id="trend-{proceso_id}"></div>
+    <div class="proceso-spark-label-row">
+      <span class="proceso-spark-label">Cobertura</span>
+    </div>
     <div class="proceso-sparkline"></div>
   </div>
 </div>"""
@@ -1424,16 +1434,25 @@ function sortCards(criterio, btn) {{
 </script>
 
 <script>
-/* ── Actualidad Absoluta — sparklines e historial ────────────────────── */
+/* ── Actualidad Absoluta ─────────────────────────────────────────────── */
 var _historialDias = 10;
 var _procesoEstadoFiltro = 'todos';
+var PROCESO_COLORES = {{
+  'escalada':   '#dc2626',
+  'estable':    '#2563eb',
+  'resolucion': '#16a34a',
+  'silencio':   '#9ca3af'
+}};
 
 function setHistorialDias(n) {{
   _historialDias = n;
   document.querySelectorAll('.historial-filter-btn[data-dias]').forEach(function(b) {{
     b.classList.toggle('active', parseInt(b.dataset.dias) === n);
   }});
-  document.querySelectorAll('.proceso-sparkline').forEach(_renderSparkline);
+  document.querySelectorAll('.proceso-card, .proceso-card-hero').forEach(function(card) {{
+    _renderSparkline(card.querySelector('.proceso-sparkline'));
+    _renderTrend(card);
+  }});
 }}
 
 function filtrarProcesos(estado, btn) {{
@@ -1449,26 +1468,56 @@ function filtrarProcesos(estado, btn) {{
 }}
 
 function _renderSparkline(el) {{
+  if (!el) return;
   var card = el.closest('[data-historial]');
   if (!card) return;
+  var estado = card.dataset.estado || 'estable';
+  var color  = PROCESO_COLORES[estado] || '#2d5a2d';
   var historial;
   try {{ historial = JSON.parse(card.dataset.historial || '[]'); }} catch(e) {{ historial = []; }}
   var slice = historial.slice(-_historialDias);
   var max = 0;
-  slice.forEach(function(d) {{ if ((d.cobertura||0) > max) max = d.cobertura; }});
+  slice.forEach(function(d) {{ if ((d.cobertura||0) > max) max = d.cobertura||0; }});
   if (max === 0) max = 1;
   el.innerHTML = slice.map(function(d) {{
-    var pct = d.cobertura > 0 ? Math.max(10, Math.round((d.cobertura / max) * 100)) : 4;
+    var pct = d.cobertura > 0 ? Math.max(8, Math.round((d.cobertura / max) * 100)) : 4;
     var parts = (d.fecha || '').split('-');
     var label = parts.length === 3 ? parts[2] + '/' + parts[1] : d.fecha;
-    var title = label + ': ' + (d.cobertura || 0) + ' artículo(s)';
-    var opacity = d.cobertura > 0 ? '1' : '0.25';
-    return '<div class="spark-bar" style="height:' + pct + '%;opacity:' + opacity + '" title="' + title + '"></div>';
+    var title = label + ': ' + (d.cobertura || 0) + ' art.';
+    var opacity = d.cobertura > 0 ? '0.85' : '0.18';
+    var bg = 'linear-gradient(to top,' + color + '55,' + color + ')';
+    return '<div class="spark-bar" style="height:' + pct + '%;opacity:' + opacity + ';background:' + bg + '" title="' + title + '"></div>';
   }}).join('');
 }}
 
+function _renderTrend(card) {{
+  if (!card) return;
+  var wrap = card.querySelector('.proceso-trend-wrap');
+  if (!wrap) return;
+  var estado = card.dataset.estado || 'estable';
+  var color  = PROCESO_COLORES[estado] || '#6b7280';
+  var historial;
+  try {{ historial = JSON.parse(card.dataset.historial || '[]'); }} catch(e) {{ historial = []; }}
+  var slice = historial.slice(-_historialDias);
+  if (slice.length < 4) {{ wrap.innerHTML = ''; return; }}
+  var half   = Math.floor(slice.length / 2);
+  var before = slice.slice(0, half).reduce(function(s,d){{ return s+(d.cobertura||0); }},0) / half;
+  var after  = slice.slice(half).reduce(function(s,d){{ return s+(d.cobertura||0); }},0) / (slice.length-half);
+  var pct = before > 0 ? Math.round(((after-before)/before)*100) : (after>0?100:0);
+  if (Math.abs(pct) < 8) {{
+    wrap.innerHTML = '<span style="color:#9ca3af">&#8594; Cobertura estable</span>';
+    return;
+  }}
+  var arrow = pct > 0 ? '&#8593;' : '&#8595;';
+  var sign  = pct > 0 ? '+' : '';
+  wrap.innerHTML = '<span style="color:' + color + '">' + arrow + ' ' + sign + pct + '% cobertura esta semana</span>';
+}}
+
 (function() {{
-  document.querySelectorAll('.proceso-sparkline').forEach(_renderSparkline);
+  document.querySelectorAll('.proceso-card, .proceso-card-hero').forEach(function(card) {{
+    _renderSparkline(card.querySelector('.proceso-sparkline'));
+    _renderTrend(card);
+  }});
 }})();
 </script>
 
