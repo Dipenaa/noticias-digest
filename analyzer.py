@@ -32,6 +32,7 @@ _SYSTEM = """Eres un analista periodístico crítico e imparcial. Responde ÚNIC
 Para cada artículo del array, devuelve en {idioma}:
 - "sesgo_ia": sesgo del ARTÍCULO (no del medio). Valores: "izquierda"|"centro-izquierda"|"centro"|"centro-derecha"|"derecha"|"desconocido"
 - "critica": 1-2 frases concretas sobre el ángulo, omisiones o framing. No genérico.
+  NO empieces con "El artículo", "Este artículo", "La noticia" o "El texto". Empieza directamente con la observación crítica.
 - "importante": true solo para los 1-2 artículos más relevantes del lote (alto impacto público). false en el resto.
 - "sentimiento": "alarmista"|"neutral"|"optimista"
 - "asombro": 0-3. ¿Amplía genuinamente la comprensión del mundo? 0=rutinario, 1=algo interesante, 2=fascinante, 3=excepcional. Sé exigente: máximo 1-2 artículos con 2+ por lote.
@@ -126,14 +127,15 @@ def analizar_todas_las_noticias(
         for future in as_completed(futures):
             cat = futures[future]
             try:
-                categoria, (arts, ag) = future.result()
-                noticias[categoria] = arts
-                analisis[categoria] = ag
+                categoria, (arts_enriquecidos, analisis_general) = future.result()
+                noticias[categoria] = arts_enriquecidos
+                analisis[categoria] = analisis_general
             except Exception as e:
-                print(f"  ✗ Error analizando {cat}: {e}")
+                print(f"  ✗ Error inesperado analizando {cat}: {e}")
                 analisis[cat] = ""
 
     _cache.guardar()
     stats = _cache.stats()
-    print(f"\n  💾 Caché: {stats['articulos_cacheados']} artículos ({stats['backend']})")
+    print(f"\n  💾 Caché: {stats['articulos_cacheados']} artículos guardados")
+
     return noticias, analisis

@@ -45,7 +45,7 @@ Responde ÚNICAMENTE con JSON válido sin bloques de código markdown:
 {{
   "grupos": [
     {{
-      "titulo": "Título claro y conciso de la historia",
+      "titulo": "Título con verbo activo que capture la tensión o el ángulo central de la historia",
       "sintesis": "Texto completo de la síntesis...",
       "ids": [0, 3, 7]
     }}
@@ -54,8 +54,6 @@ Responde ÚNICAMENTE con JSON válido sin bloques de código markdown:
 
 Si ningún artículo está relacionado con otro, responde con {{"grupos": []}}.
 """
-
-
 
 
 def sintetizar_noticias(
