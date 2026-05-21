@@ -85,16 +85,14 @@ def _generar():
         noticias     = obtener_todas_las_noticias()
         alternativas = obtener_noticias_alternativas()
 
-        # Guardamos una copia de las noticias crudas para poder re-analizar sin re-descargar
-        import copy
+        import copy as _copy
         with _lock:
-            _noticias_raw     = copy.deepcopy(noticias)
-            _alternativas_raw = copy.deepcopy(alternativas)
+            _noticias_raw     = _copy.deepcopy(noticias)
+            _alternativas_raw = _copy.deepcopy(alternativas)
 
         # 2. Análisis IA (opcional — desactivado si SIN_IA=1 o no hay API key)
-        analisis:      dict = {}
-        analisis_alt:  dict = {}
-        grupos_sintesis: list = []
+        analisis:     dict = {}
+        analisis_alt: dict = {}
 
         from config import ANTHROPIC_API_KEY
         ia_disponible = (not _sin_ia) and ANTHROPIC_API_KEY not in ("TU_API_KEY_AQUÍ", "", None)
@@ -107,12 +105,12 @@ def _generar():
         else:
             print(f"[{datetime.now():%H:%M:%S}] Modo sin IA (SIN_IA=1 o ANTHROPIC_API_KEY no configurada)")
 
-        import copy
+        import copy as _copy
         with _lock:
             _render_data = {
-                "noticias":     copy.deepcopy(noticias),
+                "noticias":     _copy.deepcopy(noticias),
                 "analisis":     analisis,
-                "alternativas": copy.deepcopy(alternativas),
+                "alternativas": _copy.deepcopy(alternativas),
                 "analisis_alt": analisis_alt,
             }
 

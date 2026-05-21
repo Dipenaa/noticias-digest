@@ -1,28 +1,21 @@
 """
-analyzer.py — Análisis de sesgo y crítica periodística con la API de Claude.
+analyzer.py — Análisis de sesgo y crítica periodística con Claude Haiku.
 
-Estrategia: en lugar de llamar a la API artículo por artículo (caro y lento),
-enviamos todos los artículos de una categoría en una sola llamada y pedimos
-una respuesta JSON estructurada.  Así el coste es O(categorías), no O(artículos).
-
-Optimizaciones de coste:
-- Caché persistente: artículos ya analizados no se re-envían a Claude (TTL 24h).
-- Modelo Haiku para análisis masivo (≈20× más barato que Sonnet).
-- Sonnet se reserva para la síntesis cruzada en synthesizer.py.
+Una llamada por categoría (no por artículo). Coste: O(categorías), no O(artículos).
+Optimizaciones:
+- Caché Redis/disco: artículos ya analizados no van a Claude (TTL 24h).
+- Prompt caching: las instrucciones del sistema se cachean entre llamadas (~80% menos tokens).
+- Haiku: 20× más barato que Sonnet para análisis masivo.
+- 5 categorías en paralelo.
 """
 
 import json
-import time
-import anthropic
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from config import ANTHROPIC_API_KEY, CLAUDE_MODEL_ANALISIS, IDIOMA_ANALISIS
+from config import IDIOMA_ANALISIS
 from article_cache import shared as _cache
+from claude_client import llamar_claude
 
-
-# ---------------------------------------------------------------------------
-# Constantes
-# ---------------------------------------------------------------------------
 
 COLORES_SESGO: dict[str, str] = {
     "izquierda":        "#3b82f6",
@@ -33,130 +26,32 @@ COLORES_SESGO: dict[str, str] = {
     "desconocido":      "#9ca3af",
 }
 
-_PROMPT = """
-Eres un analista periodístico crítico e imparcial. Tu tarea es analizar \
-los siguientes artículos de noticias y responder ÚNICAMENTE con JSON válido.
+# System prompt — se cachea entre llamadas de la misma generación
+_SYSTEM = """Eres un analista periodístico crítico e imparcial. Responde ÚNICAMENTE con JSON válido.
 
-Para cada artículo, proporciona en {idioma}:
-- "sesgo_ia": el sesgo ideológico que percibes en el ARTÍCULO (no en el medio).
-  Usa exactamente uno de estos valores:
-  "izquierda" | "centro-izquierda" | "centro" | "centro-derecha" | "derecha" | "desconocido"
-- "critica": 1-2 oraciones señalando el ángulo, lo que se omite, el framing,
-  o lo que merece cuestionarse. Sé concreto, no genérico.
-- "importante": true si este artículo es uno de los 2 más relevantes e impactantes
-  del lote (noticia de primer orden, alto impacto público), false en todos los demás.
-  Marca exactamente 1 o 2 por lote, nunca más.
-- "sentimiento": el tono emocional predominante del artículo.
-  Usa exactamente uno de: "alarmista" | "neutral" | "optimista"
-  alarmista = urgencia, miedo, catastrofismo, indignación exagerada.
-  optimista  = esperanza, progreso, logro, solución destacada.
-  neutral    = informativo, factual, sin carga emocional marcada.
-- "asombro": puntuación del 0 al 3 que indica cuánto amplía este artículo
-  la comprensión del mundo desde una perspectiva genuinamente humana.
-  Es completamente independiente del sesgo político y del impacto noticioso.
-  Pregúntate: ¿revela algo fascinante sobre cómo funciona el mundo, la gente,
-  la historia o la condición humana? ¿Conecta el presente con algo más grande?
-  ¿Es de esos artículos que te hacen parar y pensar aunque no sean urgentes?
-  0 = noticia rutinaria, sin dimensión más profunda
-  1 = algo interesante pero sin gran valor de asombro
-  2 = revela algo genuinamente fascinante (patrón histórico inesperado,
-      comportamiento humano sorprendente, descubrimiento que cambia perspectivas)
-  3 = excepcional: de esos artículos raros que expanden cómo entiendes el mundo
-  Sé muy exigente: en un lote de 10 artículos lo normal es 0 o 1 con puntuación 3,
-  y 1 o 2 con puntuación 2. La mayoría deberían ser 0 o 1.
-- "asombro_razon": si asombro es 2 o 3, una frase corta (15-25 palabras) que explique
-  por qué este artículo es fascinante desde una perspectiva humana o histórica.
-  Si asombro es 0 o 1, pon null.
+Para cada artículo del array, devuelve en {idioma}:
+- "sesgo_ia": sesgo del ARTÍCULO (no del medio). Valores: "izquierda"|"centro-izquierda"|"centro"|"centro-derecha"|"derecha"|"desconocido"
+- "critica": 1-2 frases concretas sobre el ángulo, omisiones o framing. No genérico.
+- "importante": true solo para los 1-2 artículos más relevantes del lote (alto impacto público). false en el resto.
+- "sentimiento": "alarmista"|"neutral"|"optimista"
+- "asombro": 0-3. ¿Amplía genuinamente la comprensión del mundo? 0=rutinario, 1=algo interesante, 2=fascinante, 3=excepcional. Sé exigente: máximo 1-2 artículos con 2+ por lote.
+- "asombro_razon": si asombro>=2, frase de 15-25 palabras explicando por qué. Si no, null.
 
-Además proporciona:
-- "analisis_general": un párrafo de análisis crítico del conjunto de noticias
-  de esta sección. ¿Qué historia domina? ¿Qué perspectivas faltan?
-  ¿Qué patrones o silencios ves?
+Además: "analisis_general": párrafo crítico del conjunto. ¿Qué domina? ¿Qué falta? ¿Qué patrones ves?"""
 
-Artículos (JSON):
+_USER_TMPL = """Artículos:
 {articulos_json}
 
-Responde ÚNICAMENTE con este JSON (sin bloques de código, sin texto extra):
-{{
-  "articulos": [
-    {{"sesgo_ia": "...", "critica": "...", "importante": false, "sentimiento": "neutral", "asombro": 0, "asombro_razon": null}},
-    ...
-  ],
-  "analisis_general": "..."
-}}
-"""
+Responde con este JSON exacto:
+{{"articulos":[{{"sesgo_ia":"...","critica":"...","importante":false,"sentimiento":"neutral","asombro":0,"asombro_razon":null}}],"analisis_general":"..."}}"""
 
-# ---------------------------------------------------------------------------
-# Llamada a la API
-# ---------------------------------------------------------------------------
-
-_REINTENTOS_MAX  = 4
-_ESPERA_BASE_429 = 30
-_ESPERA_BASE_5XX = 5
+_MAX_WORKERS_ANALYSIS = 5
 
 
-def _llamar_claude(prompt: str) -> dict | None:
-    client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
-
-    for intento in range(1, _REINTENTOS_MAX + 1):
-        try:
-            message = client.messages.create(
-                model=CLAUDE_MODEL_ANALISIS,
-                max_tokens=2048,
-                temperature=0.2,
-                messages=[{"role": "user", "content": prompt}],
-            )
-            texto = message.content[0].text.strip()
-
-            if texto.startswith("```"):
-                lineas = texto.splitlines()
-                texto = "\n".join(lineas[1:-1]).strip()
-
-            return json.loads(texto)
-
-        except anthropic.RateLimitError:
-            if intento == _REINTENTOS_MAX:
-                print(f"  ✗ Rate limit — reintentos agotados ({_REINTENTOS_MAX})")
-                return None
-            espera = _ESPERA_BASE_429 * (2 ** (intento - 1))
-            print(f"  ⏳ Rate limit — esperando {espera} s (intento {intento}/{_REINTENTOS_MAX})...")
-            time.sleep(espera)
-
-        except anthropic.APIStatusError as e:
-            if e.status_code >= 500:
-                if intento == _REINTENTOS_MAX:
-                    print(f"  ✗ Error {e.status_code} — reintentos agotados")
-                    return None
-                espera = _ESPERA_BASE_5XX * (2 ** (intento - 1))
-                print(f"  ⏳ Error {e.status_code} — esperando {espera} s (intento {intento}/{_REINTENTOS_MAX})...")
-                time.sleep(espera)
-            else:
-                print(f"  ✗ Error API {e.status_code}: {str(e)[:300]}")
-                return None
-
-        except json.JSONDecodeError as e:
-            print(f"  ✗ JSON inválido en la respuesta de Claude: {e}")
-            return None
-
-        except Exception as e:
-            print(f"  ✗ Error inesperado: {e}")
-            return None
-
-    return None
-
-
-# ---------------------------------------------------------------------------
-# Análisis por categoría (con caché)
-# ---------------------------------------------------------------------------
-
-def _analizar_categoria(
-    categoria: str,
-    articulos: list[dict],
-) -> tuple[list[dict], str]:
+def _analizar_categoria(categoria: str, articulos: list[dict]) -> tuple[list[dict], str]:
     if not articulos:
         return articulos, ""
 
-    # Separar artículos nuevos de los ya cacheados
     nuevos_idx: list[int] = []
     for i, a in enumerate(articulos):
         cached = _cache.get_articulo(a["enlace"])
@@ -166,7 +61,7 @@ def _analizar_categoria(
             a["sentimiento"]   = cached["sentimiento"]
             a["asombro"]       = cached.get("asombro", 0)
             a["asombro_razon"] = cached.get("asombro_razon")
-            a["importante"]    = False  # la importancia es relativa al ciclo actual
+            a["importante"]    = False
         else:
             nuevos_idx.append(i)
 
@@ -179,48 +74,32 @@ def _analizar_categoria(
     print(f"  → {categoria}: {len(nuevos)} nuevos / {len(articulos)} totales")
 
     payload = [
-        {
-            "id":      j,
-            "titulo":  a["titulo"],
-            "fuente":  a["fuente"],
-            "resumen": a["resumen"],
-        }
+        {"id": j, "titulo": a["titulo"], "fuente": a["fuente"], "resumen": (a.get("resumen") or "")[:150]}
         for j, a in enumerate(nuevos)
     ]
 
-    prompt = _PROMPT.format(
-        idioma=IDIOMA_ANALISIS,
-        articulos_json=json.dumps(payload, ensure_ascii=False, indent=2),
-    )
-
-    print(f"  → Enviando {len(nuevos)} artículo(s) a Claude Haiku...")
-    resultado = _llamar_claude(prompt)
+    system  = _SYSTEM.format(idioma=IDIOMA_ANALISIS)
+    user    = _USER_TMPL.format(articulos_json=json.dumps(payload, ensure_ascii=False))
+    resultado = llamar_claude(user, system=system, max_tokens=1024, cache_system=True)
 
     if resultado is None:
         for i in nuevos_idx:
-            articulos[i]["sesgo_ia"]    = "desconocido"
-            articulos[i]["critica"]     = "No se pudo obtener análisis de IA."
-            articulos[i]["importante"]  = False
-            articulos[i]["sentimiento"] = "neutral"
-        return articulos, _cache.get_analisis_general(categoria) or \
-               "El análisis de IA no estuvo disponible para esta sección."
+            articulos[i].update({"sesgo_ia": "desconocido", "critica": "", "importante": False,
+                                  "sentimiento": "neutral", "asombro": 0, "asombro_razon": None})
+        return articulos, _cache.get_analisis_general(categoria) or ""
 
-    analisis_articulos = resultado.get("articulos", [])
     for j, orig_idx in enumerate(nuevos_idx):
-        datos_ia = analisis_articulos[j] if j < len(analisis_articulos) else {}
+        datos = (resultado.get("articulos") or [])[j] if j < len(resultado.get("articulos") or []) else {}
         a = articulos[orig_idx]
-        a["sesgo_ia"]       = datos_ia.get("sesgo_ia", "desconocido")
-        a["critica"]        = datos_ia.get("critica", "")
-        a["importante"]     = bool(datos_ia.get("importante", False))
-        a["sentimiento"]    = datos_ia.get("sentimiento", "neutral")
-        a["asombro"]        = int(datos_ia.get("asombro", 0) or 0)
-        a["asombro_razon"]  = datos_ia.get("asombro_razon") or None
-
+        a["sesgo_ia"]      = datos.get("sesgo_ia", "desconocido")
+        a["critica"]       = datos.get("critica", "")
+        a["importante"]    = bool(datos.get("importante", False))
+        a["sentimiento"]   = datos.get("sentimiento", "neutral")
+        a["asombro"]       = int(datos.get("asombro") or 0)
+        a["asombro_razon"] = datos.get("asombro_razon") or None
         _cache.set_articulo(a["enlace"], {
-            "sesgo_ia":      a["sesgo_ia"],
-            "critica":       a["critica"],
-            "sentimiento":   a["sentimiento"],
-            "asombro":       a["asombro"],
+            "sesgo_ia": a["sesgo_ia"], "critica": a["critica"],
+            "sentimiento": a["sentimiento"], "asombro": a["asombro"],
             "asombro_razon": a["asombro_razon"],
         })
 
@@ -233,39 +112,28 @@ def _analizar_categoria(
     return articulos, analisis_general
 
 
-# ---------------------------------------------------------------------------
-# Punto de entrada público
-# ---------------------------------------------------------------------------
-
-_MAX_WORKERS_ANALYSIS = 3
-
-
 def analizar_todas_las_noticias(
     noticias: dict[str, list[dict]],
 ) -> tuple[dict[str, list[dict]], dict[str, str]]:
     analisis: dict[str, str] = {}
 
-    def _tarea(categoria: str, articulos: list[dict]):
+    def _tarea(categoria, articulos):
         print(f"\n🤖 Analizando: {categoria}")
         return categoria, _analizar_categoria(categoria, articulos)
 
     with ThreadPoolExecutor(max_workers=_MAX_WORKERS_ANALYSIS) as executor:
-        futures = {
-            executor.submit(_tarea, cat, arts): cat
-            for cat, arts in noticias.items()
-        }
+        futures = {executor.submit(_tarea, cat, arts): cat for cat, arts in noticias.items()}
         for future in as_completed(futures):
             cat = futures[future]
             try:
-                categoria, (arts_enriquecidos, analisis_general) = future.result()
-                noticias[categoria] = arts_enriquecidos
-                analisis[categoria] = analisis_general
+                categoria, (arts, ag) = future.result()
+                noticias[categoria] = arts
+                analisis[categoria] = ag
             except Exception as e:
-                print(f"  ✗ Error inesperado analizando {cat}: {e}")
+                print(f"  ✗ Error analizando {cat}: {e}")
                 analisis[cat] = ""
 
     _cache.guardar()
     stats = _cache.stats()
-    print(f"\n  💾 Caché: {stats['articulos_cacheados']} artículos guardados")
-
+    print(f"\n  💾 Caché: {stats['articulos_cacheados']} artículos ({stats['backend']})")
     return noticias, analisis

@@ -11,12 +11,11 @@ El resultado alimenta la pestaña "Síntesis" del digest HTML.
 """
 
 import json
-import time
 import hashlib
-import anthropic
 
-from config import ANTHROPIC_API_KEY, CLAUDE_MODEL, CLAUDE_MODEL_ANALISIS, IDIOMA_ANALISIS
+from config import CLAUDE_MODEL, IDIOMA_ANALISIS
 from article_cache import shared as _cache
+from claude_client import llamar_claude
 
 # Máximo de artículos que se envían a Claude.
 _MAX_ARTICULOS_SINTESIS = 120
@@ -57,56 +56,6 @@ Si ningún artículo está relacionado con otro, responde con {{"grupos": []}}.
 """
 
 
-_REINTENTOS_MAX  = 3
-_ESPERA_BASE_429 = 30
-_ESPERA_BASE_5XX = 5
-
-
-def _llamar_claude(prompt: str) -> dict | None:
-    client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
-
-    for intento in range(1, _REINTENTOS_MAX + 1):
-        try:
-            message = client.messages.create(
-                model=CLAUDE_MODEL_ANALISIS,
-                max_tokens=4096,
-                temperature=0.3,
-                messages=[{"role": "user", "content": prompt}],
-            )
-            texto = message.content[0].text.strip()
-            if texto.startswith("```"):
-                texto = "\n".join(texto.splitlines()[1:-1]).strip()
-            return json.loads(texto)
-
-        except anthropic.RateLimitError:
-            if intento == _REINTENTOS_MAX:
-                print(f"  ✗ Rate limit en síntesis — reintentos agotados")
-                return None
-            espera = _ESPERA_BASE_429 * (2 ** (intento - 1))
-            print(f"  ⏳ Rate limit — esperando {espera}s (intento {intento}/{_REINTENTOS_MAX})...")
-            time.sleep(espera)
-
-        except anthropic.APIStatusError as e:
-            if e.status_code >= 500:
-                if intento == _REINTENTOS_MAX:
-                    print(f"  ✗ Error {e.status_code} — reintentos agotados")
-                    return None
-                espera = _ESPERA_BASE_5XX * (2 ** (intento - 1))
-                print(f"  ⏳ Error {e.status_code} — esperando {espera}s (intento {intento}/{_REINTENTOS_MAX})...")
-                time.sleep(espera)
-            else:
-                print(f"  ✗ Error API {e.status_code}: {str(e)[:200]}")
-                return None
-
-        except json.JSONDecodeError as e:
-            print(f"  ✗ JSON inválido en la respuesta: {e}")
-            return None
-
-        except Exception as e:
-            print(f"  ✗ Error inesperado: {e}")
-            return None
-
-    return None
 
 
 def sintetizar_noticias(
@@ -180,7 +129,7 @@ def sintetizar_noticias(
     )
 
     print(f"  → Analizando {len(todos)} artículos en busca de historias comunes...")
-    resultado = _llamar_claude(prompt)
+    resultado = llamar_claude(prompt, model=CLAUDE_MODEL, max_tokens=4096, temperature=0.3)
 
     if resultado is None:
         return []
