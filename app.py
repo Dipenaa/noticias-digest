@@ -85,6 +85,15 @@ def _generar():
         noticias     = obtener_todas_las_noticias()
         alternativas = obtener_noticias_alternativas()
 
+        # Fusionar pool de 3 días con artículos frescos
+        from article_cache import shared as _cache
+        for cat in list(noticias.keys()):
+            pool = _cache.get_pool(cat)
+            if pool:
+                urls_hoy = {a["enlace"] for a in noticias[cat]}
+                extras = [a for a in pool if a.get("enlace") not in urls_hoy]
+                noticias[cat] = noticias[cat] + extras
+
         import copy as _copy
         with _lock:
             _noticias_raw     = _copy.deepcopy(noticias)
@@ -102,6 +111,10 @@ def _generar():
             noticias,     analisis     = analizar_todas_las_noticias(noticias)
             alternativas, analisis_alt = analizar_todas_las_noticias(alternativas)
             # síntesis bajo demanda — no se llama aquí
+
+            # Persistir artículos analizados en el pool de 3 días
+            for cat, arts in noticias.items():
+                _cache.update_pool(cat, arts)
         else:
             print(f"[{datetime.now():%H:%M:%S}] Modo sin IA (SIN_IA=1 o ANTHROPIC_API_KEY no configurada)")
 
