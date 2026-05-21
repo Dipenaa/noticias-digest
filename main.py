@@ -3,7 +3,7 @@ main.py — Punto de entrada del sistema de noticias.
 
 Uso:
   python main.py            # Ciclo completo: fetch + análisis IA + HTML
-  python main.py --sin-ia   # Solo descarga RSS, sin llamar a Gemini
+  python main.py --sin-ia   # Solo descarga RSS, sin análisis de IA
   python main.py --ayuda    # Muestra esta ayuda
 """
 

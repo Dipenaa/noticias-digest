@@ -317,13 +317,19 @@ footer {
 .tab-bar {
   background: linear-gradient(180deg, rgba(8,16,10,0.98) 0%, rgba(6,14,8,0.98) 100%);
   border-bottom: 1px solid var(--border-sub);
-  padding: 0 2rem;
+  padding: 0 1rem;
   display: flex;
   gap: 0;
   position: sticky;
   top: 60px;
   z-index: 150;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
+.tab-bar::-webkit-scrollbar { display: none; }
+.tab-btn { flex-shrink: 0; }
 
 .tab-btn {
   background: none;
@@ -531,7 +537,7 @@ footer {
   font-size: 0.855rem;
   color: var(--txt-2);
   line-height: 1.75;
-  white-space: pre-line;   /* respeta los saltos de párrafo de Gemini */
+  white-space: pre-line;   /* respeta los saltos de párrafo de la IA */
 }
 
 .sintesis-fuentes {
@@ -618,6 +624,17 @@ footer {
 .stats-header { margin-bottom: 2rem; padding-bottom: .875rem; border-bottom: 1px solid var(--border-sub); }
 .stats-header h2 { font-size: 1rem; font-weight: 700; color: var(--txt-1); letter-spacing: -.02em; margin-bottom: .3rem; }
 .stats-header p  { font-size: .78rem; color: var(--txt-3); }
+.stats-fallidas {
+  background: rgba(251,191,36,.07);
+  border: 1px solid rgba(251,191,36,.25);
+  border-radius: 8px;
+  padding: .75rem 1rem;
+  margin-bottom: 1.5rem;
+  font-size: .8rem;
+  color: #fbbf24;
+}
+.stats-fallidas ul { margin: .4rem 0; padding-left: 1.2rem; color: var(--txt-2); }
+.stats-fallidas span { font-size: .75rem; color: var(--txt-3); }
 
 .stats-kpi-row {
   display: flex;
@@ -1285,7 +1302,7 @@ def _tab_sintesis(grupos: list[dict]) -> str:
     return f"""
 <div class="sintesis-header">
   <h2>Síntesis de historias</h2>
-  <p>{len(grupos)} historia(s) detectada(s) en múltiples fuentes · perspectivas cruzadas generadas por Gemini</p>
+  <p>{len(grupos)} historia(s) detectada(s) en múltiples fuentes · perspectivas cruzadas generadas por Claude</p>
 </div>
 <div class="grid-sintesis">
 {cards}
@@ -1318,7 +1335,7 @@ def _tab_destacadas(noticias: dict[str, list[dict]],
     Genera el contenido de la pestaña Destacadas.
 
     Selección:
-      - Si Gemini marcó artículos como importantes (importante=True): esos.
+      - Si Claude marcó artículos como importantes (importante=True): esos.
       - Fallback (--sin-ia): el primer artículo de cada categoría.
     """
     seleccionados: list[tuple[str, dict]] = []
@@ -1335,7 +1352,7 @@ def _tab_destacadas(noticias: dict[str, list[dict]],
         return '<p class="sin-destacadas">No hay artículos destacados disponibles.</p>'
 
     cards = "\n".join(_featured_card(a, cat, verificados) for cat, a in seleccionados)
-    fuente_label = "seleccionadas por Gemini" if any(
+    fuente_label = "seleccionadas por Claude" if any(
         a.get("importante") for arts in noticias.values() for a in arts
     ) else "primera noticia de cada sección (ejecuta con análisis IA para selección automática)"
 
@@ -1364,14 +1381,24 @@ def _tab_para_leer() -> str:
 </div>"""
 
 
-def _tab_estadisticas() -> str:
+def _tab_estadisticas(fuentes_fallidas: list[str] | None = None) -> str:
     """Pestaña de estadísticas de sesgo y cobertura (datos calculados por JS en cliente)."""
-    return """
+    bloque_fallidas = ""
+    if fuentes_fallidas:
+        items = "".join(f"<li>{n}</li>" for n in fuentes_fallidas)
+        bloque_fallidas = f"""
+<div class="stats-fallidas">
+  <strong>⚠ Fuentes sin artículos en esta generación ({len(fuentes_fallidas)})</strong>
+  <ul>{items}</ul>
+  <span>Puede ser una caída temporal del feed o URL incorrecta.</span>
+</div>"""
+
+    return f"""
 <div class="stats-header">
   <h2>Estadísticas del digest</h2>
   <p>Distribución ideológica, cobertura por fuente y diversidad — calculado en tiempo real</p>
 </div>
-
+{bloque_fallidas}
 <div class="stats-kpi-row">
   <div class="stat-kpi">
     <div class="stat-kpi-valor" id="kpi-total">—</div>
@@ -1397,7 +1424,7 @@ def _tab_estadisticas() -> str:
     <div id="stat-sesgo-chart"><span style="color:var(--txt-3);font-size:.8rem">Calculando…</span></div>
   </div>
   <div class="stat-card">
-    <div class="stat-card-title">Sesgo según análisis IA (requiere Gemini)</div>
+    <div class="stat-card-title">Sesgo según análisis IA</div>
     <div id="stat-sesgo-ia-chart"><span style="color:var(--txt-3);font-size:.8rem">Calculando…</span></div>
   </div>
   <div class="stat-card">
@@ -1421,6 +1448,7 @@ def renderizar_html(
     alternativas: dict[str, list[dict]] | None = None,
     analisis_alt: dict[str, str] | None = None,
     grupos_sintesis: list[dict] | None = None,
+    fuentes_fallidas: list[str] | None = None,
 ) -> str:
     """
     Construye el HTML completo del digest.
@@ -1462,7 +1490,7 @@ def renderizar_html(
     libertaria   = _tab_libertaria(alternativas or {}, analisis_alt or {}, verificados)
     sintesis     = _tab_sintesis(grupos_sintesis or [])
     para_leer    = _tab_para_leer()
-    estadisticas = _tab_estadisticas()
+    estadisticas = _tab_estadisticas(fuentes_fallidas or [])
     total_alt    = sum(len(a) for a in (alternativas or {}).values())
     n_sintesis   = len(grupos_sintesis) if grupos_sintesis else 0
 
@@ -1494,7 +1522,7 @@ def renderizar_html(
   </div>
   <div class="meta">
     {ahora}<br>
-    {total} principales · {total_alt} alternativas · Gemini
+    {total} principales · {total_alt} alternativas · Claude
   </div>
 </header>
 
@@ -1570,7 +1598,7 @@ def renderizar_html(
 
 <footer>
   Sin publicidad · Sin algoritmos · Generado localmente ·
-  Análisis por Google Gemini
+  Análisis por Claude (Anthropic)
 </footer>
 
 <!-- ── Vista inmersiva ─────────────────────────────────────────────── -->

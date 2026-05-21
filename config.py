@@ -16,7 +16,7 @@ CLAUDE_MODEL_ANALISIS = "claude-haiku-4-5-20251001"   # análisis masivo (20× m
 # ---------------------------------------------------------------------------
 # API de Gemini — descubrimiento de fuentes (discoverer.py)
 # ---------------------------------------------------------------------------
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyCoSQ7Vcgr9g6qxLs9CDOpk-FZsXyBbl8k")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 GEMINI_MODEL   = "gemini-2.0-flash"
 
 # ---------------------------------------------------------------------------
