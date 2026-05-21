@@ -89,6 +89,18 @@ FUENTES = {
 }
 
 # ---------------------------------------------------------------------------
+# Colores de sesgo — compartidos entre analyzer.py y renderer.py
+# ---------------------------------------------------------------------------
+COLORES_SESGO: dict[str, str] = {
+    "izquierda":        "#3b82f6",
+    "centro-izquierda": "#60a5fa",
+    "centro":           "#6b7280",
+    "centro-derecha":   "#f97316",
+    "derecha":          "#ef4444",
+    "desconocido":      "#9ca3af",
+}
+
+# ---------------------------------------------------------------------------
 # Fuentes alternativas — prensa libertaria, anarquista y afines
 # ---------------------------------------------------------------------------
 # Se muestran en la pestaña "Prensa Libertaria" del digest.

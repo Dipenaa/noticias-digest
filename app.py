@@ -17,6 +17,7 @@ Variables de entorno requeridas:
   GEMINI_API_KEY    → tu clave de la API de Gemini (solo para discoverer.py; opcional)
 """
 
+import copy
 import os
 import time
 import threading
@@ -85,10 +86,9 @@ def _generar():
         noticias     = obtener_todas_las_noticias()
         alternativas = obtener_noticias_alternativas()
 
-        import copy as _copy
         with _lock:
-            _noticias_raw     = _copy.deepcopy(noticias)
-            _alternativas_raw = _copy.deepcopy(alternativas)
+            _noticias_raw     = copy.deepcopy(noticias)
+            _alternativas_raw = copy.deepcopy(alternativas)
 
         # 2. Análisis IA (opcional — desactivado si SIN_IA=1 o no hay API key)
         analisis:     dict = {}
@@ -105,12 +105,11 @@ def _generar():
         else:
             print(f"[{datetime.now():%H:%M:%S}] Modo sin IA (SIN_IA=1 o ANTHROPIC_API_KEY no configurada)")
 
-        import copy as _copy
         with _lock:
             _render_data = {
-                "noticias":     _copy.deepcopy(noticias),
+                "noticias":     copy.deepcopy(noticias),
                 "analisis":     analisis,
-                "alternativas": _copy.deepcopy(alternativas),
+                "alternativas": copy.deepcopy(alternativas),
                 "analisis_alt": analisis_alt,
             }
 
@@ -161,7 +160,6 @@ def _solo_analizar_ia():
         _generando = True
 
     try:
-        import copy
         with _lock:
             noticias     = copy.deepcopy(_noticias_raw)
             alternativas = copy.deepcopy(_alternativas_raw)
@@ -182,12 +180,11 @@ def _solo_analizar_ia():
         else:
             print(f"[{datetime.now():%H:%M:%S}] IA no disponible — SIN_IA o ANTHROPIC_API_KEY ausente")
 
-        import copy as _copy
         with _lock:
             _render_data = {
-                "noticias":     _copy.deepcopy(noticias),
+                "noticias":     copy.deepcopy(noticias),
                 "analisis":     analisis,
-                "alternativas": _copy.deepcopy(alternativas),
+                "alternativas": copy.deepcopy(alternativas),
                 "analisis_alt": analisis_alt,
             }
 

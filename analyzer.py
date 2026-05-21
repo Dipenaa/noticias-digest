@@ -12,19 +12,9 @@ Optimizaciones:
 import json
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from config import IDIOMA_ANALISIS
+from config import IDIOMA_ANALISIS, COLORES_SESGO
 from article_cache import shared as _cache
 from claude_client import llamar_claude
-
-
-COLORES_SESGO: dict[str, str] = {
-    "izquierda":        "#3b82f6",
-    "centro-izquierda": "#60a5fa",
-    "centro":           "#6b7280",
-    "centro-derecha":   "#f97316",
-    "derecha":          "#ef4444",
-    "desconocido":      "#9ca3af",
-}
 
 # System prompt — se cachea entre llamadas de la misma generación
 _SYSTEM = """Eres un analista periodístico crítico e imparcial. Responde ÚNICAMENTE con JSON válido.

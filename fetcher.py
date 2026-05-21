@@ -6,6 +6,7 @@ devuelve un dict {categoría: [artículos]} listos para analizar.
 """
 
 import re
+import threading
 import feedparser
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
@@ -15,6 +16,7 @@ from config import FUENTES, FUENTES_ALTERNATIVAS, MAX_ARTICULOS_POR_FUENTE
 _MAX_WORKERS = 12
 
 _fuentes_fallidas: list[str] = []
+_lock_fallidas = threading.Lock()
 
 # ---------------------------------------------------------------------------
 # Filtro de ruido — títulos que contienen estas palabras se descartan
@@ -48,7 +50,8 @@ def _es_ruido(titulo: str) -> bool:
 
 
 def get_fuentes_fallidas() -> list[str]:
-    return list(_fuentes_fallidas)
+    with _lock_fallidas:
+        return list(_fuentes_fallidas)
 
 
 # ---------------------------------------------------------------------------
@@ -79,7 +82,8 @@ def _articulos_de_fuente(fuente: dict) -> list[dict]:
 
         if not feed.entries:
             print(f"  ⚠ Sin artículos en {fuente['nombre']}")
-            _fuentes_fallidas.append(fuente["nombre"])
+            with _lock_fallidas:
+                _fuentes_fallidas.append(fuente["nombre"])
             return []
 
         articulos = []
@@ -112,7 +116,8 @@ def _articulos_de_fuente(fuente: dict) -> list[dict]:
 
     except Exception as e:
         print(f"  ✗ {fuente['nombre']}: {e}")
-        _fuentes_fallidas.append(fuente["nombre"])
+        with _lock_fallidas:
+            _fuentes_fallidas.append(fuente["nombre"])
         return []
 
 
@@ -126,8 +131,8 @@ def obtener_todas_las_noticias(
     if fuentes_dict is None:
         fuentes_dict = FUENTES
 
-    global _fuentes_fallidas
-    _fuentes_fallidas = []
+    with _lock_fallidas:
+        _fuentes_fallidas.clear()
 
     resultado: dict[str, list[dict]] = {cat: [] for cat in fuentes_dict}
     tareas = [

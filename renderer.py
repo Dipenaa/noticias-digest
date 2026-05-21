@@ -15,8 +15,7 @@ import os
 import webbrowser
 from datetime import datetime
 
-from analyzer import COLORES_SESGO
-from config import ARCHIVO_SALIDA
+from config import ARCHIVO_SALIDA, COLORES_SESGO
 
 
 from styles import _CSS
@@ -946,7 +945,7 @@ function renderEstadisticas() {{
   }}).join('');
   var iaEl = document.getElementById('stat-sesgo-ia-chart');
   if (iaEl) iaEl.innerHTML = sesgosActIA === 0
-    ? '<span style="color:var(--txt-3);font-size:.78rem">Sin datos IA — ejecuta con GEMINI_API_KEY para ver análisis</span>'
+    ? '<span style="color:var(--txt-3);font-size:.78rem">Sin datos IA — ejecuta con ANTHROPIC_API_KEY configurada para ver análisis</span>'
     : iaHtml;
 
   // Top fuentes
