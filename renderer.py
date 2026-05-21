@@ -481,7 +481,7 @@ def _asombro_card(articulo: dict) -> str:
      data-resumen="{da['resumen']}" data-critica="{da['critica']}"
      data-sentimiento="{da['sentimiento']}"
      data-importante="{importante}" data-order="0"
-     onclick="if(!event.target.closest('a'))abrirArticulo(this)">
+     onclick="if(!event.target.closest('a,.bookmark-btn'))abrirArticulo(this)">
   <div class="asombro-score">{estrellas}</div>
   <span class="asombro-cat">{_html.escape(categoria)}</span>
   <h3 class="asombro-titulo">
@@ -491,6 +491,10 @@ def _asombro_card(articulo: dict) -> str:
   <div class="asombro-fuente">{_html.escape(articulo['fuente'])} · {_html.escape(articulo['fecha'])}</div>
   {razon_html}
   <p class="asombro-resumen">{resumen_corto}</p>
+  <button class="bookmark-btn" title="Guardar para leer"
+          data-enlace="{da['enlace']}" data-titulo="{da['titulo']}"
+          data-fuente="{da['fuente']}" data-fecha="{da['fecha']}"
+          onclick="toggleBookmark(event,this)">&#9733;</button>
 </div>"""
 
 
