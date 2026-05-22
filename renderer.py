@@ -776,6 +776,34 @@ def renderizar_html(
         f'"{k}":"{v}"' for k, v in COLORES_SESGO.items()
     ) + "}"
 
+    # ── Tensiómetro del día ──────────────────────────────────────────────
+    _sents = [v.get("sentimiento", "") for v in (analisis or {}).values() if v.get("sentimiento")]
+    _n_alar = sum(1 for s in _sents if s == "alarmista")
+    _n_tot  = max(len(_sents), 1)
+    _tension_pct = int(_n_alar / _n_tot * 100)
+    if _tension_pct >= 40:
+        _t_color, _t_txt = "#dc2626", "Día tenso"
+    elif _tension_pct >= 20:
+        _t_color, _t_txt = "#f97316", "Día activo"
+    else:
+        _t_color, _t_txt = "#3d7a52", "Día tranquilo"
+    tension_html = (
+        f'<div class="tension-wrap">'
+        f'<span class="tension-dot" style="background:{_t_color}"></span>'
+        f'<span class="tension-label" style="color:{_t_color}">{_t_txt}</span>'
+        f'</div>'
+    ) if _sents else ""
+
+    # ── Top titulares para el splash ─────────────────────────────────────
+    _todos_arts = [a for arts in (noticias or {}).values() for a in arts]
+    _splash_arts = [a for a in _todos_arts if a.get("destacado")][:3]
+    if len(_splash_arts) < 3:
+        _splash_arts += [a for a in _todos_arts if not a.get("destacado")][:3 - len(_splash_arts)]
+    _splash_hls = "".join(
+        f'<div class="splash-hl">{_html.escape(a["titulo"])}</div>'
+        for a in _splash_arts[:3]
+    ) if _splash_arts else '<div class="splash-hl">Cargando titulares del día...</div>'
+
     return f"""<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -798,11 +826,15 @@ def renderizar_html(
 <header>
   <div class="header-logo">
     <div class="icono">📰</div>
-    <h1>Digest de Noticias</h1>
+    <div>
+      <div style="font-size:0.65rem;color:var(--txt-3);font-weight:600;letter-spacing:0.04em;margin-bottom:0.1rem" id="header-greeting"></div>
+      <h1>Digest de Noticias</h1>
+    </div>
   </div>
   <div class="meta">
     {ahora}<br>
     {total} principales · {total_alt} alternativas · Claude
+    {tension_html}
   </div>
 </header>
 
@@ -840,6 +872,7 @@ def renderizar_html(
   <button class="tab-btn" data-tab="estadisticas" onclick="switchTab('estadisticas')">
     &#128200; Estad&#237;sticas
   </button>
+  <button class="dark-toggle" id="dark-toggle" onclick="toggleDark()">&#9790; Modo oscuro</button>
 </div>
 
 <div class="search-bar">
@@ -908,6 +941,15 @@ def renderizar_html(
   Análisis por Claude (Anthropic)
 </footer>
 
+<!-- ── Splash de portada ───────────────────────────────────────────── -->
+<div id="splash" onclick="dismissSplash()">
+  <div class="splash-eyebrow">{ahora}</div>
+  <div class="splash-logo">Digest</div>
+  <div class="splash-divider"></div>
+  <div class="splash-headlines">{_splash_hls}</div>
+  <div class="splash-hint">toca para entrar</div>
+</div>
+
 <!-- ── Vista inmersiva ─────────────────────────────────────────────── -->
 <div class="drawer-overlay" id="drawer-overlay" onclick="cerrarDrawer()"></div>
 <div class="drawer" id="drawer" role="dialog" aria-modal="true">
@@ -967,7 +1009,13 @@ function switchTab(name) {{
     el.classList.remove('active');
   }});
   var tabEl = document.getElementById('tab-' + name);
-  if (tabEl) tabEl.style.display = 'block';
+  if (tabEl) {{
+    tabEl.style.display = 'block';
+    tabEl.classList.remove('tab-anim');
+    void tabEl.offsetWidth;
+    tabEl.classList.add('tab-anim');
+    setTimeout(function() {{ _animarTarjetas(tabEl); }}, 30);
+  }}
   var btnEl = document.querySelector('[data-tab="' + name + '"]');
   if (btnEl) btnEl.classList.add('active');
 
@@ -1335,12 +1383,14 @@ function abrirArticulo(el) {{
   document.getElementById('drawer-overlay').classList.add('open');
   document.getElementById('drawer').classList.add('open');
   document.body.style.overflow = 'hidden';
+  document.body.classList.add('drawer-open');
 }}
 
 function cerrarDrawer() {{
   document.getElementById('drawer-overlay').classList.remove('open');
   document.getElementById('drawer').classList.remove('open');
   document.body.style.overflow = '';
+  document.body.classList.remove('drawer-open');
 }}
 
 function compartirArticulo() {{
@@ -1418,16 +1468,75 @@ function generarSintesis() {{
   }});
 }}
 
+/* ── Splash ──────────────────────────────────────────────────────────── */
+function dismissSplash() {{
+  var s = document.getElementById('splash');
+  if (!s || s.classList.contains('saliendo')) return;
+  s.classList.add('saliendo');
+  setTimeout(function() {{ s.classList.add('ido'); }}, 720);
+}}
+
+(function() {{
+  var s = document.getElementById('splash');
+  if (!s) return;
+  try {{
+    var today = new Date().toDateString();
+    if (localStorage.getItem('digestSplashDate') === today) {{
+      s.classList.add('ido'); return;
+    }}
+    localStorage.setItem('digestSplashDate', today);
+  }} catch(e) {{}}
+  setTimeout(dismissSplash, 2600);
+}})();
+
+/* ── Saludo según hora ───────────────────────────────────────────────── */
+(function() {{
+  var h = new Date().getHours();
+  var g = h < 6 ? 'Buenas noches' : h < 14 ? 'Buenos días' : h < 21 ? 'Buenas tardes' : 'Buenas noches';
+  var el = document.getElementById('header-greeting');
+  if (el) el.textContent = g;
+}})();
+
+/* ── Modo oscuro ─────────────────────────────────────────────────────── */
+function toggleDark() {{
+  var dark = document.body.classList.toggle('dark');
+  try {{ localStorage.setItem('digestDark', dark ? '1' : '0'); }} catch(e) {{}}
+  var btn = document.getElementById('dark-toggle');
+  if (btn) btn.innerHTML = dark ? '&#9728; Modo día' : '&#9790; Modo oscuro';
+}}
+
+(function() {{
+  try {{
+    if (localStorage.getItem('digestDark') === '1') {{
+      document.body.classList.add('dark');
+      var btn = document.getElementById('dark-toggle');
+      if (btn) btn.innerHTML = '&#9728; Modo día';
+    }}
+  }} catch(e) {{}}
+}})();
+
+/* ── Staggered animation al cambiar pestaña ──────────────────────────── */
+function _animarTarjetas(tabEl) {{
+  if (!tabEl) return;
+  var cards = tabEl.querySelectorAll(
+    '.tarjeta, .tarjeta-destacada, .sintesis-card, .asombro-card, .proceso-card, .proceso-card-hero'
+  );
+  cards.forEach(function(c, i) {{
+    c.classList.remove('card-animate');
+    c.style.setProperty('--card-delay', Math.min(i * 42, 600) + 'ms');
+    void c.offsetWidth;
+    c.classList.add('card-animate');
+  }});
+}}
+
 /* ── Inicio ──────────────────────────────────────────────────────────── */
 (function() {{
   var last = 'destacadas';
   try {{
     var saved = localStorage.getItem('digestTab') || 'destacadas';
-    // 'todas' muestra todo en scroll continuo — no restaurar como tab de inicio
     last = (saved === 'todas') ? 'destacadas' : saved;
   }} catch(e) {{}}
 
-  // Restaurar palabras clave
   try {{
     var kw = localStorage.getItem('digestKeywords');
     if (kw) {{
@@ -1436,10 +1545,8 @@ function generarSintesis() {{
     }}
   }} catch(e) {{}}
 
-  // Actualizar contador de bookmarks
   try {{ _actualizarContadorBK(); }} catch(e) {{}}
 
-  // Detectar artículos sin análisis IA y mostrar banner
   try {{
     var sinIA = document.querySelectorAll('[data-sesgo-ia="desconocido"]').length;
     if (sinIA > 0) {{

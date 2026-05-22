@@ -1581,4 +1581,175 @@ header    { top: 0; }
   white-space: nowrap;
   flex-shrink: 0;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   EFECTOS VISUALES Y ENGAGEMENT
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Splash de portada ───────────────────────────────────────────────────── */
+#splash {
+  position: fixed; inset: 0; z-index: 9999;
+  background: #060f06;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 2rem;
+  cursor: pointer; transition: opacity 0.7s ease;
+}
+#splash.saliendo { opacity: 0; pointer-events: none; }
+#splash.ido { display: none; }
+
+.splash-eyebrow {
+  font-size: 0.62rem; letter-spacing: 0.35em; text-transform: uppercase;
+  color: rgba(255,255,255,0.28); font-weight: 600;
+  animation: splashFadeUp 0.6s ease both;
+}
+.splash-logo {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(2.8rem, 7vw, 5rem); font-weight: 800;
+  color: #fff; letter-spacing: -0.04em; line-height: 1;
+  text-align: center;
+  animation: splashFadeUp 0.6s ease 0.1s both;
+}
+.splash-divider {
+  width: 36px; height: 2px;
+  background: linear-gradient(90deg, #3d7a52, #5aaa3a);
+  border-radius: 1px;
+  animation: splashFadeUp 0.6s ease 0.2s both;
+}
+.splash-headlines {
+  display: flex; flex-direction: column; gap: 0.75rem;
+  max-width: 540px; width: 88%;
+}
+.splash-hl {
+  font-size: clamp(0.8rem, 1.3vw, 0.92rem);
+  color: rgba(255,255,255,0.6); line-height: 1.5;
+  padding-left: 0.85rem;
+  border-left: 2px solid rgba(61,122,82,0.6);
+  animation: splashHlIn 0.5s cubic-bezier(0.16,1,0.3,1) both;
+}
+.splash-hl:nth-child(1) { animation-delay: 0.3s; }
+.splash-hl:nth-child(2) { animation-delay: 0.42s; }
+.splash-hl:nth-child(3) { animation-delay: 0.54s; }
+.splash-hint {
+  font-size: 0.58rem; color: rgba(255,255,255,0.18);
+  letter-spacing: 0.2em; text-transform: uppercase;
+  animation: splashFadeUp 0.6s ease 0.7s both;
+}
+@keyframes splashFadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes splashHlIn {
+  from { opacity: 0; transform: translateX(-10px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ── Animación staggered de tarjetas ─────────────────────────────────────── */
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.card-animate {
+  animation: cardIn 0.42s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--card-delay, 0ms);
+}
+
+/* ── Transición suave entre pestañas ─────────────────────────────────────── */
+@keyframes tabFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.tab-anim {
+  animation: tabFadeIn 0.2s ease both;
+}
+
+/* ── Grain texture en el sidebar ─────────────────────────────────────────── */
+.tab-bar { overflow: hidden; }
+.tab-bar::after {
+  content: '';
+  position: absolute; inset: 0; pointer-events: none; z-index: 1;
+  opacity: 0.045;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 220px 220px;
+}
+.tab-bar > * { position: relative; z-index: 2; }
+
+/* ── Dark mode toggle en sidebar ─────────────────────────────────────────── */
+.dark-toggle {
+  position: absolute; bottom: 1rem; left: 1rem; right: 0.75rem;
+  background: none; border: 1px solid rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.3); border-radius: 9999px;
+  padding: 0.3rem 0.75rem; font-size: 0.62rem; cursor: pointer;
+  font-family: inherit; letter-spacing: 0.04em; text-align: center;
+  transition: all 0.2s; white-space: nowrap; z-index: 3; position: relative;
+}
+.dark-toggle:hover {
+  border-color: rgba(255,255,255,0.35);
+  color: rgba(255,255,255,0.7);
+  background: rgba(255,255,255,0.05);
+}
+@media (max-width: 768px) { .dark-toggle { display: none; } }
+
+/* ── Modo oscuro ─────────────────────────────────────────────────────────── */
+body.dark {
+  --bg:         #0b160b;
+  --surface:    #111d11;
+  --surface-2:  #172417;
+  --border:     rgba(90,170,58,0.13);
+  --border-sub: rgba(90,170,58,0.07);
+  --txt-1: #dff0df;
+  --txt-2: #a4c4a4;
+  --txt-3: #5a7a5a;
+}
+body.dark header {
+  background: rgba(11,22,11,0.97);
+  border-bottom-color: rgba(90,170,58,0.1);
+}
+body.dark nav { background: rgba(11,22,11,0.97); }
+body.dark .search-bar, body.dark .sort-bar { background: var(--bg); }
+body.dark .analisis-general {
+  background: #142014; border-color: rgba(61,122,82,0.22); color: var(--txt-2);
+}
+body.dark .critica { background: #142014; color: var(--txt-2); }
+body.dark .drawer { background: #111d11; }
+body.dark .drawer-header,
+body.dark .drawer-footer { border-color: var(--border-sub); }
+body.dark .drawer-critica { background: #142014; color: var(--txt-2); }
+body.dark #ia-banner {
+  background: rgba(61,122,82,0.07); color: var(--txt-2);
+  border-color: rgba(61,122,82,0.18);
+}
+body.dark .briefing-btn { background: #0a140a !important; border-color: #0a140a !important; }
+body.dark .leyenda { background: var(--surface); }
+body.dark .sintesis-card { background: var(--surface); }
+body.dark .proceso-card, body.dark .proceso-card-hero { background: var(--surface); }
+body.dark .stat-kpi, body.dark .stat-card { background: var(--surface); }
+body.dark .tarjeta, body.dark .tarjeta-destacada { background: var(--surface); }
+body.dark footer { border-top-color: var(--border-sub); }
+
+/* ── Focus mode: drawer abierto ──────────────────────────────────────────── */
+body.drawer-open .tarjeta,
+body.drawer-open .tarjeta-destacada,
+body.drawer-open .asombro-card {
+  opacity: 0.18;
+  pointer-events: none;
+  transition: opacity 0.35s;
+  transform: none !important;
+}
+
+/* ── Tensiómetro del día ──────────────────────────────────────────────────── */
+.tension-wrap {
+  display: flex; align-items: center; gap: 0.45rem; margin-top: 0.2rem;
+}
+.tension-dot {
+  width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+  animation: tensionPulse 2.5s ease-in-out infinite;
+}
+@keyframes tensionPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%       { transform: scale(1.4); opacity: 0.7; }
+}
+.tension-label {
+  font-size: 0.6rem; letter-spacing: 0.06em;
+  text-transform: uppercase; font-weight: 700;
+}
 """
