@@ -186,27 +186,54 @@ class ArticleCache:
 
     # ── Pool de artículos (últimos 3 días) ──────────────────────────────────
 
-    def get_pool(self, categoria: str) -> list[dict]:
-        """Devuelve artículos del pool de los últimos 3 días para esta categoría."""
-        raw = self._redis_get(f"noticias:pool:{categoria}")
-        if not raw:
+    def _pool_disco_path(self, categoria: str) -> Path:
+        return Path(f"pool_{categoria.lower().replace(' ','_')}.json")
+
+    def _pool_disco_get(self, categoria: str) -> list[dict]:
+        p = self._pool_disco_path(categoria)
+        if not p.exists():
             return []
         try:
-            return json.loads(raw)
+            data = json.loads(p.read_text(encoding="utf-8"))
+            cutoff = time.time() - 72 * 3600
+            return [a for a in data if a.get("_ts", 0) >= cutoff]
         except Exception:
             return []
+
+    def _pool_disco_set(self, categoria: str, articulos: list[dict]) -> None:
+        try:
+            p = self._pool_disco_path(categoria)
+            p.write_text(json.dumps(articulos, ensure_ascii=False), encoding="utf-8")
+        except Exception:
+            pass
+
+    def get_pool(self, categoria: str) -> list[dict]:
+        """Devuelve artículos del pool de los últimos 3 días para esta categoría."""
+        if self._redis:
+            raw = self._redis_get(f"noticias:pool:{categoria}")
+            if raw:
+                try:
+                    return json.loads(raw)
+                except Exception:
+                    pass
+        return self._pool_disco_get(categoria)
 
     def update_pool(self, categoria: str, articulos: list[dict]) -> None:
         """Fusiona los artículos nuevos en el pool (dedup por enlace), TTL 72h."""
         pool = {a["enlace"]: a for a in self.get_pool(categoria)}
+        ts = time.time()
         for a in articulos:
             if a.get("enlace"):
-                pool[a["enlace"]] = a
-        self._redis_set(
-            f"noticias:pool:{categoria}",
-            json.dumps(list(pool.values()), ensure_ascii=False),
-            ex=72 * 3600,
-        )
+                pool[a["enlace"]] = {**a, "_ts": ts}
+        merged = list(pool.values())
+        if self._redis:
+            self._redis_set(
+                f"noticias:pool:{categoria}",
+                json.dumps(merged, ensure_ascii=False),
+                ex=72 * 3600,
+            )
+        else:
+            self._pool_disco_set(categoria, merged)
 
 
 # Singleton compartido: importar esto en lugar de crear instancias nuevas

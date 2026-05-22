@@ -1720,7 +1720,7 @@ function generarBriefing() {{
       if (!d.ok) {{ texto.textContent = d.texto || 'Error'; return; }}
       // Convertir **negrita** y bullets a HTML
       var html = d.texto
-        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\\*\\*(.+?)\\*\\*/g, '<strong>$1</strong>')
         .replace(/\n• /g, '\n<li>')
         .replace(/\n/g, '<br>');
       texto.innerHTML = html;
