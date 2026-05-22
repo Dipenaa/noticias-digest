@@ -34,10 +34,20 @@ CLASES_SENTIMIENTO = {
 }
 ICONOS_SENTIMIENTO = {"alarmista": "⚠", "neutral": "◉", "optimista": "✦"}
 
+_LABELS_SESGO = {
+    "izquierda":        "IZQ",
+    "centro-izquierda": "C·IZQ",
+    "centro":           "CTR",
+    "centro-derecha":   "C·DER",
+    "derecha":          "DER",
+    "desconocido":      "?",
+}
+
 
 def _badge(sesgo: str) -> str:
     color = COLORES_SESGO.get(sesgo, COLORES_SESGO["desconocido"])
-    return f'<span class="badge" style="background:{color}">{sesgo.upper()}</span>'
+    label = _LABELS_SESGO.get(sesgo, sesgo.upper())
+    return f'<span class="badge" style="background:{color}" title="{sesgo}">{label}</span>'
 
 
 def _badge_sentimiento(sentimiento: str) -> str:
@@ -147,10 +157,11 @@ def _leyenda() -> str:
     """Bloque de leyenda con todos los niveles de sesgo y sus colores. Badges son clicables para filtrar."""
     items = []
     for s, color in COLORES_SESGO.items():
+        label = _LABELS_SESGO.get(s, s.upper())
         items.append(
             f'<span class="badge" style="background:{color}" '
             f'onclick="filtrarPorSesgo(\'{s}\',this)" '
-            f'title="Filtrar por {s}">{s.upper()}</span>'
+            f'title="Filtrar por {s}">{label}</span>'
         )
     badges = " ".join(items)
     return f"""

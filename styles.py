@@ -4,21 +4,21 @@ Importado por renderer.py como constante _CSS.
 """
 
 _CSS = """
-/* ── Variables — Pastel Studio ───────────────────────────────────────── */
+/* ── Variables — Natural Studio (bio/sage) ───────────────────────────── */
 :root {
-  --bg:          #f8f7ff;   /* lavanda muy pálida */
+  --bg:          #f4f2eb;   /* lino cálido, como papel natural */
   --surface:     #ffffff;
-  --surface-2:   #f0eeff;   /* hover lavanda */
-  --border:      rgba(99,91,255,0.14);
-  --border-sub:  rgba(99,91,255,0.07);
-  --txt-1:       #1a1535;   /* negro con toque índigo */
-  --txt-2:       #3d3660;
-  --txt-3:       #8b83b0;
-  --accent:      #6355ff;   /* índigo vibrante */
-  --accent-blue: #3b9eff;   /* azul cielo */
-  --accent-green:#2dd4a0;   /* menta */
-  --accent-gold: #ffb547;   /* melocotón/dorado */
-  --r:           16px;
+  --surface-2:   #eeeee6;   /* hover lino */
+  --border:      rgba(60,90,60,0.14);
+  --border-sub:  rgba(60,90,60,0.08);
+  --txt-1:       #1c2419;   /* negro con alma verde */
+  --txt-2:       #3a4a37;
+  --txt-3:       #7a8c78;   /* sage gris */
+  --accent:      #3d7a52;   /* sage verde natural */
+  --accent-blue: #4a8a7a;   /* teal suave */
+  --accent-green:#5aaa3a;   /* verde vivo */
+  --accent-gold: #b8834a;   /* ámbar tierra */
+  --r:           14px;
   --font-serif:  system-ui, -apple-system, 'Helvetica Neue', sans-serif;
 }
 
@@ -55,7 +55,7 @@ header {
 .header-logo .icono {
   width: 32px;
   height: 32px;
-  background: linear-gradient(135deg, #6355ff 0%, #a78bfa 100%);
+  background: linear-gradient(135deg, #3d7a52 0%, #5aaa3a 100%);
   border-radius: 9px;
   display: flex;
   align-items: center;
@@ -145,7 +145,7 @@ main { max-width: 1340px; margin: 0 auto; padding: 3rem 2.5rem; }
 .seccion-acento {
   width: 4px;
   height: 1.2rem;
-  background: linear-gradient(180deg, #6355ff, #a78bfa);
+  background: linear-gradient(180deg, #3d7a52, #5aaa3a);
   border-radius: 9999px;
   flex-shrink: 0;
 }
@@ -159,13 +159,13 @@ main { max-width: 1340px; margin: 0 auto; padding: 3rem 2.5rem; }
 
 /* ── Bloque de análisis crítico general ──────────────────────────────── */
 .analisis-general {
-  background: #f3f0ff;
-  border: 1px solid rgba(99,85,255,0.18);
+  background: #edf5f0;
+  border: 1px solid rgba(61,122,82,0.2);
   border-left: 3px solid var(--accent);
   border-radius: var(--r);
   padding: 0.9rem 1.2rem;
   margin-bottom: 1.5rem;
-  color: #2d1b69;
+  color: #1c3828;
   font-size: 0.855rem;
   line-height: 1.7;
 }
@@ -259,13 +259,13 @@ main { max-width: 1340px; margin: 0 auto; padding: 3rem 2.5rem; }
 
 /* ── Crítica de IA ───────────────────────────────────────────────────── */
 .critica {
-  background: #f3f0ff;
-  border: 1px solid rgba(99,85,255,0.15);
+  background: #edf5f0;
+  border: 1px solid rgba(61,122,82,0.15);
   border-left: 2px solid var(--accent);
   border-radius: calc(var(--r) - 2px);
   padding: 0.55rem 0.875rem;
   font-size: 0.77rem;
-  color: #2d1b69;
+  color: #1c3828;
   line-height: 1.55;
   margin-top: auto;
 }
@@ -289,12 +289,12 @@ footer {
 /* ── Contenido de pestañas (oculto por defecto; JS muestra el activo) ── */
 .tab-content { display: none; }
 
-/* ── Sidebar de navegación — pastel gradient ─────────────────────────── */
+/* ── Sidebar de navegación — natural dark forest ─────────────────────── */
 .tab-bar {
   position: fixed;
   left: 0; top: 0; bottom: 0;
   width: 210px;
-  background: linear-gradient(160deg, #2d1b69 0%, #1a0f3c 60%, #0f0a24 100%);
+  background: linear-gradient(160deg, #1e3a2a 0%, #112416 60%, #0a160d 100%);
   border-right: none;
   border-bottom: none;
   padding: 4rem 0 2rem;
@@ -354,8 +354,8 @@ footer {
 .tab-btn.active {
   color: #ffffff;
   font-weight: 600;
-  border-left-color: #a78bfa;
-  background: rgba(167,139,250,0.18);
+  border-left-color: #5aaa3a;
+  background: rgba(90,170,58,0.18);
 }
 
 /* Desplazar todo el contenido a la derecha del sidebar */
@@ -533,7 +533,7 @@ header    { top: 0; }
 .search-input::placeholder { color: var(--txt-3); }
 .search-input:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(0,113,227,0.15);
+  box-shadow: 0 0 0 3px rgba(61,122,82,0.15);
 }
 
 .search-count {
@@ -589,11 +589,11 @@ header    { top: 0; }
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  background: rgba(99,85,255,0.08);
+  background: rgba(61,122,82,0.08);
   color: var(--accent);
   padding: 0.2rem 0.6rem;
   border-radius: 9999px;
-  border: 1px solid rgba(99,85,255,0.2);
+  border: 1px solid rgba(61,122,82,0.2);
 }
 
 .sintesis-titulo {
@@ -741,7 +741,7 @@ header    { top: 0; }
 .stat-kpi-valor {
   font-size: 2.2rem;
   font-weight: 800;
-  background: linear-gradient(135deg, var(--accent), #a78bfa);
+  background: linear-gradient(135deg, var(--accent), var(--accent-green));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -941,12 +941,12 @@ header    { top: 0; }
   line-height: 1.8;
 }
 .drawer-critica {
-  background: #f3f0ff;
-  border: 1px solid rgba(99,85,255,0.15);
+  background: #edf5f0;
+  border: 1px solid rgba(61,122,82,0.15);
   border-radius: calc(var(--r) - 2px);
   padding: 0.875rem 1rem;
   font-size: 0.82rem;
-  color: #2d1b69;
+  color: #1c3828;
   line-height: 1.65;
 }
 
@@ -975,11 +975,11 @@ header    { top: 0; }
   gap: 0.4rem;
 }
 .drawer-btn-primary { background: var(--accent); color: #fff; }
-.drawer-btn-primary:hover { background: #4f43e0; }
+.drawer-btn-primary:hover { background: #2a5c3b; }
 .drawer-btn-secondary { background: var(--surface-2); color: var(--txt-1); border: 1px solid var(--border-sub); }
 .drawer-btn-secondary:hover { background: var(--border-sub); }
-.drawer-btn-translate { background: rgba(99,85,255,0.08); color: var(--accent); border: 1px solid rgba(99,85,255,0.2); }
-.drawer-btn-translate:hover { background: rgba(99,85,255,0.14); }
+.drawer-btn-translate { background: rgba(61,122,82,0.08); color: var(--accent); border: 1px solid rgba(61,122,82,0.2); }
+.drawer-btn-translate:hover { background: rgba(61,122,82,0.14); }
 
 /* Clic en tarjeta abre el drawer */
 .tarjeta, .tarjeta-destacada { cursor: pointer; }
@@ -1005,9 +1005,9 @@ header    { top: 0; }
   letter-spacing: 0.04em;
   padding: 0.15rem 0.5rem;
   border-radius: 9999px;
-  background: rgba(99,85,255,0.08);
+  background: rgba(61,122,82,0.08);
   color: var(--accent);
-  border: 1px solid rgba(99,85,255,0.2);
+  border: 1px solid rgba(61,122,82,0.2);
 }
 
 /* ── Bookmark ────────────────────────────────────────────────────────── */
@@ -1135,13 +1135,13 @@ header    { top: 0; }
   display: none;
   align-items: center;
   gap: .75rem;
-  background: rgba(99,85,255,0.06);
-  border: 1px solid rgba(99,85,255,0.2);
+  background: rgba(61,122,82,0.06);
+  border: 1px solid rgba(61,122,82,0.2);
   border-radius: var(--r);
   padding: .6rem 1rem;
   margin: .75rem var(--pad-x);
   font-size: .8rem;
-  color: #2d1b69;
+  color: #1c3828;
 }
 #ia-banner .ia-msg { flex: 1; }
 #ia-banner .ia-regen {
@@ -1157,12 +1157,12 @@ header    { top: 0; }
   white-space: nowrap;
   transition: background .15s;
 }
-#ia-banner .ia-regen:hover { background: #4f43e0; }
+#ia-banner .ia-regen:hover { background: #2a5c3b; }
 #ia-banner .ia-regen:disabled { opacity: .5; cursor: default; }
 #ia-banner .ia-close {
   background: none;
   border: none;
-  color: #2d1b69;
+  color: #1c3828;
   cursor: pointer;
   font-size: 1.1rem;
   line-height: 1;
@@ -1453,8 +1453,8 @@ header    { top: 0; }
 
 /* ── Briefing ────────────────────────────────────────────────────────────── */
 .briefing-btn {
-  background: #1a1535 !important;
-  border-color: #1a1535 !important;
+  background: #1a2e1a !important;
+  border-color: #1a2e1a !important;
   color: #fff !important;
 }
 .briefing-btn:hover {

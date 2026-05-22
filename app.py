@@ -207,7 +207,12 @@ def _solo_analizar_ia():
         if ia_disponible:
             noticias,     analisis     = analizar_todas_las_noticias(noticias)
             alternativas, analisis_alt = analizar_todas_las_noticias(alternativas)
-            # síntesis bajo demanda
+            try:
+                grupos_sintesis = sintetizar_noticias(noticias, alternativas)
+                print(f"[{datetime.now():%H:%M:%S}] Síntesis automática: {len(grupos_sintesis)} historia(s).")
+            except Exception as _e:
+                print(f"[{datetime.now():%H:%M:%S}] Síntesis falló (no crítico): {_e}")
+                grupos_sintesis = []
         else:
             print(f"[{datetime.now():%H:%M:%S}] IA no disponible — SIN_IA o ANTHROPIC_API_KEY ausente")
 
@@ -236,7 +241,7 @@ def _solo_analizar_ia():
         html = renderizar_html(
             noticias, analisis,
             alternativas, analisis_alt,
-            [],
+            grupos_sintesis,
             fuentes_fallidas=get_fuentes_fallidas(),
             procesos=macro["procesos"],
             conexiones=macro["conexiones"],
