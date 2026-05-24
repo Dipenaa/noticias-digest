@@ -191,15 +191,108 @@ main { max-width: 1320px; margin: 0 auto; padding: 2.5rem 2rem; }
 }
 .fecha { font-size: 0.62rem; color: var(--txt-3); flex-shrink: 0; }
 
-/* Fila de badges: limpia, sin etiquetas */
-.badges { display: flex; align-items: center; gap: 0.3rem; flex-wrap: wrap; }
-.badge-etiqueta { display: none; }
+/* Fila de badges */
+.badges { display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap; }
 
+/* Base badge (leyenda filters, drawer, synthesis) — colored pill */
 .badge {
   display: inline-block; font-size: 0.56rem; font-weight: 700;
   letter-spacing: 0.05em; padding: 0.15rem 0.5rem;
   border-radius: 3px; color: #fff;
 }
+
+/* "Fuente:" / "IA:" micro-labels */
+.badge-etiqueta {
+  font-size: 0.44rem; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--txt-3); display: inline-block;
+}
+
+/* ── Bias spectrum bars (card view only) ─────────────────────────────── */
+/* Override the colored-pill badge with a positional spectrum bar */
+.badges .badge {
+  display: inline-block;
+  background: none !important; /* override Python inline style */
+  border: none;
+  padding: 0;
+  font-size: 0;                /* hide IZQ / CTR / DER text */
+  position: relative;
+  width: 52px;
+  height: 10px;
+  vertical-align: middle;
+  flex-shrink: 0;
+  cursor: help;
+}
+
+/* Spectrum track */
+.badges .badge::before {
+  content: '';
+  position: absolute;
+  left: 0; right: 0;
+  top: 50%; transform: translateY(-50%);
+  height: 2px;
+  background: linear-gradient(to right,
+    #4f8ef7 0%, #7baff7 25%, #6b7280 50%, #f07040 75%, #ef4444 100%
+  );
+  border-radius: 2px;
+  opacity: 0.28;
+}
+
+/* Position dot */
+.badges .badge::after {
+  content: '';
+  position: absolute;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  top: 50%; transform: translateY(-50%);
+  background: var(--dot-color, #6b7280);
+  left: var(--dot-left, 22px);
+  border: 1.5px solid var(--surface);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+}
+
+/* Dot position + color per sesgo level */
+.badges .badge[title="izquierda"]        { --dot-left: 1px;  --dot-color: #4f8ef7; }
+.badges .badge[title="centro-izquierda"] { --dot-left: 11px; --dot-color: #7baff7; }
+.badges .badge[title="centro"]           { --dot-left: 22px; --dot-color: #7a7a8a; }
+.badges .badge[title="centro-derecha"]   { --dot-left: 33px; --dot-color: #f07040; }
+.badges .badge[title="derecha"]          { --dot-left: 43px; --dot-color: #ef4444; }
+.badges .badge[title="desconocido"]::before { opacity: 0.08; }
+.badges .badge[title="desconocido"]::after  { display: none; }
+
+/* Drawer badges: also get spectrum bars (title set by JS patch in sandbox) */
+.drawer-badges .badge {
+  display: inline-block;
+  background: none !important;
+  border: none; padding: 0; font-size: 0;
+  position: relative; width: 64px; height: 12px;
+  vertical-align: middle; flex-shrink: 0; cursor: help;
+}
+.drawer-badges .badge::before {
+  content: '';
+  position: absolute; left: 0; right: 0;
+  top: 50%; transform: translateY(-50%);
+  height: 2px;
+  background: linear-gradient(to right, #4f8ef7, #7baff7, #6b7280, #f07040, #ef4444);
+  border-radius: 2px; opacity: 0.3;
+}
+.drawer-badges .badge::after {
+  content: '';
+  position: absolute; width: 10px; height: 10px;
+  border-radius: 50%;
+  top: 50%; transform: translateY(-50%);
+  background: var(--dot-color, #6b7280);
+  left: var(--dot-left, 27px);
+  border: 2px solid #17171f;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.5);
+}
+.drawer-badges .badge[title="izquierda"]        { --dot-left: 1px;  --dot-color: #4f8ef7; }
+.drawer-badges .badge[title="centro-izquierda"] { --dot-left: 14px; --dot-color: #7baff7; }
+.drawer-badges .badge[title="centro"]           { --dot-left: 27px; --dot-color: #7a7a8a; }
+.drawer-badges .badge[title="centro-derecha"]   { --dot-left: 40px; --dot-color: #f07040; }
+.drawer-badges .badge[title="derecha"]          { --dot-left: 53px; --dot-color: #ef4444; }
+.drawer-badges .badge[title="desconocido"]::before { opacity: 0.08; }
+.drawer-badges .badge[title="desconocido"]::after  { display: none; }
 
 /* ── Título del artículo ─────────────────────────────────────────────────── */
 .titulo {
@@ -382,23 +475,49 @@ header    { top: 0; }
 
 .sin-destacadas { color: var(--txt-3); font-size: 0.875rem; padding: 3rem 0; text-align: center; }
 
-/* ── Buscador ────────────────────────────────────────────────────────────── */
+/* ── Buscador — command palette style ───────────────────────────────────── */
 .search-bar {
-  display: flex; align-items: center; gap: 0.5rem;
-  padding: 0.45rem 2rem; background: var(--bg);
+  display: flex; align-items: center; gap: 0.6rem;
+  padding: 0.55rem 2rem; background: var(--bg);
   border-bottom: 1px solid var(--border-sub);
   position: sticky; z-index: 90;
 }
 
+/* Search input with icon */
 .search-input {
-  flex: 1; max-width: 380px;
-  background: var(--surface); border: 1px solid var(--border-sub);
-  border-radius: 4px; color: var(--txt-1); font-family: inherit;
-  font-size: 0.76rem; padding: 0.35rem 0.875rem;
-  outline: none; transition: border-color 0.15s;
+  flex: 1; max-width: 480px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--txt-1); font-family: inherit;
+  font-size: 0.78rem;
+  padding: 0.42rem 0.875rem 0.42rem 2.1rem;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='13' height='13' viewBox='0 0 24 24' fill='none' stroke='%2344445c' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: 0.7rem center;
 }
 .search-input::placeholder { color: var(--txt-3); }
-.search-input:focus { border-color: var(--accent); }
+.search-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(79,142,247,0.12);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='13' height='13' viewBox='0 0 24 24' fill='none' stroke='%234f8ef7' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");
+}
+
+/* ⌘K shortcut hint */
+.search-bar::after {
+  content: '⌘K';
+  font-size: 0.52rem; font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--txt-3);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 0.13rem 0.4rem;
+  flex-shrink: 0;
+  pointer-events: none;
+}
 
 .search-count { font-size: 0.66rem; color: var(--txt-3); white-space: nowrap; }
 
@@ -555,10 +674,26 @@ header    { top: 0; }
 .stat-bar-fill { height: 3px; border-radius: 2px; min-width: 2px; transition: width .6s cubic-bezier(.4,0,.2,1); }
 .stat-bar-count { font-size: .67rem; color: var(--txt-3); min-width: 22px; text-align: right; }
 
-/* ── Filtros de sesgo ────────────────────────────────────────────────────── */
-.leyenda-items .badge { cursor: pointer; transition: opacity .15s, box-shadow .15s; user-select: none; }
-.leyenda-items .badge:hover { opacity: .8; }
-.leyenda-items .badge.filtro-activo { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent); }
+/* ── Filtros de sesgo — barra segmentada ─────────────────────────────────── */
+.leyenda-items {
+  display: flex; gap: 0;
+  background: var(--surface);
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid var(--border-sub);
+}
+.leyenda-items .badge {
+  cursor: pointer; user-select: none;
+  border-radius: 0;
+  font-size: 0.5rem; padding: 0.22rem 0.6rem;
+  opacity: 0.65;
+  transition: opacity .15s, filter .15s;
+  border-right: 1px solid rgba(0,0,0,0.15);
+  flex-shrink: 0;
+}
+.leyenda-items .badge:last-child { border-right: none; }
+.leyenda-items .badge:hover { opacity: 0.9; filter: brightness(1.15); }
+.leyenda-items .badge.filtro-activo { opacity: 1; filter: brightness(1.2); box-shadow: inset 0 -2px 0 rgba(255,255,255,0.35); }
 .leyenda-tip { font-size: .6rem; color: var(--txt-3); font-style: italic; }
 .filtro-aviso { font-size: .66rem; color: var(--accent); font-weight: 600; }
 .filtro-clear-btn {

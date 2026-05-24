@@ -78,6 +78,32 @@ def _con_tab(html: str, tab: str) -> str:
     script = f'<script>addEventListener("load",()=>{{var b=document.querySelector(\'[data-tab="{tab}"]\');if(b)b.click();}});</script>'
     return html.replace("</body>", script + "\n</body>")
 
+_SANDBOX_JS = """<script>
+/* Sandbox patches */
+
+/* ⌘K / Ctrl+K: focus search */
+document.addEventListener('keydown', function(e) {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+    e.preventDefault();
+    var inp = document.getElementById('buscador');
+    if (inp) { inp.focus(); inp.select(); }
+  }
+});
+
+/* Drawer: set title attribute on badge elements so CSS spectrum bars work */
+var _origAbrirArticulo = window.abrirArticulo;
+if (_origAbrirArticulo) {
+  window.abrirArticulo = function(el) {
+    _origAbrirArticulo(el);
+    var d = el.dataset;
+    var sfEl  = document.getElementById('d-sesgo-f');
+    var siaEl = document.getElementById('d-sesgo-ia');
+    if (sfEl)  sfEl.title  = (d.sesgoFuente || 'desconocido').toLowerCase();
+    if (siaEl) siaEl.title = (d.sesgoIa    || 'desconocido').toLowerCase();
+  };
+}
+</script>"""
+
 def _todas_las_tabs(html: str) -> str:
     """Muestra todas las tabs a la vez, apiladas verticalmente para revisar el diseño."""
     css = """<style>
@@ -94,8 +120,13 @@ def _todas_las_tabs(html: str) -> str:
 </style>"""
     return html.replace("</head>", css + "\n</head>")
 
+def _inyectar_js(html: str) -> str:
+    """Inyecta los patches JS del sandbox (⌘K, drawer title patch)."""
+    return html.replace("</body>", _SANDBOX_JS + "\n</body>")
+
 if __name__ == "__main__":
     base = renderer.renderizar_html(_NOTICIAS, _ANALISIS, {}, {}, _GRUPOS)
+    base = _inyectar_js(base)
 
     tabs = [
         ("sandbox.html",           None),
