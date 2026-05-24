@@ -144,31 +144,54 @@ main { max-width: 1320px; margin: 0 auto; padding: 2.5rem 2rem; }
 /* ── Grid de tarjetas ────────────────────────────────────────────────────── */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
-  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(460px, 1fr));
+  gap: 1rem;
 }
 
 /* ── Tarjeta de artículo ─────────────────────────────────────────────────── */
 .tarjeta {
   background: var(--surface);
   border: 1px solid var(--border-sub);
-  border-radius: var(--r);
-  padding: 1.5rem 1.75rem;
-  display: flex; flex-direction: column; gap: 0.9rem;
-  transition: background 0.15s, border-color 0.15s;
+  border-radius: 10px;
+  padding: 1.75rem 2rem;
+  display: flex; flex-direction: column; gap: 1rem;
+  cursor: pointer;
+  position: relative;
+  transition:
+    transform     0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow    0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color  0.2s,
+    background    0.2s;
+  will-change: transform;
 }
-.tarjeta:hover { background: var(--surface-2); border-color: var(--border); }
+.tarjeta:hover {
+  transform: translateY(-5px) scale(1.012);
+  border-color: rgba(79,142,247,0.25);
+  background: var(--surface-2);
+  box-shadow:
+    0 20px 60px rgba(0,0,0,0.45),
+    0 0 0 1px rgba(79,142,247,0.1),
+    inset 0 1px 0 rgba(255,255,255,0.04);
+  z-index: 10;
+}
 
-/* Primera tarjeta de cada sección: ocupa toda la anchura */
+/* Primera tarjeta de cada sección: grande y hero */
 .grid .tarjeta:first-child {
   grid-column: 1 / -1;
+  padding: 2.25rem 2.5rem;
+  border-left: 3px solid var(--accent);
+  background: linear-gradient(135deg, var(--surface) 0%, rgba(79,142,247,0.04) 100%);
 }
 .grid .tarjeta:first-child .titulo {
-  font-size: 1.35rem;
+  font-size: 1.65rem;
+  line-height: 1.2;
 }
 .grid .tarjeta:first-child .resumen {
-  -webkit-line-clamp: 5;
-  font-size: 0.85rem;
+  max-height: 7.5rem;
+  font-size: 0.88rem;
+}
+.grid .tarjeta:first-child:hover {
+  transform: translateY(-4px);
 }
 
 /* Meta: columna — fuente arriba, badges abajo */
@@ -297,35 +320,58 @@ main { max-width: 1320px; margin: 0 auto; padding: 2.5rem 2rem; }
 /* ── Título del artículo ─────────────────────────────────────────────────── */
 .titulo {
   font-family: var(--font-serif);
-  font-size: 1.12rem; font-weight: 700;
-  line-height: 1.3; letter-spacing: -0.01em;
+  font-size: 1.22rem; font-weight: 700;
+  line-height: 1.28; letter-spacing: -0.02em;
 }
-.titulo a { color: var(--txt-1); text-decoration: none; transition: color 0.12s; }
-.titulo a:hover { color: var(--accent); }
+.titulo a {
+  color: var(--txt-1); text-decoration: none;
+  transition: color 0.15s;
+  background: linear-gradient(var(--accent), var(--accent)) no-repeat 0 100%;
+  background-size: 0% 1px;
+  transition: background-size 0.3s ease, color 0.15s;
+}
+.tarjeta:hover .titulo a { color: var(--accent); background-size: 100% 1px; }
 
-/* ── Resumen ─────────────────────────────────────────────────────────────── */
+/* ── Resumen — se expande en hover ──────────────────────────────────────── */
 .resumen {
-  font-size: 0.83rem; color: var(--txt-2); line-height: 1.7;
-  display: -webkit-box; -webkit-line-clamp: 4;
-  -webkit-box-orient: vertical; overflow: hidden; flex-grow: 1;
+  font-size: 0.84rem; color: var(--txt-2); line-height: 1.75;
+  overflow: hidden;
+  max-height: 5.5rem; /* ~3 líneas */
+  transition: max-height 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.tarjeta:hover .resumen {
+  max-height: 18rem; /* se expande para mostrar todo */
 }
 
-/* ── Crítica de IA — footer de la card ───────────────────────────────────── */
+/* ── Crítica de IA — oculta hasta hover ─────────────────────────────────── */
 .critica {
   background: none;
   border: none;
-  border-top: 1px solid var(--border-sub);
+  border-top: 1px solid transparent;
   border-radius: 0;
-  padding: 0.75rem 0 0;
+  padding: 0;
   font-size: 0.72rem; color: var(--txt-3); line-height: 1.6;
-  margin-top: auto;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition:
+    max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity    0.3s ease,
+    padding    0.3s ease,
+    border-color 0.3s ease;
+}
+.tarjeta:hover .critica {
+  max-height: 8rem;
+  opacity: 1;
+  padding-top: 0.75rem;
+  border-top-color: var(--border-sub);
 }
 .critica::before {
   content: 'ANÁLISIS IA';
   display: block;
-  font-size: 0.5rem; font-weight: 800;
-  letter-spacing: 0.16em; color: var(--accent);
-  margin-bottom: 0.35rem;
+  font-size: 0.48rem; font-weight: 800;
+  letter-spacing: 0.18em; color: var(--accent);
+  margin-bottom: 0.4rem;
 }
 .critica-icono { display: none; }
 
@@ -437,12 +483,23 @@ header    { top: 0; }
 .tarjeta-destacada {
   background: var(--surface);
   border: 1px solid var(--border-sub);
-  border-radius: var(--r);
+  border-radius: 10px;
   padding: 2rem;
   display: flex; flex-direction: column; gap: 1rem;
-  transition: background 0.15s, border-color 0.15s; position: relative;
+  cursor: pointer; position: relative;
+  transition:
+    transform  0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.2s, background 0.2s;
+  will-change: transform;
 }
-.tarjeta-destacada:hover { background: var(--surface-2); border-color: var(--border); }
+.tarjeta-destacada:hover {
+  transform: translateY(-5px) scale(1.01);
+  border-color: rgba(79,142,247,0.25);
+  background: var(--surface-2);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.45), 0 0 0 1px rgba(79,142,247,0.1);
+  z-index: 10;
+}
 
 .tarjeta-destacada .categoria-label {
   font-size: 0.58rem; font-weight: 700;
@@ -556,12 +613,23 @@ header    { top: 0; }
 .sintesis-card {
   background: var(--surface);
   border: 1px solid var(--border-sub);
-  border-radius: var(--r);
+  border-radius: 10px;
   padding: 1.75rem;
   display: flex; flex-direction: column; gap: 1rem;
-  transition: background 0.15s, border-color 0.15s;
+  cursor: pointer; position: relative;
+  transition:
+    transform  0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.2s, background 0.2s;
+  will-change: transform;
 }
-.sintesis-card:hover { background: var(--surface-2); border-color: var(--border); }
+.sintesis-card:hover {
+  transform: translateY(-4px) scale(1.008);
+  border-color: rgba(79,142,247,0.2);
+  background: var(--surface-2);
+  box-shadow: 0 16px 50px rgba(0,0,0,0.4), 0 0 0 1px rgba(79,142,247,0.08);
+  z-index: 10;
+}
 
 .sintesis-meta { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
 
