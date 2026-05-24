@@ -73,9 +73,26 @@ _GRUPOS = [
 
 # ── Generar HTML ──────────────────────────────────────────────────────────────
 
+def _con_tab(html: str, tab: str) -> str:
+    """Inyecta un script que activa una tab concreta al abrir el HTML."""
+    script = f'<script>addEventListener("load",()=>{{var b=document.querySelector(\'[data-tab="{tab}"]\');if(b)b.click();}});</script>'
+    return html.replace("</body>", script + "\n</body>")
+
 if __name__ == "__main__":
-    print("Generando sandbox.html...")
-    html = renderer.renderizar_html(_NOTICIAS, _ANALISIS, {}, {}, _GRUPOS)
-    with open("sandbox.html", "w", encoding="utf-8") as f:
-        f.write(html)
-    print(f"Listo: sandbox.html ({len(html):,} chars)")
+    base = renderer.renderizar_html(_NOTICIAS, _ANALISIS, {}, {}, _GRUPOS)
+
+    tabs = [
+        ("sandbox.html",           None),
+        ("sandbox_sintesis.html",  "sintesis"),
+        ("sandbox_destacadas.html","destacadas"),
+        ("sandbox_asombro.html",   "asombro"),
+        ("sandbox_stats.html",     "estadisticas"),
+    ]
+
+    for fname, tab in tabs:
+        html = _con_tab(base, tab) if tab else base
+        with open(fname, "w", encoding="utf-8") as f:
+            f.write(html)
+        print(f"  {fname} ({len(html):,} chars)")
+
+    print("Listo.")
