@@ -7,9 +7,9 @@ _CSS = """
 
 /* ── Variables — Terminal Editorial ─────────────────────────────────────── */
 :root {
-  --bg:          #0c0c10;
-  --surface:     #13131c;
-  --surface-2:   #1a1a26;
+  --bg:          #18181f;
+  --surface:     #1f1f29;
+  --surface-2:   #272735;
   --border:      rgba(255,255,255,0.09);
   --border-sub:  rgba(255,255,255,0.05);
   --txt-1:       #eaeaf5;
@@ -36,7 +36,7 @@ body {
 
 /* ── Cabecera ────────────────────────────────────────────────────────────── */
 header {
-  background: rgba(12,12,16,0.96);
+  background: rgba(24,24,31,0.97);
   border-bottom: 1px solid var(--border-sub);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -73,7 +73,7 @@ header .meta {
 
 /* ── Navegación de categorías ────────────────────────────────────────────── */
 nav {
-  background: rgba(12,12,16,0.94);
+  background: rgba(24,24,31,0.95);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   padding: 0 2rem;
@@ -234,7 +234,7 @@ footer {
 /* ── Sidebar ─────────────────────────────────────────────────────────────── */
 .tab-bar {
   position: fixed; left: 0; top: 0; bottom: 0; width: 210px;
-  background: #08080d;
+  background: #111119;
   border-right: 1px solid var(--border-sub);
   padding: 3.5rem 0 5rem;
   display: flex; flex-direction: column; gap: 0;
@@ -289,7 +289,7 @@ header    { top: 0; }
     width: 100%; height: auto; padding: 0;
     flex-direction: row; overflow-x: auto; overflow-y: hidden;
     border-right: none; border-top: 1px solid var(--border-sub);
-    gap: 0; z-index: 200; background: #08080d;
+    gap: 0; z-index: 200; background: #111119;
   }
   .tab-bar::before { display: none; }
   .tab-bar-section { display: none; }
@@ -556,7 +556,7 @@ header    { top: 0; }
 .drawer {
   position: fixed; top: 0; right: 0; height: 100%;
   width: min(560px, 100vw);
-  background: #0f0f18;
+  background: #17171f;
   border-left: 1px solid var(--border-sub);
   z-index: 501; display: flex; flex-direction: column;
   transform: translateX(100%);
@@ -862,7 +862,7 @@ header    { top: 0; }
 /* ── Splash ──────────────────────────────────────────────────────────────── */
 #splash {
   position: fixed; inset: 0; z-index: 9999;
-  background: #07070c;
+  background: #0f0f16;
   display: flex; flex-direction: column;
   align-items: center; justify-content: center; gap: 2rem;
   cursor: pointer; transition: opacity 0.6s ease;
