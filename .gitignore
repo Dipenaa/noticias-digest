@@ -6,4 +6,7 @@ __pycache__/
 *.pyo
 .env
 CLAUDE.local.md
-sandbox_sintesis.html\nsandbox_destacadas.html\nsandbox_asombro.html\nsandbox_stats.html
+sandbox_sintesis.html
+sandbox_destacadas.html
+sandbox_asombro.html
+sandbox_stats.html
