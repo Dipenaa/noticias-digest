@@ -3,24 +3,27 @@ styles_sandbox.py — CSS del sandbox de diseño. Editar aquí sin tocar producc
 """
 
 _CSS = """
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:wght@700;900&display=swap');
 
-/* ── Variables — Terminal Editorial ─────────────────────────────────────── */
+/* ── Variables — Claro Editorial ────────────────────────────────────────── */
 :root {
-  --bg:          #18181f;
-  --surface:     #1f1f29;
-  --surface-2:   #272735;
-  --border:      rgba(255,255,255,0.09);
-  --border-sub:  rgba(255,255,255,0.05);
-  --txt-1:       #eaeaf5;
-  --txt-2:       #8888aa;
-  --txt-3:       #44445c;
-  --accent:      #4f8ef7;
-  --accent-blue: #7c72f0;
-  --accent-green:#2dd4a0;
-  --accent-gold: #f59e0b;
-  --r:           6px;
+  --bg:          #f0ede6;
+  --surface:     #ffffff;
+  --surface-2:   #f7f5f1;
+  --border:      #d6d0c8;
+  --border-sub:  #e8e3db;
+  --txt-1:       #0f0e0b;
+  --txt-2:       #45403a;
+  --txt-3:       #968e82;
+  --accent:      #1a4fd6;
+  --accent-blue: #4f8ef7;
+  --accent-green:#16803c;
+  --accent-gold: #b45309;
+  --r:           10px;
   --font-serif:  'Playfair Display', Georgia, serif;
+  --sidebar-bg:  #111119;
+  --sidebar-txt: #eaeaf5;
+  --sidebar-sub: #44445c;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -36,12 +39,10 @@ body {
 
 /* ── Cabecera ────────────────────────────────────────────────────────────── */
 header {
-  background: rgba(24,24,31,0.97);
-  border-bottom: 1px solid var(--border-sub);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: #ffffff;
+  border-bottom: 3px solid var(--accent);
   padding: 0 2rem;
-  height: 56px;
+  height: 60px;
   position: sticky;
   top: 0;
   z-index: 200;
@@ -54,46 +55,46 @@ header {
 .header-logo { display: flex; align-items: center; gap: 0.75rem; }
 
 .header-logo .icono {
-  width: 28px; height: 28px;
+  width: 30px; height: 30px;
   background: var(--accent);
-  border-radius: 5px;
+  border-radius: 6px;
   display: flex; align-items: center; justify-content: center;
   font-size: 14px; flex-shrink: 0;
 }
 
 .header-logo h1 {
-  font-size: 0.88rem; font-weight: 700;
-  color: var(--txt-1); letter-spacing: -0.01em;
+  font-size: 1rem; font-weight: 900;
+  color: var(--txt-1); letter-spacing: -0.03em;
+  text-transform: uppercase;
 }
 
 header .meta {
-  font-size: 0.67rem; color: var(--txt-3);
+  font-size: 0.65rem; color: var(--txt-3);
   text-align: right; line-height: 1.6;
 }
 
 /* ── Navegación de categorías ────────────────────────────────────────────── */
 nav {
-  background: rgba(24,24,31,0.95);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: #ffffff;
   padding: 0 2rem;
-  height: 36px;
-  display: flex; align-items: center; gap: 0.15rem;
+  height: 38px;
+  display: flex; align-items: center; gap: 0.1rem;
   border-bottom: 1px solid var(--border-sub);
-  position: sticky; top: 56px; z-index: 100;
+  position: sticky; top: 60px; z-index: 100;
   overflow-x: auto;
 }
 
 nav a {
   color: var(--txt-3); text-decoration: none;
-  padding: 0.2rem 0.6rem; border-radius: 3px;
-  font-size: 0.7rem; font-weight: 500; letter-spacing: 0.01em;
+  padding: 0.25rem 0.7rem; border-radius: 4px;
+  font-size: 0.7rem; font-weight: 600; letter-spacing: 0.02em;
+  text-transform: uppercase;
   transition: background 0.12s, color 0.12s; white-space: nowrap;
 }
-nav a:hover { background: var(--surface-2); color: var(--txt-2); }
+nav a:hover { background: var(--surface-2); color: var(--txt-1); }
 
 /* ── Layout principal ────────────────────────────────────────────────────── */
-main { max-width: 1320px; margin: 0 auto; padding: 2.5rem 2rem; }
+main { max-width: 1320px; margin: 0 auto; padding: 3rem 2rem; }
 
 /* ── Leyenda de sesgo ────────────────────────────────────────────────────── */
 .leyenda {
@@ -101,43 +102,45 @@ main { max-width: 1320px; margin: 0 auto; padding: 2.5rem 2rem; }
   border: none;
   border-bottom: 1px solid var(--border-sub);
   border-radius: 0;
-  padding: 0 0 0.75rem; margin-bottom: 2.75rem;
-  display: flex; align-items: center; gap: 0.875rem; flex-wrap: wrap;
+  padding: 0 0 0.875rem; margin-bottom: 3rem;
+  display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
 }
 .leyenda-titulo {
   font-size: 0.55rem; font-weight: 700;
-  text-transform: uppercase; letter-spacing: 0.16em;
+  text-transform: uppercase; letter-spacing: 0.18em;
   color: var(--txt-3); white-space: nowrap;
 }
-.leyenda-items { display: flex; flex-wrap: wrap; gap: 0.3rem; align-items: center; }
+.leyenda-items { display: flex; flex-wrap: wrap; gap: 0; align-items: center; }
 
 /* ── Secciones ───────────────────────────────────────────────────────────── */
-.seccion { margin-bottom: 5rem; scroll-margin-top: 100px; }
+.seccion { margin-bottom: 6rem; scroll-margin-top: 110px; }
 
 .seccion-header {
-  display: flex; align-items: baseline;
+  display: flex; align-items: center;
   justify-content: space-between;
-  padding-bottom: 0.875rem;
-  border-bottom: 2px solid var(--border);
-  margin-bottom: 1.75rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--txt-1);
+  margin-bottom: 2rem;
 }
 
 .seccion-acento { display: none; }
 
 .seccion-titulo {
-  font-size: 0.95rem; font-weight: 700;
-  letter-spacing: -0.01em;
+  font-family: var(--font-serif);
+  font-size: 1.5rem; font-weight: 900;
+  letter-spacing: -0.03em;
   color: var(--txt-1);
 }
 
 /* ── Análisis general ────────────────────────────────────────────────────── */
 .analisis-general {
-  background: none;
+  background: var(--surface);
   border: none;
-  border-left: 2px solid var(--border);
-  border-radius: 0;
-  padding: 0.4rem 0 0.4rem 1rem; margin-bottom: 1.75rem;
-  color: var(--txt-3); font-size: 0.77rem; line-height: 1.7;
+  border-left: 4px solid var(--accent);
+  border-radius: 0 var(--r) var(--r) 0;
+  padding: 0.875rem 1.25rem; margin-bottom: 2rem;
+  color: var(--txt-2); font-size: 0.82rem; line-height: 1.75;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
 }
 .analisis-general-titulo { display: none; }
 
@@ -271,7 +274,7 @@ main { max-width: 1320px; margin: 0 auto; padding: 2.5rem 2rem; }
   background: var(--dot-color, #6b7280);
   left: var(--dot-left, 22px);
   border: 1.5px solid var(--surface);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 
 /* Dot position + color per sesgo level */
@@ -391,53 +394,54 @@ footer {
 
 /* ── Sidebar ─────────────────────────────────────────────────────────────── */
 .tab-bar {
-  position: fixed; left: 0; top: 0; bottom: 0; width: 210px;
-  background: #111119;
-  border-right: 1px solid var(--border-sub);
-  padding: 3.5rem 0 5rem;
+  position: fixed; left: 0; top: 0; bottom: 0; width: 220px;
+  background: var(--sidebar-bg);
+  border-right: none;
+  padding: 4rem 0 5rem;
   display: flex; flex-direction: column; gap: 0;
-  z-index: 100; overflow-y: auto; overflow-x: hidden;
+  z-index: 300; overflow-y: auto; overflow-x: hidden;
 }
 
 .tab-bar::before {
   content: 'DIGEST';
-  position: absolute; top: 0; left: 0; right: 0; height: 3.5rem;
-  display: flex; align-items: center; padding: 0 1.25rem;
-  font-weight: 800; font-size: 0.68rem; letter-spacing: 0.2em;
-  color: var(--txt-1); border-bottom: 1px solid var(--border-sub);
+  position: absolute; top: 0; left: 0; right: 0; height: 4rem;
+  display: flex; align-items: center; padding: 0 1.5rem;
+  font-weight: 900; font-size: 0.72rem; letter-spacing: 0.25em;
+  color: #ffffff; border-bottom: 1px solid rgba(255,255,255,0.08);
+  border-right: 3px solid var(--accent);
 }
 
 .tab-bar-section {
-  font-size: 0.52rem; font-weight: 700;
-  text-transform: uppercase; letter-spacing: 0.16em;
-  color: var(--txt-3); padding: 1.25rem 1.25rem 0.4rem; user-select: none;
+  font-size: 0.48rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.2em;
+  color: var(--sidebar-sub); padding: 1.5rem 1.5rem 0.5rem; user-select: none;
 }
 
 .tab-btn {
   background: none; border: none;
-  border-left: 2px solid transparent;
-  color: var(--txt-3); cursor: pointer;
-  font-size: 0.76rem; font-weight: 500; font-family: inherit;
+  border-left: 3px solid transparent;
+  color: var(--sidebar-sub); cursor: pointer;
+  font-size: 0.78rem; font-weight: 500; font-family: inherit;
   letter-spacing: 0.01em;
-  padding: 0.5rem 1rem 0.5rem 1.1rem;
+  padding: 0.55rem 1rem 0.55rem 1.25rem;
   text-align: left; width: 100%;
   transition: color 0.12s, background 0.12s, border-left-color 0.12s;
 }
-.tab-btn:hover { color: var(--txt-2); background: rgba(255,255,255,0.03); }
+.tab-btn:hover { color: #ffffff; background: rgba(255,255,255,0.05); }
 .tab-btn.active {
-  color: var(--txt-1); font-weight: 600;
+  color: #ffffff; font-weight: 700;
   border-left-color: var(--accent);
-  background: rgba(79,142,247,0.07);
+  background: rgba(26,79,214,0.15);
 }
 
 /* Desplazar contenido a la derecha del sidebar */
 header, #ia-banner, .search-bar, .sort-bar, nav, main, footer {
-  margin-left: 210px;
+  margin-left: 220px;
 }
 
 header    { top: 0; }
-.search-bar { top: 56px; }
-#cat-nav    { top: 88px; } /* header 56 + search-bar ~32 */
+.search-bar { top: 60px; }
+#cat-nav    { top: 92px; } /* header 60 + search-bar ~32 */
 
 /* ── Mobile ──────────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
@@ -462,12 +466,12 @@ header    { top: 0; }
   }
   header, #ia-banner, .search-bar, .sort-bar, nav, main, footer { margin-left: 0; }
   main { padding-bottom: 4.5rem; }
-  .search-bar { top: 56px; }
-  #cat-nav    { top: 88px; }
+  .search-bar { top: 60px; }
+  #cat-nav    { top: 92px; }
   .search-bar::after { display: none; }
 }
 
-#cat-nav { top: 88px; }
+#cat-nav { top: 92px; }
 
 /* ── Tarjeta destacada ───────────────────────────────────────────────────── */
 .grid-destacadas {
@@ -548,7 +552,7 @@ header    { top: 0; }
 .search-input {
   width: 180px;
   background: var(--surface);
-  border: 1px solid var(--border-sub);
+  border: 1px solid var(--border);
   border-radius: 20px;
   color: var(--txt-1); font-family: inherit;
   font-size: 0.74rem;
@@ -795,12 +799,13 @@ header    { top: 0; }
 
 .drawer {
   position: fixed; top: 0; right: 0; height: 100%;
-  width: min(560px, 100vw);
-  background: #17171f;
-  border-left: 1px solid var(--border-sub);
+  width: min(580px, 100vw);
+  background: #ffffff;
+  border-left: 1px solid var(--border);
   z-index: 501; display: flex; flex-direction: column;
   transform: translateX(100%);
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: -8px 0 40px rgba(0,0,0,0.12);
 }
 .drawer.open { transform: translateX(0); }
 
@@ -815,8 +820,8 @@ header    { top: 0; }
 .drawer-reading { font-size: 0.6rem; color: var(--txt-3); display: flex; align-items: center; gap: 0.25rem; }
 
 .drawer-close {
-  background: none; border: 1px solid var(--border-sub);
-  color: var(--txt-3); border-radius: 4px; width: 28px; height: 28px;
+  background: none; border: 1px solid var(--border);
+  color: var(--txt-3); border-radius: 6px; width: 30px; height: 30px;
   cursor: pointer; font-size: 0.82rem; display: flex;
   align-items: center; justify-content: center; flex-shrink: 0;
   transition: background 0.12s, color 0.12s;
@@ -830,13 +835,15 @@ header    { top: 0; }
 .drawer-badges { display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap; }
 .drawer-titulo {
   font-family: var(--font-serif);
-  font-size: 1.45rem; font-weight: 700; line-height: 1.28;
-  letter-spacing: -0.02em; color: var(--txt-1);
+  font-size: 1.6rem; font-weight: 900; line-height: 1.22;
+  letter-spacing: -0.03em; color: var(--txt-1);
 }
-.drawer-resumen { font-size: 0.875rem; color: var(--txt-2); line-height: 1.85; }
+.drawer-resumen { font-size: 0.9rem; color: var(--txt-2); line-height: 1.85; }
 .drawer-critica {
-  background: none;
-  border-top: 1px solid var(--border-sub);
+  background: var(--surface-2);
+  border-radius: var(--r);
+  border: none;
+  border-left: 3px solid var(--accent);
   padding: 0.875rem 0 0;
   font-size: 0.8rem; color: var(--txt-3); line-height: 1.65;
 }
