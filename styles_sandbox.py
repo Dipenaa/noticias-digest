@@ -391,7 +391,7 @@ header, #ia-banner, .search-bar, .sort-bar, nav, main, footer {
 
 header    { top: 0; }
 .search-bar { top: 56px; }
-.sort-bar   { top: 56px; }
+.sort-bar   { top: 104px; } /* 56px header + ~48px search-bar */
 #cat-nav    { top: 92px; }
 
 /* ── Mobile ──────────────────────────────────────────────────────────────── */
@@ -418,8 +418,10 @@ header    { top: 0; }
   header, #ia-banner, .search-bar, .sort-bar, nav, main, footer { margin-left: 0; }
   main { padding-bottom: 4.5rem; }
   .search-bar { top: 56px; }
-  .sort-bar   { top: 92px; }
-  #cat-nav    { top: 92px; }
+  .sort-bar   { top: 104px; }
+  #cat-nav    { top: 104px; }
+  /* En móvil, el ⌘K hint no tiene sentido */
+  .search-bar::after { display: none; }
 }
 
 #cat-nav { top: 140px; }
@@ -475,51 +477,62 @@ header    { top: 0; }
 
 .sin-destacadas { color: var(--txt-3); font-size: 0.875rem; padding: 3rem 0; text-align: center; }
 
-/* ── Buscador — command palette style ───────────────────────────────────── */
+/* ── Buscador ────────────────────────────────────────────────────────────── */
+
+/* Ocultar el input de palabras clave y el separador — demasiado ruido */
+.kw-sep      { display: none; }
+.keywords-input { display: none; }
+
 .search-bar {
-  display: flex; align-items: center; gap: 0.6rem;
-  padding: 0.55rem 2rem; background: var(--bg);
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.6rem 2rem;
+  background: var(--bg);
   border-bottom: 1px solid var(--border-sub);
   position: sticky; z-index: 90;
 }
 
-/* Search input with icon */
+/* Input principal — ocupa todo el ancho disponible */
 .search-input {
-  flex: 1; max-width: 480px;
-  background: var(--surface);
+  flex: 1;
+  background: var(--surface-2);
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 7px;
   color: var(--txt-1); font-family: inherit;
-  font-size: 0.78rem;
-  padding: 0.42rem 0.875rem 0.42rem 2.1rem;
+  font-size: 0.82rem;
+  padding: 0.52rem 0.875rem 0.52rem 2.2rem;
   outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='13' height='13' viewBox='0 0 24 24' fill='none' stroke='%2344445c' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2344445c' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: 0.7rem center;
+  background-position: 0.78rem center;
+  background-size: 14px 14px;
 }
 .search-input::placeholder { color: var(--txt-3); }
 .search-input:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(79,142,247,0.12);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='13' height='13' viewBox='0 0 24 24' fill='none' stroke='%234f8ef7' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");
+  box-shadow: 0 0 0 3px rgba(79,142,247,0.1);
+  background-color: var(--surface);
 }
 
-/* ⌘K shortcut hint */
+/* Contador de resultados */
+.search-count {
+  font-size: 0.64rem; color: var(--txt-3); white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ⌘K como último flex-item del bar — patrón Raycast/Linear */
 .search-bar::after {
   content: '⌘K';
-  font-size: 0.52rem; font-weight: 700;
-  letter-spacing: 0.05em;
+  font-size: 0.5rem; font-weight: 700; letter-spacing: 0.08em;
   color: var(--txt-3);
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 3px;
-  padding: 0.13rem 0.4rem;
+  border-radius: 4px;
+  padding: 0.18rem 0.44rem;
   flex-shrink: 0;
+  align-self: center;
   pointer-events: none;
 }
-
-.search-count { font-size: 0.66rem; color: var(--txt-3); white-space: nowrap; }
 
 .tarjeta[hidden], .tarjeta-destacada[hidden], .sintesis-card[hidden] { display: none !important; }
 
