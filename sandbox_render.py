@@ -81,6 +81,15 @@ def _con_tab(html: str, tab: str) -> str:
 _SANDBOX_JS = """<script>
 /* Sandbox patches */
 
+/* Auto-dismiss portada para entrar directo al contenido */
+addEventListener("load", function() {
+  var splash = document.getElementById('splash');
+  if (splash) { splash.style.display = 'none'; }
+  /* Activar la primera tab disponible */
+  var primerBtn = document.querySelector('.tab-btn');
+  if (primerBtn) primerBtn.click();
+});
+
 /* ⌘K / Ctrl+K: focus search */
 document.addEventListener('keydown', function(e) {
   if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
