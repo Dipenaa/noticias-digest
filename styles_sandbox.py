@@ -97,55 +97,49 @@ main { max-width: 1320px; margin: 0 auto; padding: 2.5rem 2rem; }
 
 /* ── Leyenda de sesgo ────────────────────────────────────────────────────── */
 .leyenda {
-  background: var(--surface);
-  border: 1px solid var(--border-sub);
-  border-radius: var(--r);
-  padding: 0.6rem 1rem; margin-bottom: 2.5rem;
-  display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border-sub);
+  border-radius: 0;
+  padding: 0 0 0.75rem; margin-bottom: 2.75rem;
+  display: flex; align-items: center; gap: 0.875rem; flex-wrap: wrap;
 }
 .leyenda-titulo {
-  font-size: 0.58rem; font-weight: 700;
-  text-transform: uppercase; letter-spacing: 0.14em;
+  font-size: 0.55rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.16em;
   color: var(--txt-3); white-space: nowrap;
 }
 .leyenda-items { display: flex; flex-wrap: wrap; gap: 0.3rem; align-items: center; }
 
 /* ── Secciones ───────────────────────────────────────────────────────────── */
-.seccion { margin-bottom: 4.5rem; scroll-margin-top: 100px; }
+.seccion { margin-bottom: 5rem; scroll-margin-top: 100px; }
 
 .seccion-header {
-  display: flex; align-items: center; gap: 0.75rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid var(--border-sub);
-  margin-bottom: 1.25rem;
+  display: flex; align-items: baseline;
+  justify-content: space-between;
+  padding-bottom: 0.875rem;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 1.75rem;
 }
 
-.seccion-acento {
-  width: 2px; height: 1rem;
-  background: var(--accent);
-  border-radius: 9999px; flex-shrink: 0;
-}
+.seccion-acento { display: none; }
 
 .seccion-titulo {
-  font-size: 0.62rem; font-weight: 700;
-  text-transform: uppercase; letter-spacing: 0.14em;
-  color: var(--txt-3);
+  font-size: 0.95rem; font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--txt-1);
 }
 
 /* ── Análisis general ────────────────────────────────────────────────────── */
 .analisis-general {
-  background: rgba(79,142,247,0.05);
-  border: 1px solid rgba(79,142,247,0.12);
-  border-left: 2px solid var(--accent);
-  border-radius: var(--r);
-  padding: 0.7rem 1rem; margin-bottom: 1.25rem;
-  color: var(--txt-2); font-size: 0.8rem; line-height: 1.7;
+  background: none;
+  border: none;
+  border-left: 2px solid var(--border);
+  border-radius: 0;
+  padding: 0.4rem 0 0.4rem 1rem; margin-bottom: 1.75rem;
+  color: var(--txt-3); font-size: 0.77rem; line-height: 1.7;
 }
-.analisis-general-titulo {
-  font-size: 0.56rem; font-weight: 700;
-  text-transform: uppercase; letter-spacing: 0.14em;
-  color: var(--accent); margin-bottom: 0.4rem;
-}
+.analisis-general-titulo { display: none; }
 
 /* ── Grid de tarjetas ────────────────────────────────────────────────────── */
 .grid {
@@ -160,30 +154,50 @@ main { max-width: 1320px; margin: 0 auto; padding: 2.5rem 2rem; }
   border: 1px solid var(--border-sub);
   border-radius: var(--r);
   padding: 1.5rem 1.75rem;
-  display: flex; flex-direction: column; gap: 0.85rem;
+  display: flex; flex-direction: column; gap: 0.9rem;
   transition: background 0.15s, border-color 0.15s;
 }
 .tarjeta:hover { background: var(--surface-2); border-color: var(--border); }
 
-.tarjeta-meta {
-  display: flex; justify-content: space-between;
-  align-items: flex-start; gap: 0.5rem; flex-wrap: wrap;
+/* Primera tarjeta de cada sección: ocupa toda la anchura */
+.grid .tarjeta:first-child {
+  grid-column: 1 / -1;
+}
+.grid .tarjeta:first-child .titulo {
+  font-size: 1.35rem;
+}
+.grid .tarjeta:first-child .resumen {
+  -webkit-line-clamp: 5;
+  font-size: 0.85rem;
 }
 
-.fuente-bloque { display: flex; flex-direction: column; gap: 0.1rem; }
+/* Meta: columna — fuente arriba, badges abajo */
+.tarjeta-meta {
+  display: flex; flex-direction: column;
+  gap: 0.55rem;
+}
+
+/* Fila superior: nombre de fuente + fecha */
+.fuente-bloque {
+  display: flex; flex-direction: row;
+  align-items: center; justify-content: space-between;
+  gap: 0.5rem;
+}
 
 .fuente-nombre {
-  font-size: 0.58rem; font-weight: 700;
-  text-transform: uppercase; letter-spacing: 0.11em; color: var(--txt-3);
+  font-size: 0.75rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--txt-1);
 }
-.fecha { font-size: 0.58rem; color: var(--txt-3); }
+.fecha { font-size: 0.62rem; color: var(--txt-3); flex-shrink: 0; }
 
-.badges { display: flex; align-items: center; gap: 0.2rem; flex-wrap: wrap; }
-.badge-etiqueta { font-size: 0.54rem; color: var(--txt-3); }
+/* Fila de badges: limpia, sin etiquetas */
+.badges { display: flex; align-items: center; gap: 0.3rem; flex-wrap: wrap; }
+.badge-etiqueta { display: none; }
 
 .badge {
-  display: inline-block; font-size: 0.54rem; font-weight: 700;
-  letter-spacing: 0.06em; padding: 0.13rem 0.45rem;
+  display: inline-block; font-size: 0.56rem; font-weight: 700;
+  letter-spacing: 0.05em; padding: 0.15rem 0.5rem;
   border-radius: 3px; color: #fff;
 }
 
@@ -198,21 +212,29 @@ main { max-width: 1320px; margin: 0 auto; padding: 2.5rem 2rem; }
 
 /* ── Resumen ─────────────────────────────────────────────────────────────── */
 .resumen {
-  font-size: 0.82rem; color: var(--txt-2); line-height: 1.7;
+  font-size: 0.83rem; color: var(--txt-2); line-height: 1.7;
   display: -webkit-box; -webkit-line-clamp: 4;
   -webkit-box-orient: vertical; overflow: hidden; flex-grow: 1;
 }
 
-/* ── Crítica de IA ───────────────────────────────────────────────────────── */
+/* ── Crítica de IA — footer de la card ───────────────────────────────────── */
 .critica {
   background: none;
-  border: none; border-left: 2px solid rgba(79,142,247,0.22);
+  border: none;
+  border-top: 1px solid var(--border-sub);
   border-radius: 0;
-  padding: 0.4rem 0.75rem;
-  font-size: 0.73rem; color: var(--txt-3); line-height: 1.55;
+  padding: 0.75rem 0 0;
+  font-size: 0.72rem; color: var(--txt-3); line-height: 1.6;
   margin-top: auto;
 }
-.critica-icono { margin-right: 0.3rem; opacity: 0.45; }
+.critica::before {
+  content: 'ANÁLISIS IA';
+  display: block;
+  font-size: 0.5rem; font-weight: 800;
+  letter-spacing: 0.16em; color: var(--accent);
+  margin-bottom: 0.35rem;
+}
+.critica-icono { display: none; }
 
 /* ── Sin artículos ───────────────────────────────────────────────────────── */
 .sin-articulos { color: var(--txt-3); font-size: 0.85rem; padding: 0.5rem 0; }
@@ -328,8 +350,13 @@ header    { top: 0; }
 .tarjeta-destacada:hover { background: var(--surface-2); border-color: var(--border); }
 
 .tarjeta-destacada .categoria-label {
-  font-size: 0.56rem; font-weight: 700;
-  text-transform: uppercase; letter-spacing: 0.14em; color: var(--accent);
+  font-size: 0.58rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent);
+}
+
+/* Fuente visible en destacadas también */
+.tarjeta-destacada .fuente-nombre {
+  font-size: 0.78rem; color: var(--txt-1); letter-spacing: 0.05em;
 }
 
 .tarjeta-destacada .titulo {
@@ -344,13 +371,12 @@ header    { top: 0; }
 .tarjeta-destacada .critica { font-size: 0.79rem; }
 
 .destacadas-header {
-  margin-bottom: 2rem; padding-bottom: 0.75rem;
-  border-bottom: 1px solid var(--border-sub);
+  margin-bottom: 2rem; padding-bottom: 0.875rem;
+  border-bottom: 2px solid var(--border);
 }
 .destacadas-header h2 {
-  font-family: var(--font-serif);
-  font-size: 1.6rem; font-weight: 700; color: var(--txt-1);
-  letter-spacing: -0.03em; margin-bottom: 0.3rem;
+  font-size: 0.95rem; font-weight: 700; color: var(--txt-1);
+  letter-spacing: -0.01em; margin-bottom: 0.3rem;
 }
 .destacadas-header p { font-size: 0.73rem; color: var(--txt-3); }
 
@@ -380,13 +406,12 @@ header    { top: 0; }
 
 /* ── Síntesis ────────────────────────────────────────────────────────────── */
 .sintesis-header {
-  margin-bottom: 2rem; padding-bottom: 0.75rem;
-  border-bottom: 1px solid var(--border-sub);
+  margin-bottom: 2rem; padding-bottom: 0.875rem;
+  border-bottom: 2px solid var(--border);
 }
 .sintesis-header h2 {
-  font-family: var(--font-serif);
-  font-size: 1.6rem; font-weight: 700; color: var(--txt-1);
-  letter-spacing: -0.03em; margin-bottom: 0.3rem;
+  font-size: 0.95rem; font-weight: 700; color: var(--txt-1);
+  letter-spacing: -0.01em; margin-bottom: 0.3rem;
 }
 .sintesis-header p { font-size: 0.73rem; color: var(--txt-3); }
 
@@ -589,15 +614,20 @@ header    { top: 0; }
 .drawer-badges { display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap; }
 .drawer-titulo {
   font-family: var(--font-serif);
-  font-size: 1.3rem; font-weight: 700; line-height: 1.32;
+  font-size: 1.45rem; font-weight: 700; line-height: 1.28;
   letter-spacing: -0.02em; color: var(--txt-1);
 }
-.drawer-resumen { font-size: 0.875rem; color: var(--txt-2); line-height: 1.8; }
+.drawer-resumen { font-size: 0.875rem; color: var(--txt-2); line-height: 1.85; }
 .drawer-critica {
-  background: rgba(79,142,247,0.04);
-  border-left: 2px solid rgba(79,142,247,0.25);
-  padding: 0.75rem 1rem; font-size: 0.8rem;
-  color: var(--txt-3); line-height: 1.65;
+  background: none;
+  border-top: 1px solid var(--border-sub);
+  padding: 0.875rem 0 0;
+  font-size: 0.8rem; color: var(--txt-3); line-height: 1.65;
+}
+.drawer-critica::before {
+  content: 'ANÁLISIS IA';
+  display: block; font-size: 0.5rem; font-weight: 800;
+  letter-spacing: 0.16em; color: var(--accent); margin-bottom: 0.4rem;
 }
 
 .drawer-footer {
