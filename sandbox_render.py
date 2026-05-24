@@ -78,6 +78,30 @@ def _con_tab(html: str, tab: str) -> str:
     script = f'<script>addEventListener("load",()=>{{var b=document.querySelector(\'[data-tab="{tab}"]\');if(b)b.click();}});</script>'
     return html.replace("</body>", script + "\n</body>")
 
+def _todas_las_tabs(html: str) -> str:
+    """Muestra todas las tabs a la vez, apiladas verticalmente para revisar el diseño."""
+    script = """<script>
+addEventListener("load", () => {
+  // Mostrar todos los tab-content a la vez
+  document.querySelectorAll('.tab-content').forEach(el => {
+    el.style.display = 'block';
+  });
+  // Ocultar sidebar y cabeceras de navegación — solo contenido
+  var style = document.createElement('style');
+  style.textContent = `
+    .tab-bar { display: none !important; }
+    header, nav, #ia-banner, .search-bar, .sort-bar { margin-left: 0 !important; }
+    main, footer { margin-left: 0 !important; }
+    .tab-content { display: block !important; border-bottom: 3px solid #4f8ef7; padding-bottom: 4rem; margin-bottom: 2rem; }
+    .tab-content::before { content: attr(id); display: block; font-family: monospace;
+      font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase;
+      color: #4f8ef7; padding: 1rem 2rem 0; }
+  `;
+  document.head.appendChild(style);
+});
+</script>"""
+    return html.replace("</body>", script + "\n</body>")
+
 if __name__ == "__main__":
     base = renderer.renderizar_html(_NOTICIAS, _ANALISIS, {}, {}, _GRUPOS)
 
@@ -94,5 +118,11 @@ if __name__ == "__main__":
         with open(fname, "w", encoding="utf-8") as f:
             f.write(html)
         print(f"  {fname} ({len(html):,} chars)")
+
+    # Versión de revisión: todas las tabs visibles a la vez
+    revision = _todas_las_tabs(base)
+    with open("sandbox_revision.html", "w", encoding="utf-8") as f:
+        f.write(revision)
+    print(f"  sandbox_revision.html ({len(revision):,} chars) — todas las tabs apiladas")
 
     print("Listo.")
