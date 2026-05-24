@@ -80,27 +80,19 @@ def _con_tab(html: str, tab: str) -> str:
 
 def _todas_las_tabs(html: str) -> str:
     """Muestra todas las tabs a la vez, apiladas verticalmente para revisar el diseño."""
-    script = """<script>
-addEventListener("load", () => {
-  // Mostrar todos los tab-content a la vez
-  document.querySelectorAll('.tab-content').forEach(el => {
-    el.style.display = 'block';
-  });
-  // Ocultar sidebar y cabeceras de navegación — solo contenido
-  var style = document.createElement('style');
-  style.textContent = `
-    .tab-bar { display: none !important; }
-    header, nav, #ia-banner, .search-bar, .sort-bar { margin-left: 0 !important; }
-    main, footer { margin-left: 0 !important; }
-    .tab-content { display: block !important; border-bottom: 3px solid #4f8ef7; padding-bottom: 4rem; margin-bottom: 2rem; }
-    .tab-content::before { content: attr(id); display: block; font-family: monospace;
-      font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase;
-      color: #4f8ef7; padding: 1rem 2rem 0; }
-  `;
-  document.head.appendChild(style);
-});
-</script>"""
-    return html.replace("</body>", script + "\n</body>")
+    css = """<style>
+  .tab-bar       { display: none !important; }
+  #splash        { display: none !important; }
+  header, nav, .search-bar, .sort-bar, #ia-banner, main, footer {
+    margin-left: 0 !important;
+  }
+  .tab-content {
+    display: block !important;
+    border-top: 2px solid #4f8ef7;
+    margin-top: 3rem;
+  }
+</style>"""
+    return html.replace("</head>", css + "\n</head>")
 
 if __name__ == "__main__":
     base = renderer.renderizar_html(_NOTICIAS, _ANALISIS, {}, {}, _GRUPOS)
