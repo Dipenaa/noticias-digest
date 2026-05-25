@@ -355,6 +355,26 @@ _HTML_CARGANDO = """<!DOCTYPE html>
 # Rutas Flask
 # ---------------------------------------------------------------------------
 
+def _strip_splash(html: str) -> str:
+    """Elimina el div#splash del HTML cacheado contando divs anidados correctamente."""
+    start = html.find('<div id="splash"')
+    if start == -1:
+        return html
+    pos = html.find('>', start) + 1
+    depth = 1
+    while depth > 0 and pos < len(html):
+        next_open  = html.find('<div', pos)
+        next_close = html.find('</div>', pos)
+        if next_close == -1:
+            break
+        if next_open != -1 and next_open < next_close:
+            depth += 1
+            pos = next_open + 4
+        else:
+            depth -= 1
+            pos = next_close + 6
+    return html[:start] + html[pos:]
+
 @app.route("/")
 def index():
     with _lock:
@@ -364,9 +384,7 @@ def index():
 
     # Eliminar splash de HTML cacheado antiguo
     if html and 'id="splash"' in html:
-        import re
-        html = re.sub(r'<!--[^>]*[Ss]plash[^>]*-->\s*', '', html)
-        html = re.sub(r'<div\s+id="splash"[^>]*>.*?</div>', '', html, flags=re.DOTALL)
+        html = _strip_splash(html)
 
     # Si el caché tiene más de _INTERVALO_HORAS (p.ej. el servidor acaba de
     # despertar tras estar dormido), lanzar regeneración en background.
