@@ -424,24 +424,34 @@ footer {
 }
 
 .tab-bar-section {
-  font-size: 0.46rem; font-weight: 700; text-transform: uppercase;
+  font-size: 0.44rem; font-weight: 700; text-transform: uppercase;
   letter-spacing: 0.2em; color: var(--txt-3);
-  padding: 1.5rem 1.5rem 0.5rem; user-select: none;
+  padding: 1.25rem 1rem 0.4rem; user-select: none;
 }
 
 .tab-btn {
   background: none; border: none; border-left: 2px solid transparent;
-  color: var(--txt-3); cursor: pointer;
-  font-size: 0.77rem; font-weight: 500; font-family: inherit; letter-spacing: 0.01em;
-  padding: 0.55rem 1rem 0.55rem 1.35rem;
-  text-align: left; width: 100%;
-  transition: color 0.15s, background 0.15s, border-left-color 0.15s;
+  color: rgba(255,255,255,0.35);
+  cursor: pointer;
+  font-size: 0.75rem; font-weight: 500; font-family: inherit;
+  letter-spacing: 0.005em;
+  padding: 0.45rem 0.875rem 0.45rem 0.75rem;
+  text-align: left;
+  width: calc(100% - 0.75rem);
+  margin: 0 0.375rem 0.05rem 0.375rem;
+  border-radius: 7px;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
+  display: block;
 }
-.tab-btn:hover { color: var(--txt-2); background: rgba(255,255,255,0.03); }
+.tab-btn:hover {
+  color: rgba(255,255,255,0.7);
+  background: rgba(255,255,255,0.05);
+}
 .tab-btn.active {
-  color: var(--txt-1); font-weight: 600;
+  color: #e8eaf6;
+  font-weight: 600;
+  background: rgba(67,97,238,0.15);
   border-left-color: var(--accent);
-  background: linear-gradient(90deg, rgba(67,97,238,0.12), transparent);
 }
 
 /* Desplazar contenido */
@@ -557,8 +567,42 @@ header    { top: 0; }
   border-radius: 3px; padding: 0.14rem 0.38rem; flex-shrink: 0; pointer-events: none;
 }
 
-/* Sort bar oculto */
-.sort-bar { display: none; }
+/* ═══════════════════════════════════════════════════════════════════════════
+   Sort bar — control segmentado iOS
+   ═══════════════════════════════════════════════════════════════════════════ */
+.sort-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0.28rem 2.5rem;
+  background: transparent;
+  border-bottom: 1px solid var(--border-sub);
+  position: sticky;
+  top: 84px;
+  z-index: 88;
+  gap: 0;
+}
+.sort-label { display: none; }
+.sort-btn {
+  font-size: 0.58rem; font-weight: 600; letter-spacing: 0.025em;
+  padding: 0.22rem 0.7rem;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-right: none;
+  color: rgba(255,255,255,0.25);
+  cursor: pointer; font-family: inherit;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+.sort-btn:first-of-type { border-radius: 5px 0 0 5px; }
+.sort-btn:last-of-type  { border-radius: 0 5px 5px 0; border-right: 1px solid rgba(255,255,255,0.07); }
+.sort-btn:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.6); }
+.sort-btn.active {
+  background: rgba(67,97,238,0.2);
+  border-color: rgba(67,97,238,0.35);
+  color: #8ba4f8;
+}
+.sort-btn.active + .sort-btn { border-left-color: rgba(67,97,238,0.35); }
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Síntesis
