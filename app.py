@@ -18,6 +18,7 @@ Variables de entorno requeridas:
 """
 
 import os
+import hmac
 import time
 import threading
 import traceback
@@ -35,19 +36,26 @@ from renderer import renderizar_html
 
 app = Flask(__name__)
 
-_RUTAS_PUBLICAS = {"/sw.js", "/manifest.json", "/icon.svg", "/estado", "/sintetizar", "/ping", "/briefing"}
+_RUTAS_PUBLICAS = {"/sw.js", "/manifest.json", "/icon.svg", "/estado", "/ping"}
 
 @app.before_request
 def _auth():
     if request.path in _RUTAS_PUBLICAS:
         return
     auth = request.authorization
-    if not auth or auth.password != _PASSWORD:
+    if not auth or not hmac.compare_digest(auth.password, _PASSWORD):
         return Response(
             "Acceso restringido",
             401,
             {"WWW-Authenticate": 'Basic realm="Noticias Digest"'},
         )
+
+@app.after_request
+def _security_headers(r):
+    r.headers['X-Content-Type-Options'] = 'nosniff'
+    r.headers['X-Frame-Options'] = 'SAMEORIGIN'
+    r.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    return r
 
 # ---------------------------------------------------------------------------
 # Estado global (compartido entre hilos con un lock)
@@ -366,8 +374,9 @@ def index():
         return Response(html, mimetype="text/html; charset=utf-8")
 
     if error:
+        print(f"[ERROR] {error}")
         return Response(
-            f"<pre style='color:red;background:#111;padding:2rem'>{error}</pre>",
+            "<p style='font-family:sans-serif;padding:2rem;color:#c00'>Error al generar el digest. Revisa los logs del servidor.</p>",
             status=500, mimetype="text/html",
         )
 

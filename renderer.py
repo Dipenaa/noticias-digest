@@ -22,6 +22,10 @@ from config import ARCHIVO_SALIDA
 
 from styles import _CSS
 
+def _safe_url(url: str) -> str:
+    """Permite solo URLs http/https para evitar javascript: en hrefs."""
+    return url if url.startswith(("https://", "http://")) else "#"
+
 
 # ---------------------------------------------------------------------------
 # Constructores de bloques HTML
@@ -64,7 +68,7 @@ def _tarjeta(articulo: dict, verificados: frozenset = frozenset(), orden: int = 
     sentimiento  = articulo.get("sentimiento")  or ""
     critica      = (articulo.get("critica") or "").strip()
     critica_html = (
-        f'<div class="critica"><span class="critica-icono">💡</span>{critica}</div>'
+        f'<div class="critica"><span class="critica-icono">💡</span>{_html.escape(critica)}</div>'
         if critica else ""
     )
     verified_html = (
@@ -116,7 +120,7 @@ def _tarjeta(articulo: dict, verificados: frozenset = frozenset(), orden: int = 
     </div>
   </div>
   <div class="titulo">
-    <a href="{articulo['enlace']}" target="_blank" rel="noopener noreferrer">
+    <a href="{_safe_url(articulo['enlace'])}" target="_blank" rel="noopener noreferrer">
       {articulo["titulo"]}
     </a>
   </div>
@@ -139,7 +143,7 @@ def _seccion(categoria: str, articulos: list[dict], analisis: str,
         analisis_html = f"""
 <div class="analisis-general">
   <div class="analisis-general-titulo">🔍 Análisis crítico de la sección</div>
-  <p>{analisis}</p>
+  <p>{_html.escape(analisis)}</p>
 </div>"""
 
     return f"""
@@ -190,7 +194,7 @@ def _featured_card(articulo: dict, categoria: str,
     sentimiento  = articulo.get("sentimiento")  or ""
     critica      = (articulo.get("critica") or "").strip()
     critica_html = (
-        f'<div class="critica"><span class="critica-icono">💡</span>{critica}</div>'
+        f'<div class="critica"><span class="critica-icono">💡</span>{_html.escape(critica)}</div>'
         if critica else ""
     )
     verified_html = (
@@ -241,7 +245,7 @@ def _featured_card(articulo: dict, categoria: str,
     </div>
   </div>
   <div class="titulo">
-    <a href="{articulo['enlace']}" target="_blank" rel="noopener noreferrer">
+    <a href="{_safe_url(articulo['enlace'])}" target="_blank" rel="noopener noreferrer">
       {articulo["titulo"]}
     </a>
   </div>
@@ -276,7 +280,7 @@ def _synthesis_card(grupo: dict) -> str:
   <span class="sintesis-fuente-nombre">{art["fuente"]}</span>
   {_badge(art.get("sesgo_fuente") or "desconocido")}
   {alt_badge}
-  <a class="sintesis-fuente-link" href="{art['enlace']}" target="_blank" rel="noopener noreferrer">
+  <a class="sintesis-fuente-link" href="{_safe_url(art['enlace'])}" target="_blank" rel="noopener noreferrer">
     {art["titulo"]}
   </a>
 </div>"""
@@ -287,7 +291,7 @@ def _synthesis_card(grupo: dict) -> str:
         columnas = ""
         for nombre, arts in cols_con_datos.items():
             items = "".join(
-                f'<div class="angulo-item"><a href="{a["enlace"]}" target="_blank" rel="noopener noreferrer">{a["titulo"]}</a></div>'
+                f'<div class="angulo-item"><a href="{_safe_url(a["enlace"])}" target="_blank" rel="noopener noreferrer">{_html.escape(a["titulo"])}</a></div>'
                 for a in arts
             )
             columnas += f'<div class="angulo-col"><div class="angulo-label">{nombre}</div>{items}</div>'
@@ -299,8 +303,8 @@ def _synthesis_card(grupo: dict) -> str:
     <span class="sintesis-fuentes-count">{n} fuente{"s" if n != 1 else ""}</span>
     {"" if not hay_comparador else '<span style="font-size:.6rem;color:#a78bfa;font-weight:600">&#9670; Comparador activo</span>'}
   </div>
-  <div class="sintesis-titulo">{grupo["titulo"]}</div>
-  <div class="sintesis-texto">{grupo["sintesis"]}</div>
+  <div class="sintesis-titulo">{_html.escape(grupo["titulo"])}</div>
+  <div class="sintesis-texto">{_html.escape(grupo["sintesis"])}</div>
   {angulos_html if hay_comparador else f'<div class="sintesis-fuentes">{fuentes_html}</div>'}
 </div>"""
 
@@ -494,7 +498,7 @@ def _asombro_card(articulo: dict) -> str:
   <div class="asombro-score">{estrellas}</div>
   <span class="asombro-cat">{_html.escape(categoria)}</span>
   <h3 class="asombro-titulo">
-    <a href="{_html.escape(articulo['enlace'])}" target="_blank" rel="noopener"
+    <a href="{_safe_url(articulo['enlace'])}" target="_blank" rel="noopener"
        onclick="event.stopPropagation()">{_html.escape(articulo['titulo'])}</a>
   </h3>
   <div class="asombro-fuente">{_html.escape(articulo['fuente'])} · {_html.escape(articulo['fecha'])}</div>
@@ -572,7 +576,7 @@ def _proceso_card(p: dict, hero: bool = False) -> str:
     for a in (p.get("articulos") or [])[:5]:
         titulo_a = _html.escape(a.get("titulo", ""))
         fuente_a = _html.escape(a.get("fuente", ""))
-        enlace_a = _html.escape(a.get("enlace", "#"), quote=True)
+        enlace_a = _safe_url(a.get("enlace", "#"))
         arts_html += f'<li><a href="{enlace_a}" target="_blank" rel="noopener">{titulo_a}</a> <span class="proceso-art-fuente">— {fuente_a}</span></li>'
     arts_section = f'<ul class="proceso-articulos">{arts_html}</ul>' if arts_html else ""
 
@@ -1235,6 +1239,11 @@ function toggleBookmark(ev, btn) {{
   if (_tabActual === 'para-leer') _renderizarParaLeer();
 }}
 
+function _esc(s) {{
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}}
+function _safeUrl(u) {{ return /^https?:\/\//i.test(u) ? u : '#'; }}
+
 function _renderizarParaLeer() {{
   var lista = _cargarBookmarks();
   var cont  = document.getElementById('para-leer-contenido');
@@ -1247,18 +1256,19 @@ function _renderizarParaLeer() {{
   }}
   if (desc) desc.textContent = lista.length + ' artículo(s) guardado(s)';
   cont.innerHTML = '<div class="grid">' + lista.map(function(item) {{
-    var tit = item.titulo || '';
-    var src = item.fuente || '';
-    var fch = item.fecha  || '';
-    var url = item.enlace || '#';
+    var tit = _esc(item.titulo || '');
+    var src = _esc(item.fuente || '');
+    var fch = _esc(item.fecha  || '');
+    var url = _safeUrl(item.enlace || '');
+    var urlEsc = _esc(url);
     return '<div class="tarjeta" style="cursor:default">' +
       '<div class="tarjeta-meta"><div class="fuente-bloque">' +
       '<span class="fuente-nombre">' + src + '</span>' +
       '<span class="fecha">' + fch + '</span>' +
       '</div>' +
-      '<button class="bookmark-btn guardado" title="Quitar de la lista" data-enlace-rm="' + url.replace(/"/g,'&quot;') + '" onclick="_eliminarBookmark(this.dataset.enlaceRm,this)">&#9733;</button>' +
+      '<button class="bookmark-btn guardado" title="Quitar de la lista" data-enlace-rm="' + urlEsc + '" onclick="_eliminarBookmark(this.dataset.enlaceRm,this)">&#9733;</button>' +
       '</div>' +
-      '<div class="titulo"><a href="' + url + '" target="_blank" rel="noopener noreferrer">' + tit + '</a></div>' +
+      '<div class="titulo"><a href="' + urlEsc + '" target="_blank" rel="noopener noreferrer">' + tit + '</a></div>' +
       '</div>';
   }}).join('') + '</div>';
 }}
@@ -1311,7 +1321,7 @@ function abrirArticulo(el) {{
   var titulo    = d.titulo    || '';
   var fuente    = d.fuente    || '';
   var fecha     = d.fecha     || '';
-  var enlace    = d.enlace    || '#';
+  var enlace    = /^https?:\/\//i.test(d.enlace || '') ? d.enlace : '#';
   var resumen   = d.resumen   || '';
   var critica   = d.critica   || '';
   var sesgoF    = d.sesgoFuente || 'desconocido';
@@ -1624,12 +1634,23 @@ function generarBriefing() {{
     .then(function(r) {{ return r.json(); }})
     .then(function(d) {{
       if (!d.ok) {{ texto.textContent = d.texto || 'Error'; return; }}
-      // Convertir **negrita** y bullets a HTML
-      var html = d.texto
-        .replace(/\\*\\*(.+?)\\*\\*/g, '<strong>$1</strong>')
-        .replace(/\n• /g, '\n<li>')
-        .replace(/\n/g, '<br>');
-      texto.innerHTML = html;
+      // Renderizar markdown mínimo de forma segura sin innerHTML con strings externos
+      texto.textContent = '';
+      d.texto.split('\n').forEach(function(line) {{
+        var p = document.createElement('p');
+        // Negrita **texto**
+        var parts = line.split(/\*\*(.+?)\*\*/g);
+        parts.forEach(function(part, i) {{
+          if (i % 2 === 1) {{
+            var b = document.createElement('strong');
+            b.textContent = part;
+            p.appendChild(b);
+          }} else if (part) {{
+            p.appendChild(document.createTextNode(part));
+          }}
+        }});
+        texto.appendChild(p);
+      }});
     }})
     .catch(function() {{
       texto.textContent = 'Error al conectar con el servidor.';
