@@ -431,26 +431,26 @@ footer {
 
 .tab-btn {
   background: none; border: none; border-left: 2px solid transparent;
-  color: rgba(255,255,255,0.35);
+  color: rgba(255,255,255,0.58);
   cursor: pointer;
-  font-size: 0.75rem; font-weight: 500; font-family: inherit;
+  font-size: 0.76rem; font-weight: 500; font-family: inherit;
   letter-spacing: 0.005em;
   padding: 0.45rem 0.875rem 0.45rem 0.75rem;
   text-align: left;
   width: calc(100% - 0.75rem);
-  margin: 0 0.375rem 0.05rem 0.375rem;
+  margin: 0 0.375rem 0.08rem 0.375rem;
   border-radius: 7px;
   transition: color 0.15s, background 0.15s, border-color 0.15s;
   display: block;
 }
 .tab-btn:hover {
-  color: rgba(255,255,255,0.7);
-  background: rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.88);
+  background: rgba(255,255,255,0.06);
 }
 .tab-btn.active {
-  color: #e8eaf6;
-  font-weight: 600;
-  background: rgba(67,97,238,0.15);
+  color: #c7d2fe;
+  font-weight: 700;
+  background: rgba(67,97,238,0.2);
   border-left-color: var(--accent);
 }
 
@@ -603,6 +603,10 @@ header    { top: 0; }
   color: #8ba4f8;
 }
 .sort-btn.active + .sort-btn { border-left-color: rgba(67,97,238,0.35); }
+/* Solo los 4 primeros botones de ordenar */
+.sort-btn:nth-child(n+6) { display: none; }
+/* El 4º botón visible (5º hijo = Destacados primero) cierra el grupo */
+.sort-btn:nth-child(5) { border-radius: 0 5px 5px 0 !important; border-right: 1px solid rgba(255,255,255,0.07) !important; }
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Síntesis
