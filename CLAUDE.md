@@ -86,6 +86,21 @@ Scripts reutilizables guardados: `autoresearch_analyzer.py` y `autoresearch_synt
 - **CSS separado:** styles.py contiene todo el CSS; renderer.py solo lógica Python
 - **Autenticación básica:** app.py protege todas las rutas con contraseña (DIGEST_PASSWORD)
 - **synthesizer.py:** corregido modelo incorrecto (era Haiku, debe ser Sonnet)
+- **Botones de regeneración IA eliminados (25 mayo 2026):** quitados el botón "Regenerar análisis IA" del banner y el botón "Generar síntesis con Claude" de la pestaña Síntesis — evita llamadas API no autorizadas
+
+## Diseño en progreso — rama `claude/buenas-xo9D9` (25 mayo 2026)
+El nuevo tema **Dark Premium** está en `styles_sandbox.py`. Aún no aplicado a producción (`styles.py`).
+
+Cambios del sandbox respecto a producción:
+- Tema completamente oscuro (#000 fondo, glassmorphism en cards)
+- Cards con hover expansion: el resumen se despliega y la crítica IA emerge al pasar el ratón
+- Barras de espectro de sesgo (CSS puro, selectores `[title="sesgo"]`)
+- Buscador estilo Spotlight: pequeño en reposo, se expande al hacer foco
+- Sort bar como control segmentado iOS (4 opciones, compacto y alineado a la derecha)
+- Sidebar con pestañas: acento azul en la activa, inactivas legibles
+- Tipografía fluida con `clamp()`, títulos serif con gradiente
+
+Para aplicar a producción: copiar `styles_sandbox.py` → `styles.py` y hacer push a master.
 
 ## Cómo activar Redis (Upstash — gratuito)
 1. Ir a https://upstash.com y crear una base de datos Redis gratuita
