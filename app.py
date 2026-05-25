@@ -362,6 +362,12 @@ def index():
         error  = _ultimo_error
         update = _ultimo_update
 
+    # Eliminar splash de HTML cacheado antiguo
+    if html and 'id="splash"' in html:
+        import re
+        html = re.sub(r'<!--[^>]*[Ss]plash[^>]*-->\s*', '', html)
+        html = re.sub(r'<div\s+id="splash"[^>]*>.*?</div>', '', html, flags=re.DOTALL)
+
     # Si el caché tiene más de _INTERVALO_HORAS (p.ej. el servidor acaba de
     # despertar tras estar dormido), lanzar regeneración en background.
     # El visitante recibe el HTML viejo de inmediato; el siguiente ya verá el nuevo.
