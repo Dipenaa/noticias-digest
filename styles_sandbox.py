@@ -26,6 +26,7 @@ _CSS = """
   --font-serif:  'Playfair Display', Georgia, serif;
   --glow-blue:   rgba(67,97,238,0.18);
   --glow-purple: rgba(123,47,255,0.14);
+  --accent-blue: #93adf0;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }

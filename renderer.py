@@ -1411,60 +1411,6 @@ document.addEventListener('keydown', function(e) {{
   if (e.key === 'Escape') cerrarDrawer();
 }});
 
-/* ── Lanzar análisis IA sin re-descargar feeds ───────────────────────── */
-function lanzarAnalisisIA() {{
-  var btn = document.getElementById('ia-regen-btn');
-  btn.disabled = true;
-  btn.textContent = 'Analizando…';
-  // Intenta /analizar (solo IA); si no existe el endpoint, cae a /regenerar
-  fetch('/analizar', {{method:'POST'}})
-    .then(function(r) {{
-      if (!r.ok) throw new Error('no-endpoint');
-      return r.json();
-    }})
-    .then(function() {{
-      btn.textContent = 'Esperando resultado…';
-      // Sondea /estado cada 4 s hasta que generando === false
-      var poll = setInterval(function() {{
-        fetch('/estado').then(function(r){{return r.json();}}).then(function(s) {{
-          if (!s.generando) {{
-            clearInterval(poll);
-            window.location.reload();
-          }}
-        }}).catch(function(){{ clearInterval(poll); window.location.reload(); }});
-      }}, 4000);
-    }})
-    .catch(function() {{
-      // Sin servidor Flask (archivo local) o /analizar no existe: regenerar completo
-      window.location.href = '/regenerar';
-    }});
-}}
-
-function generarSintesis() {{
-  var btn = document.getElementById('btn-sintetizar');
-  var est = document.getElementById('sintesis-estado');
-  btn.disabled = true;
-  btn.textContent = 'Generando…';
-  est.style.display = 'block';
-  var tsAntes = null;
-  fetch('/estado').then(function(r){{return r.json();}}).then(function(s){{
-    tsAntes = s.ultimo_update;
-    return fetch('/sintetizar', {{method:'POST'}});
-  }}).then(function() {{
-    var poll = setInterval(function() {{
-      fetch('/estado').then(function(r){{return r.json();}}).then(function(s) {{
-        if (s.ultimo_update !== tsAntes) {{
-          clearInterval(poll);
-          window.location.reload();
-        }}
-      }}).catch(function(){{ clearInterval(poll); window.location.reload(); }});
-    }}, 3000);
-  }}).catch(function() {{
-    est.textContent = 'Error al conectar con el servidor.';
-    btn.disabled = false;
-    btn.textContent = 'Reintentar';
-  }});
-}}
 
 /* ── Splash ──────────────────────────────────────────────────────────── */
 function dismissSplash() {{

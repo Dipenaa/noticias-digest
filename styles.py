@@ -27,6 +27,7 @@ _CSS = """
   --font-serif:  'Playfair Display', Georgia, serif;
   --glow-blue:   rgba(67,97,238,0.18);
   --glow-purple: rgba(123,47,255,0.14);
+  --accent-blue: #93adf0;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -868,8 +869,19 @@ header    { top: 0; }
 .splash-logo { font-family: var(--font-serif); font-size: clamp(3rem,8vw,6rem); font-weight: 900; color: var(--txt-1); letter-spacing: -.05em; line-height: 1; }
 .splash-divider { width: 40px; height: 2px; background: var(--accent); margin: 2rem auto; }
 .splash-headlines { max-width: 480px; text-align: center; display: flex; flex-direction: column; gap: .75rem; }
-.splash-headline { font-size: .85rem; color: var(--txt-3); line-height: 1.5; }
+.splash-hl { font-size: .85rem; color: var(--txt-2); line-height: 1.5; }
+.splash-headline { font-size: .85rem; color: var(--txt-2); line-height: 1.5; }
 .splash-hint { font-size: .6rem; letter-spacing: .15em; text-transform: uppercase; color: var(--txt-3); margin-top: 3rem; }
+
+/* Tensiómetro del día */
+.tension-wrap { display: flex; align-items: center; gap: .35rem; }
+.tension-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+/* Actualidad vacía */
+.actualidad-empty { padding: 3rem 0; text-align: center; color: var(--txt-3); font-size: .85rem; }
+
+/* Spark bars (estadísticas) */
+.spark-bar { display: inline-block; width: 4px; border-radius: 2px; vertical-align: bottom; margin: 0 1px; }
 
 /* Conexiones / Briefing */
 .briefing-header { margin-bottom: 1.5rem; }
