@@ -860,6 +860,9 @@ header    { top: 0; }
 .watch-alerta p { font-size: .72rem; color: var(--txt-2); }
 .watch-confianza { font-size: .62rem; font-weight: 700; color: var(--accent-warm); white-space: nowrap; }
 
+/* Splash eliminado — ocultar si aparece en HTML cacheado antiguo */
+#splash { display: none !important; }
+
 
 /* Tensiómetro del día */
 .tension-wrap { display: flex; align-items: center; gap: .35rem; }
