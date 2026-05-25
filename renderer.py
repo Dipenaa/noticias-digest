@@ -311,9 +311,7 @@ def _tab_sintesis(grupos: list[dict]) -> str:
         return """<div class="sin-sintesis">
   <h3>Síntesis cruzada</h3>
   <p>Detecta historias que aparecen en múltiples fuentes con perspectivas distintas y las analiza con Claude.</p>
-  <p class="sin-sintesis-nota">No se genera automáticamente para ahorrar tokens. Pulsa cuando quieras verla.</p>
-  <button id="btn-sintetizar" onclick="generarSintesis()">Generar síntesis con Claude</button>
-  <p id="sintesis-estado" style="display:none;margin-top:1rem;font-size:.82rem;color:var(--txt-3)">Analizando… puede tardar 20-30 s</p>
+  <p class="sin-sintesis-nota">La síntesis se genera automáticamente al regenerar el digest.</p>
 </div>"""
 
     cards = "\n".join(_synthesis_card(g) for g in grupos)
@@ -842,7 +840,6 @@ def renderizar_html(
 
 <div id="ia-banner">
   <span class="ia-msg">&#9888; <strong><span id="ia-banner-count">0</span> art&#237;culos</strong> sin an&#225;lisis IA &mdash; resumen, sesgo y s&#237;ntesis pueden estar incompletos</span>
-  <button class="ia-regen" id="ia-regen-btn" onclick="lanzarAnalisisIA()">Regenerar an&#225;lisis IA</button>
   <button class="ia-close" onclick="document.getElementById('ia-banner').style.display='none'" title="Cerrar">&#215;</button>
 </div>
 
