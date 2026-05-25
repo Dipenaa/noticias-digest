@@ -775,7 +775,8 @@ def renderizar_html(
     ) + "}"
 
     # ── Tensiómetro del día ──────────────────────────────────────────────
-    _sents = [v.get("sentimiento", "") for v in (analisis or {}).values() if v.get("sentimiento")]
+    _all_arts = [art for arts in (noticias or {}).values() for art in arts]
+    _sents = [art.get("sentimiento", "") for art in _all_arts if art.get("sentimiento")]
     _n_alar = sum(1 for s in _sents if s == "alarmista")
     _n_tot  = max(len(_sents), 1)
     _tension_pct = int(_n_alar / _n_tot * 100)
