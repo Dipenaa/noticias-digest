@@ -793,15 +793,7 @@ def renderizar_html(
         f'</div>'
     ) if _sents else ""
 
-    # ── Top titulares para el splash ─────────────────────────────────────
     _todos_arts = [a for arts in (noticias or {}).values() for a in arts]
-    _splash_arts = [a for a in _todos_arts if a.get("destacado")][:3]
-    if len(_splash_arts) < 3:
-        _splash_arts += [a for a in _todos_arts if not a.get("destacado")][:3 - len(_splash_arts)]
-    _splash_hls = "".join(
-        f'<div class="splash-hl">{_html.escape(a["titulo"])}</div>'
-        for a in _splash_arts[:3]
-    ) if _splash_arts else '<div class="splash-hl">Cargando titulares del día...</div>'
 
     return f"""<!DOCTYPE html>
 <html lang="es">
@@ -938,15 +930,6 @@ def renderizar_html(
   Sin publicidad · Sin algoritmos · Generado localmente ·
   Análisis por Claude (Anthropic)
 </footer>
-
-<!-- ── Splash de portada ───────────────────────────────────────────── -->
-<div id="splash" onclick="dismissSplash()">
-  <div class="splash-eyebrow">{ahora}</div>
-  <div class="splash-logo">Digest</div>
-  <div class="splash-divider"></div>
-  <div class="splash-headlines">{_splash_hls}</div>
-  <div class="splash-hint">toca para entrar</div>
-</div>
 
 <!-- ── Vista inmersiva ─────────────────────────────────────────────── -->
 <div class="drawer-overlay" id="drawer-overlay" onclick="cerrarDrawer()"></div>
@@ -1411,27 +1394,6 @@ document.addEventListener('keydown', function(e) {{
   if (e.key === 'Escape') cerrarDrawer();
 }});
 
-
-/* ── Splash ──────────────────────────────────────────────────────────── */
-function dismissSplash() {{
-  var s = document.getElementById('splash');
-  if (!s || s.classList.contains('saliendo')) return;
-  s.classList.add('saliendo');
-  setTimeout(function() {{ s.classList.add('ido'); }}, 720);
-}}
-
-(function() {{
-  var s = document.getElementById('splash');
-  if (!s) return;
-  try {{
-    var today = new Date().toDateString();
-    if (localStorage.getItem('digestSplashDate') === today) {{
-      s.classList.add('ido'); return;
-    }}
-    localStorage.setItem('digestSplashDate', today);
-  }} catch(e) {{}}
-  setTimeout(dismissSplash, 2600);
-}})();
 
 /* ── Saludo según hora ───────────────────────────────────────────────── */
 (function() {{

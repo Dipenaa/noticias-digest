@@ -859,17 +859,6 @@ header    { top: 0; }
 .watch-alerta p { font-size: .72rem; color: var(--txt-2); }
 .watch-confianza { font-size: .62rem; font-weight: 700; color: var(--accent-warm); white-space: nowrap; }
 
-/* Splash */
-#splash { position: fixed; inset: 0; background: #000; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; }
-#splash.saliendo { animation: splashSalida 0.7s cubic-bezier(0.4,0,0.2,1) forwards; }
-#splash.ido { display: none !important; pointer-events: none; }
-@keyframes splashSalida { to { opacity: 0; transform: scale(1.04); } }
-.splash-eyebrow { font-size: .62rem; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: var(--txt-3); margin-bottom: 1.5rem; }
-.splash-logo { font-family: var(--font-serif); font-size: clamp(3rem,8vw,6rem); font-weight: 900; color: var(--txt-1); letter-spacing: -.05em; line-height: 1; }
-.splash-divider { width: 40px; height: 2px; background: var(--accent); margin: 2rem auto; }
-.splash-headlines { max-width: 480px; text-align: center; display: flex; flex-direction: column; gap: .75rem; }
-.splash-headline { font-size: .85rem; color: var(--txt-3); line-height: 1.5; }
-.splash-hint { font-size: .6rem; letter-spacing: .15em; text-transform: uppercase; color: var(--txt-3); margin-top: 3rem; }
 
 /* Conexiones / Briefing */
 .briefing-header { margin-bottom: 1.5rem; }
