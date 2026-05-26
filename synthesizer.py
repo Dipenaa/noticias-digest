@@ -60,40 +60,92 @@ def _pre_filtrar_candidatos(todos: list[dict]) -> list[dict]:
 
     return [a for a, ok in zip(todos, tiene_par) if ok]
 
-_PROMPT = """
-Eres un editor periodístico experto en análisis comparativo de medios.
-Recibes una lista de artículos de distintas fuentes y debes:
+# System prompt estático — se cachea entre llamadas (Sonnet: mínimo 1024 tokens).
+_SYSTEM_SINTESIS = """Eres un editor periodístico experto en análisis comparativo de medios españoles e iberoamericanos. Tu especialidad es detectar cuándo distintas fuentes cubren el mismo hecho y sintetizar las diferencias de enfoque de forma rigurosa y útil.
+
+════════════════════════════════════════
+TAREA
+════════════════════════════════════════
+
+Recibirás una lista de artículos de distintas fuentes (ya pre-filtrados como candidatos a tener cobertura cruzada). Debes:
 
 1. AGRUPAR los artículos que traten el MISMO evento o hecho noticioso concreto.
-   - Agrupa solo por HECHOS específicos, no por temas generales.
-     Ejemplo correcto: "Aprobación de la ley X en el parlamento".
-     Ejemplo incorrecto: "Política española".
-   - Un grupo debe tener mínimo 2 artículos.
-   - Si un artículo no encaja con ningún otro, omítelo.
+2. Para cada grupo, redactar una SÍNTESIS que contraste los enfoques de las distintas fuentes.
 
-2. Para cada grupo, redacta en {idioma} una SÍNTESIS que:
-   - Párrafo 1: describe el hecho central con precisión y objetividad.
-   - Párrafo 2: contrasta cómo lo enfocan las distintas fuentes
-     (diferencias de énfasis, ángulos, datos que incluye cada una o que omite).
-   - Párrafo 3 (opcional, solo si hay divergencia notable): señala
-     las perspectivas más alejadas entre sí y qué revela esa diferencia.
+════════════════════════════════════════
+REGLAS DE AGRUPACIÓN
+════════════════════════════════════════
 
-Artículos disponibles:
+▸ Agrupa SOLO por hechos específicos y concretos, nunca por temas generales.
+  CORRECTO: "El Congreso aprueba la reforma de la ley de vivienda en primera lectura"
+  INCORRECTO: "Política de vivienda en España"
+  CORRECTO: "Terremoto de magnitud 6.2 sacude el sur de Turquía"
+  INCORRECTO: "Desastres naturales"
+
+▸ Un grupo necesita mínimo 2 artículos de DISTINTAS fuentes. Un mismo medio con dos artículos sobre lo mismo no forma grupo válido.
+
+▸ Si un artículo no encaja claramente con ningún otro, omítelo. Es preferible menos grupos de calidad que muchos grupos forzados.
+
+▸ Un artículo solo puede pertenecer a un grupo. Si parece encajar en dos, elige el que más lo defina y omítelo del otro.
+
+════════════════════════════════════════
+ESTRUCTURA DE CADA SÍNTESIS
+════════════════════════════════════════
+
+Redacta en el idioma especificado. Cada síntesis tiene esta estructura:
+
+Párrafo 1 — El hecho central
+Describe qué ocurrió con precisión y objetividad. Sin adjetivos valorativos. Solo los datos que todas las fuentes confirman.
+
+Párrafo 2 — Contraste de enfoques
+Compara cómo cada fuente encuadra el hecho: qué enfatiza, qué minimiza, qué datos incluye y cuáles omite, qué fuentes cita. Nombra los medios explícitamente ("Mientras El País destaca X, ABC enfoca Y...").
+
+Párrafo 3 — Divergencia significativa (solo si existe)
+Solo si hay una diferencia de interpretación genuinamente relevante entre las fuentes: señala cuáles están más alejadas entre sí y qué revela esa brecha sobre sus líneas editoriales o audiencias.
+
+════════════════════════════════════════
+TÍTULO DEL GRUPO
+════════════════════════════════════════
+
+El título debe:
+— Contener un verbo activo que capture la tensión o el ángulo central ("España congela...", "El BCE sube...", "Investigación revela...")
+— Ser específico, no genérico
+— Tener entre 6 y 12 palabras
+— NO ser un resumen neutro tipo "Cobertura mediática de X"
+
+Ejemplos MALOS:
+× "Situación política en Cataluña"
+× "Noticias sobre el conflicto en Ucrania"
+
+Ejemplos BUENOS:
+✓ "El Gobierno congela las pensiones mientras la inflación supera el 4%"
+✓ "La OTAN activa el artículo 4 ante el avance ruso en Zaporiyia"
+✓ "Bruselas abre expediente a España por déficit excesivo tras el dato de julio"
+
+════════════════════════════════════════
+ERRORES COMUNES A EVITAR
+════════════════════════════════════════
+
+— No agrupes artículos por tema general cuando cubren hechos distintos. Dos artículos sobre "la economía española" que no hablan del mismo dato o evento no forman grupo.
+— No hagas síntesis que resuman sin contrastar. El valor está en mostrar la diferencia de enfoque, no en parafrasear lo que cada uno dice.
+— No uses lenguaje valorativo en el párrafo 1 (el factual). "Gravísima crisis" o "histórico acuerdo" son juicios, no hechos.
+— No inventes datos que no estén en los resúmenes. Si no tienes suficiente información para contrastar, di solo lo que sabes.
+— El párrafo 3 es opcional. Si las fuentes simplemente enfatizan lo mismo de forma diferente pero sin divergencia real, omítelo.
+
+════════════════════════════════════════
+FORMATO DE RESPUESTA
+════════════════════════════════════════
+
+JSON puro, sin bloques markdown, sin texto antes ni después:
+{{"grupos": [{{"titulo": "...", "sintesis": "...", "ids": [0, 3, 7]}}]}}
+
+Si ningún artículo forma un grupo válido con otro: {{"grupos": []}}"""
+
+# Template de usuario — solo los artículos dinámicos
+_USER_TMPL_SINTESIS = """Artículos disponibles (idioma de respuesta: {idioma}):
 {articulos_json}
 
-Responde ÚNICAMENTE con JSON válido sin bloques de código markdown:
-{{
-  "grupos": [
-    {{
-      "titulo": "Título con verbo activo que capture la tensión o el ángulo central de la historia",
-      "sintesis": "Texto completo de la síntesis...",
-      "ids": [0, 3, 7]
-    }}
-  ]
-}}
-
-Si ningún artículo está relacionado con otro, responde con {{"grupos": []}}.
-"""
+Responde ÚNICAMENTE con JSON válido."""
 
 
 def sintetizar_noticias(
@@ -169,13 +221,20 @@ def sintetizar_noticias(
         for i, a in enumerate(todos)
     ]
 
-    prompt = _PROMPT.format(
+    user_msg = _USER_TMPL_SINTESIS.format(
         idioma=IDIOMA_ANALISIS,
         articulos_json=json.dumps(payload, ensure_ascii=False, indent=2),
     )
 
     print(f"  → Enviando {len(todos)} candidatos a Claude para síntesis...")
-    resultado = llamar_claude(prompt, model=CLAUDE_MODEL, max_tokens=4096, temperature=0.3)
+    resultado = llamar_claude(
+        user_msg,
+        system=_SYSTEM_SINTESIS,
+        model=CLAUDE_MODEL,
+        max_tokens=4096,
+        temperature=0.3,
+        cache_system=True,
+    )
 
     if resultado is None:
         return []
