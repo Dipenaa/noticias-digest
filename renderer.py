@@ -735,11 +735,6 @@ def renderizar_html(
     ahora = datetime.now().strftime("%d/%m/%Y — %H:%M")
     total = sum(len(arts) for arts in noticias.values())
 
-    secciones = "\n".join(
-        _seccion(cat, arts, analisis.get(cat, ""))
-        for cat, arts in noticias.items()
-    )
-
     # URLs confirmadas por ≥2 fuentes de sesgos distintos (para badge multi-fuente)
     verificados: frozenset = frozenset()
     if grupos_sintesis:
@@ -797,8 +792,6 @@ def renderizar_html(
         f'<span class="tension-label" style="color:{_t_color}">{_t_txt}</span>'
         f'</div>'
     ) if _sents else ""
-
-    _todos_arts = [a for arts in (noticias or {}).values() for a in arts]
 
     return f"""<!DOCTYPE html>
 <html lang="es">

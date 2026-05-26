@@ -204,7 +204,7 @@ function renderEstadisticas() {
   var iaEl = document.getElementById('stat-sesgo-ia-chart');
   if (iaEl) iaEl.innerHTML = sesgosActIA === 0
     ? '<span style="color:var(--txt-3);font-size:.78rem">Sin datos IA — ejecuta con GEMINI_API_KEY para ver análisis</span>'
-    : iaHtml;
+    : '<span style="color:var(--txt-3);font-size:.78rem">Sin datos IA — regenera con ANTHROPIC_API_KEY configurada</span>';
 
   // Top fuentes
   var topF = Object.entries(fuentes).sort(function(a,b){ return b[1]-a[1]; }).slice(0,12);

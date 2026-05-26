@@ -24,9 +24,10 @@ _generando:  bool             = False
 _ultimo_update: datetime | None = None
 _ultimo_error:  str | None    = None
 _sin_ia           = os.getenv("SIN_IA", "").lower() in ("1", "true", "yes")
-_noticias_raw:     dict | None = None
-_alternativas_raw: dict | None = None
-_render_data:      dict | None = None
+_noticias_raw:      dict | None = None
+_alternativas_raw:  dict | None = None
+_render_data:       dict | None = None
+_fuentes_fallidas_cache: list   = []
 
 
 # ---------------------------------------------------------------------------
@@ -120,7 +121,7 @@ def generar(refetch: bool = True) -> None:
     artículos cacheados en memoria (análisis IA sobre datos ya descargados).
     """
     global _generando, _html_cache, _ultimo_update, _ultimo_error
-    global _noticias_raw, _alternativas_raw, _render_data
+    global _noticias_raw, _alternativas_raw, _render_data, _fuentes_fallidas_cache
 
     with _lock:
         if _generando:
@@ -136,8 +137,10 @@ def generar(refetch: bool = True) -> None:
         print(f"[{datetime.now():%H:%M:%S}] Iniciando {label}...")
 
         if refetch:
-            noticias     = obtener_todas_las_noticias()
-            alternativas = obtener_noticias_alternativas()
+            noticias      = obtener_todas_las_noticias()
+            _f_principales = get_fuentes_fallidas()
+            alternativas  = obtener_noticias_alternativas()
+            _fuentes_fallidas_cache = _f_principales + get_fuentes_fallidas()
 
             # Fusionar pool de 3 días con artículos frescos
             from article_cache import shared as _cache
@@ -174,7 +177,7 @@ def generar(refetch: bool = True) -> None:
             noticias, analisis,
             alternativas, analisis_alt,
             grupos_sintesis,
-            fuentes_fallidas=get_fuentes_fallidas(),
+            fuentes_fallidas=_fuentes_fallidas_cache,
             procesos=macro["procesos"],
             conexiones=macro["conexiones"],
             alertas_watch=alertas_watch,
@@ -216,7 +219,7 @@ def sintetizar() -> None:
             data["noticias"], data["analisis"],
             data["alternativas"], data["analisis_alt"],
             grupos,
-            fuentes_fallidas=get_fuentes_fallidas(),
+            fuentes_fallidas=_fuentes_fallidas_cache,
             procesos=data.get("procesos", []),
             conexiones=data.get("conexiones", []),
             alertas_watch=data.get("alertas_watch", []),
