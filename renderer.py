@@ -975,3 +975,11 @@ def renderizar_html(
 
 </body>
 </html>"""
+
+
+def guardar_y_abrir(html: str) -> None:
+    """Guarda el HTML en ARCHIVO_SALIDA y lo abre en el navegador."""
+    with open(ARCHIVO_SALIDA, "w", encoding="utf-8") as f:
+        f.write(html)
+    print(f"  ✓ Guardado en {ARCHIVO_SALIDA}")
+    webbrowser.open(ARCHIVO_SALIDA)
