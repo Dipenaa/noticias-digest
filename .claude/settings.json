@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl *nationalgeographic.com.es*)",
+      "Bash(curl *muyinteresante.es*)",
+      "Bash(curl *historyextra.com*)",
+      "Bash(curl *historytoday.com*)",
+      "Bash(curl *sapiens.org*)",
+      "Bash(curl *agenciasinc.es*)",
+      "Bash(curl *archaeology.org*)",
+      "Bash(curl *theconversation.com*)"
+    ]
+  },
+  "sandbox": {
+    "enabled": true,
+    "network": {
+      "allowedDomains": [
+        "nationalgeographic.com.es",
+        "muyinteresante.es",
+        "historyextra.com",
+        "historytoday.com",
+        "sapiens.org",
+        "agenciasinc.es",
+        "archaeology.org",
+        "theconversation.com"
+      ]
+    }
+  }
+}
