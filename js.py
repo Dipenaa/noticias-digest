@@ -203,8 +203,8 @@ function renderEstadisticas() {
   }).join('');
   var iaEl = document.getElementById('stat-sesgo-ia-chart');
   if (iaEl) iaEl.innerHTML = sesgosActIA === 0
-    ? '<span style="color:var(--txt-3);font-size:.78rem">Sin datos IA — ejecuta con GEMINI_API_KEY para ver análisis</span>'
-    : '<span style="color:var(--txt-3);font-size:.78rem">Sin datos IA — regenera con ANTHROPIC_API_KEY configurada</span>';
+    ? '<span style="color:var(--txt-3);font-size:.78rem">Sin datos IA — regenera con ANTHROPIC_API_KEY configurada</span>'
+    : iaHtml;
 
   // Top fuentes
   var topF = Object.entries(fuentes).sort(function(a,b){ return b[1]-a[1]; }).slice(0,12);
