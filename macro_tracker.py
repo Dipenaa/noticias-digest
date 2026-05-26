@@ -94,10 +94,10 @@ def _enriquecer_con_articulos(procesos: list[dict], todos_articulos: list[dict])
         ids = p.get("ids_articulos", [])
         p["articulos"] = [
             {
-                "titulo":  todos_articulos[i].get("titulo", ""),
-                "fuente":  todos_articulos[i].get("fuente", ""),
-                "enlace":  todos_articulos[i].get("enlace", "#"),
-                "fecha":   datetime.now().strftime("%Y-%m-%d"),
+                "titulo": todos_articulos[i].get("titulo", ""),
+                "fuente": todos_articulos[i].get("fuente", ""),
+                "enlace": todos_articulos[i].get("enlace", "#"),
+                "fecha":  todos_articulos[i].get("fecha", datetime.now().strftime("%Y-%m-%d")),
             }
             for i in ids if 0 <= i < len(todos_articulos)
         ]

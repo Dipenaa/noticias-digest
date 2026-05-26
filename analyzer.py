@@ -177,7 +177,7 @@ def _analizar_categoria(categoria: str, articulos: list[dict]) -> tuple[list[dic
             a["sentimiento"]   = cached["sentimiento"]
             a["asombro"]       = cached.get("asombro", 0)
             a["asombro_razon"] = cached.get("asombro_razon")
-            a["importante"]    = False
+            a["importante"]    = bool(cached.get("importante", False))
         else:
             nuevos_idx.append(i)
 
@@ -216,7 +216,7 @@ def _analizar_categoria(categoria: str, articulos: list[dict]) -> tuple[list[dic
         _cache.set_articulo(a["enlace"], {
             "sesgo_ia": a["sesgo_ia"], "critica": a["critica"],
             "sentimiento": a["sentimiento"], "asombro": a["asombro"],
-            "asombro_razon": a["asombro_razon"],
+            "asombro_razon": a["asombro_razon"], "importante": a["importante"],
         })
 
     analisis_general = resultado.get("analisis_general", "")
