@@ -665,7 +665,7 @@ function generarBriefing() {
       if (!d.ok) { texto.textContent = d.texto || 'Error'; return; }
       // Renderizar markdown mínimo de forma segura sin innerHTML con strings externos
       texto.textContent = '';
-      d.texto.split('\n').forEach(function(line) {
+      d.texto.split('\\n').forEach(function(line) {
         var p = document.createElement('p');
         // Negrita **texto**
         var parts = line.split(/\*\*(.+?)\*\*/g);
