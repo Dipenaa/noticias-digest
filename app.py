@@ -1,42 +1,37 @@
 """
-app.py — Servidor Flask para desplegar el digest en Render (o cualquier PaaS).
+app.py — Servidor Flask para el digest de noticias en Render.
 
 Rutas:
-  GET /            → sirve el digest HTML más reciente
-  GET /regenerar   → lanza una regeneración en background y redirige a /
-  GET /estado      → JSON con el estado actual (generando, último update, errores)
+  GET /            → digest HTML más reciente (o página de carga)
+  GET /regenerar   → lanza generación completa en background
+  GET /analizar    → lanza solo análisis IA sobre artículos ya descargados
+  GET /sintetizar  → lanza síntesis cruzada con datos ya analizados
+  GET /briefing    → genera memo de inteligencia (JSON)
+  GET /estado      → estado actual en JSON (monitorización)
+  GET /ping        → keep-alive
+  GET /manifest.json, /icon.svg, /sw.js → PWA assets
 
-Flujo al arrancar:
-  1. Genera el digest completo en un hilo de background
-  2. Mientras tanto, / devuelve una página de "cargando"
-  3. Cuando termina, / devuelve el HTML completo
-  4. Render puede hacer cron de /regenerar para mantenerlo fresco
-
-Variables de entorno requeridas:
-  ANTHROPIC_API_KEY → tu clave de la API de Claude (configúrala en Render Dashboard)
-  GEMINI_API_KEY    → tu clave de la API de Gemini (solo para discoverer.py; opcional)
+Variables de entorno:
+  ANTHROPIC_API_KEY — clave Claude (requerida para IA)
+  DIGEST_PASSWORD   — contraseña de acceso básico (por defecto: "dipe")
+  SIN_IA=1          — desactiva análisis IA
 """
 
 import os
 import hmac
-import time
 import threading
-import traceback
 from datetime import datetime
+
 from flask import Flask, Response, redirect, jsonify, request
 
-_INTERVALO_HORAS = 12  # regenerar el digest cada N horas
-_PASSWORD = os.getenv("DIGEST_PASSWORD", "dipe")
+import pipeline
 
-# Importamos solo los módulos que no usan sys.stdout.reconfigure
-from fetcher import obtener_todas_las_noticias, obtener_noticias_alternativas, get_fuentes_fallidas
-from analyzer import analizar_todas_las_noticias
-from synthesizer import sintetizar_noticias
-from renderer import renderizar_html
+_PASSWORD = os.getenv("DIGEST_PASSWORD", "dipe")
 
 app = Flask(__name__)
 
 _RUTAS_PUBLICAS = {"/sw.js", "/manifest.json", "/icon.svg", "/estado", "/ping"}
+
 
 @app.before_request
 def _auth():
@@ -50,288 +45,17 @@ def _auth():
             {"WWW-Authenticate": 'Basic realm="Noticias Digest"'},
         )
 
+
 @app.after_request
 def _security_headers(r):
-    r.headers['X-Content-Type-Options'] = 'nosniff'
-    r.headers['X-Frame-Options'] = 'SAMEORIGIN'
-    r.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    r.headers["X-Content-Type-Options"] = "nosniff"
+    r.headers["X-Frame-Options"] = "SAMEORIGIN"
+    r.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     return r
 
-# ---------------------------------------------------------------------------
-# Estado global (compartido entre hilos con un lock)
-# ---------------------------------------------------------------------------
-
-_lock             = threading.Lock()
-_html_cache       = None          # HTML generado más reciente (str)
-_generando        = False         # True mientras hay una generación en curso
-_ultimo_update    = None          # datetime del último digest exitoso
-_ultimo_error     = None          # texto del último error, si lo hubo
-_sin_ia           = os.getenv("SIN_IA", "").lower() in ("1", "true", "yes")
-_noticias_raw     = None          # último dict de noticias principales sin enriquecer
-_alternativas_raw = None          # último dict de noticias alternativas sin enriquecer
-_render_data      = None          # datos completos para re-renderizar (con análisis IA)
-
 
 # ---------------------------------------------------------------------------
-# Lógica de generación (se ejecuta en un hilo separado)
-# ---------------------------------------------------------------------------
-
-def _generar():
-    """Descarga feeds, analiza con Claude (si procede) y actualiza _html_cache."""
-    global _generando, _html_cache, _ultimo_update, _ultimo_error
-    global _noticias_raw, _alternativas_raw, _render_data
-
-    with _lock:
-        if _generando:
-            return   # ya hay una generación en marcha
-        _generando = True
-
-    try:
-        from claude_client import reset_coste, resumen_coste
-        reset_coste()
-        print(f"[{datetime.now():%H:%M:%S}] Iniciando generación del digest...")
-
-        # 1. Descarga
-        noticias     = obtener_todas_las_noticias()
-        alternativas = obtener_noticias_alternativas()
-
-        # Fusionar pool de 3 días con artículos frescos
-        from article_cache import shared as _cache
-        for cat in list(noticias.keys()):
-            pool = _cache.get_pool(cat)
-            if pool:
-                urls_hoy = {a["enlace"] for a in noticias[cat]}
-                extras = [a for a in pool if a.get("enlace") not in urls_hoy]
-                noticias[cat] = noticias[cat] + extras
-
-        import copy as _copy
-        with _lock:
-            _noticias_raw     = _copy.deepcopy(noticias)
-            _alternativas_raw = _copy.deepcopy(alternativas)
-
-        # 2. Análisis IA (opcional — desactivado si SIN_IA=1 o no hay API key)
-        analisis:     dict = {}
-        analisis_alt: dict = {}
-
-        from config import ANTHROPIC_API_KEY
-        ia_disponible = (not _sin_ia) and ANTHROPIC_API_KEY not in ("TU_API_KEY_AQUÍ", "", None)
-
-        grupos_sintesis: list = []
-
-        if ia_disponible:
-            print(f"[{datetime.now():%H:%M:%S}] Analizando con Claude...")
-            noticias,     analisis     = analizar_todas_las_noticias(noticias)
-            alternativas, analisis_alt = analizar_todas_las_noticias(alternativas)
-
-            # Síntesis cruzada (incluida en la generación normal)
-            try:
-                grupos_sintesis = sintetizar_noticias(noticias, alternativas)
-                print(f"[{datetime.now():%H:%M:%S}] Síntesis: {len(grupos_sintesis)} historia(s).")
-            except Exception as _e:
-                print(f"[{datetime.now():%H:%M:%S}] Síntesis falló (no crítico): {_e}")
-
-            # Persistir artículos analizados en el pool de 3 días
-            for cat, arts in noticias.items():
-                _cache.update_pool(cat, arts)
-        else:
-            print(f"[{datetime.now():%H:%M:%S}] Modo sin IA (SIN_IA=1 o ANTHROPIC_API_KEY no configurada)")
-
-        from macro_tracker import obtener_macro_data as _obtener_macro_data
-        from noise_filter import detectar_ruido as _detectar_ruido
-        from watch import verificar_condiciones as _verificar_condiciones
-
-        macro = _obtener_macro_data(noticias) if ia_disponible else {"procesos": [], "conexiones": []}
-        if ia_disponible:
-            noticias     = _detectar_ruido(noticias)
-            alternativas = _detectar_ruido(alternativas)
-        alertas_watch = _verificar_condiciones(noticias, alternativas) if ia_disponible else []
-
-        import copy as _copy
-        with _lock:
-            _render_data = {
-                "noticias":     _copy.deepcopy(noticias),
-                "analisis":     analisis,
-                "alternativas": _copy.deepcopy(alternativas),
-                "analisis_alt": analisis_alt,
-                "procesos":     macro["procesos"],
-                "conexiones":   macro["conexiones"],
-                "alertas_watch": alertas_watch,
-            }
-
-        # 3. Renderiza
-        html = renderizar_html(
-            noticias, analisis,
-            alternativas, analisis_alt,
-            grupos_sintesis,
-            fuentes_fallidas=get_fuentes_fallidas(),
-            procesos=macro["procesos"],
-            conexiones=macro["conexiones"],
-            alertas_watch=alertas_watch,
-        )
-
-        with _lock:
-            _html_cache    = html
-            _ultimo_update = datetime.now()
-            _ultimo_error  = None
-
-        print(f"[{datetime.now():%H:%M:%S}] Digest generado correctamente. Coste IA: {resumen_coste()}")
-
-    except Exception:
-        err = traceback.format_exc()
-        print(f"[{datetime.now():%H:%M:%S}] ERROR durante la generación:\n{err}")
-        with _lock:
-            _ultimo_error = err
-
-    finally:
-        with _lock:
-            _generando = False
-
-
-def _lanzar_generacion():
-    """Arranca _generar() en un hilo daemon si no hay una en curso."""
-    t = threading.Thread(target=_generar, daemon=True)
-    t.start()
-
-
-def _solo_analizar_ia():
-    """Corre solo el análisis IA sobre las noticias ya descargadas (sin re-fetch de feeds)."""
-    global _generando, _html_cache, _ultimo_update, _ultimo_error
-    global _noticias_raw, _alternativas_raw, _render_data
-
-    with _lock:
-        if _generando:
-            return
-        if _noticias_raw is None:
-            # No hay caché de noticias → lanzar generación completa
-            _lanzar_generacion()
-            return
-        _generando = True
-
-    try:
-        import copy
-        with _lock:
-            noticias     = copy.deepcopy(_noticias_raw)
-            alternativas = copy.deepcopy(_alternativas_raw)
-
-        print(f"[{datetime.now():%H:%M:%S}] Lanzando análisis IA sobre noticias en caché...")
-
-        from config import ANTHROPIC_API_KEY
-        ia_disponible = (not _sin_ia) and ANTHROPIC_API_KEY not in ("TU_API_KEY_AQUÍ", "", None)
-
-        analisis:      dict = {}
-        analisis_alt:  dict = {}
-        grupos_sintesis: list = []
-
-        if ia_disponible:
-            noticias,     analisis     = analizar_todas_las_noticias(noticias)
-            alternativas, analisis_alt = analizar_todas_las_noticias(alternativas)
-            try:
-                grupos_sintesis = sintetizar_noticias(noticias, alternativas)
-                print(f"[{datetime.now():%H:%M:%S}] Síntesis automática: {len(grupos_sintesis)} historia(s).")
-            except Exception as _e:
-                print(f"[{datetime.now():%H:%M:%S}] Síntesis falló (no crítico): {_e}")
-                grupos_sintesis = []
-        else:
-            print(f"[{datetime.now():%H:%M:%S}] IA no disponible — SIN_IA o ANTHROPIC_API_KEY ausente")
-
-        from macro_tracker import obtener_macro_data as _obtener_macro_data
-        from noise_filter import detectar_ruido as _detectar_ruido
-        from watch import verificar_condiciones as _verificar_condiciones
-
-        macro = _obtener_macro_data(noticias) if ia_disponible else {"procesos": [], "conexiones": []}
-        if ia_disponible:
-            noticias     = _detectar_ruido(noticias)
-            alternativas = _detectar_ruido(alternativas)
-        alertas_watch = _verificar_condiciones(noticias, alternativas) if ia_disponible else []
-
-        import copy as _copy
-        with _lock:
-            _render_data = {
-                "noticias":     _copy.deepcopy(noticias),
-                "analisis":     analisis,
-                "alternativas": _copy.deepcopy(alternativas),
-                "analisis_alt": analisis_alt,
-                "procesos":     macro["procesos"],
-                "conexiones":   macro["conexiones"],
-                "alertas_watch": alertas_watch,
-            }
-
-        html = renderizar_html(
-            noticias, analisis,
-            alternativas, analisis_alt,
-            grupos_sintesis,
-            fuentes_fallidas=get_fuentes_fallidas(),
-            procesos=macro["procesos"],
-            conexiones=macro["conexiones"],
-            alertas_watch=alertas_watch,
-        )
-
-        with _lock:
-            _html_cache    = html
-            _ultimo_update = datetime.now()
-            _ultimo_error  = None
-
-        print(f"[{datetime.now():%H:%M:%S}] Análisis IA completado.")
-
-    except Exception:
-        err = traceback.format_exc()
-        print(f"[{datetime.now():%H:%M:%S}] ERROR en análisis IA:\n{err}")
-        with _lock:
-            _ultimo_error = err
-    finally:
-        with _lock:
-            _generando = False
-
-
-def _scheduler():
-    """Regenera el digest cada _INTERVALO_HORAS mientras el servidor está activo."""
-    while True:
-        time.sleep(_INTERVALO_HORAS * 3600)
-        print(f"[{datetime.now():%H:%M:%S}] Regeneración automática ({_INTERVALO_HORAS}h)")
-        _lanzar_generacion()
-
-
-def _solo_sintetizar():
-    """Genera la síntesis cruzada con los datos ya analizados y re-renderiza el HTML."""
-    global _html_cache, _ultimo_update, _ultimo_error
-
-    with _lock:
-        data = _render_data
-
-    if not data:
-        print(f"[{datetime.now():%H:%M:%S}] Síntesis solicitada pero no hay datos analizados")
-        return
-
-    try:
-        print(f"[{datetime.now():%H:%M:%S}] Generando síntesis cruzada con Claude...")
-        grupos = sintetizar_noticias(data["noticias"], data["alternativas"])
-
-        html = renderizar_html(
-            data["noticias"], data["analisis"],
-            data["alternativas"], data["analisis_alt"],
-            grupos,
-            fuentes_fallidas=get_fuentes_fallidas(),
-            procesos=data.get("procesos", []),
-            conexiones=data.get("conexiones", []),
-            alertas_watch=data.get("alertas_watch", []),
-        )
-
-        with _lock:
-            _html_cache    = html
-            _ultimo_update = datetime.now()
-            _ultimo_error  = None
-
-        print(f"[{datetime.now():%H:%M:%S}] Síntesis completada — {len(grupos)} historia(s).")
-
-    except Exception:
-        err = traceback.format_exc()
-        print(f"[{datetime.now():%H:%M:%S}] ERROR en síntesis:\n{err}")
-        with _lock:
-            _ultimo_error = err
-
-
-# ---------------------------------------------------------------------------
-# Página de carga (se muestra mientras el digest no está listo)
+# HTML de espera (mientras el digest no está listo)
 # ---------------------------------------------------------------------------
 
 _HTML_CARGANDO = """<!DOCTYPE html>
@@ -354,27 +78,23 @@ _HTML_CARGANDO = """<!DOCTYPE html>
   </style>
 </head>
 <body>
-  <h1>📰 Generando digest<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></h1>
+  <h1>\U0001f4f0 Generando digest<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></h1>
   <p>Descargando feeds RSS y analizando con Claude.<br>
      Esta página se recargará automáticamente cada 8 segundos.</p>
 </body>
 </html>"""
 
 
-# ---------------------------------------------------------------------------
-# Rutas Flask
-# ---------------------------------------------------------------------------
-
 def _strip_splash(html: str) -> str:
     """Elimina el div#splash del HTML cacheado contando divs anidados correctamente."""
     start = html.find('<div id="splash"')
     if start == -1:
         return html
-    pos = html.find('>', start) + 1
+    pos = html.find(">", start) + 1
     depth = 1
     while depth > 0 and pos < len(html):
-        next_open  = html.find('<div', pos)
-        next_close = html.find('</div>', pos)
+        next_open  = html.find("<div", pos)
+        next_close = html.find("</div>", pos)
         if next_close == -1:
             break
         if next_open != -1 and next_open < next_close:
@@ -385,24 +105,22 @@ def _strip_splash(html: str) -> str:
             pos = next_close + 6
     return html[:start] + html[pos:]
 
+
+# ---------------------------------------------------------------------------
+# Rutas Flask
+# ---------------------------------------------------------------------------
+
 @app.route("/")
 def index():
-    with _lock:
-        html   = _html_cache
-        error  = _ultimo_error
-        update = _ultimo_update
+    html, error, update = pipeline.get_html()
 
-    # Eliminar splash de HTML cacheado antiguo
     if html and 'id="splash"' in html:
         html = _strip_splash(html)
 
-    # Si el caché tiene más de _INTERVALO_HORAS (p.ej. el servidor acaba de
-    # despertar tras estar dormido), lanzar regeneración en background.
-    # El visitante recibe el HTML viejo de inmediato; el siguiente ya verá el nuevo.
     if html and update:
         edad = (datetime.now() - update).total_seconds()
-        if edad > _INTERVALO_HORAS * 3600:
-            _lanzar_generacion()
+        if edad > pipeline._INTERVALO_HORAS * 3600:
+            pipeline.lanzar_generacion()
 
     if html:
         return Response(html, mimetype="text/html; charset=utf-8")
@@ -410,7 +128,8 @@ def index():
     if error:
         print(f"[ERROR] {error}")
         return Response(
-            "<p style='font-family:sans-serif;padding:2rem;color:#c00'>Error al generar el digest. Revisa los logs del servidor.</p>",
+            "<p style='font-family:sans-serif;padding:2rem;color:#c00'>"
+            "Error al generar el digest. Revisa los logs del servidor.</p>",
             status=500, mimetype="text/html",
         )
 
@@ -419,25 +138,34 @@ def index():
 
 @app.route("/regenerar")
 def regenerar():
-    """Lanza una nueva generación en background y redirige al digest."""
-    _lanzar_generacion()
+    pipeline.lanzar_generacion()
     return redirect("/")
 
 
 @app.route("/analizar", methods=["GET", "POST"])
 def analizar():
-    """Lanza solo el análisis IA sobre las noticias ya cacheadas (sin re-fetch de feeds)."""
-    t = threading.Thread(target=_solo_analizar_ia, daemon=True)
-    t.start()
+    pipeline.lanzar_analizar_ia()
     return jsonify({"ok": True, "mensaje": "Análisis IA iniciado en background"})
 
 
 @app.route("/sintetizar", methods=["GET", "POST"])
 def sintetizar():
-    """Genera la síntesis cruzada bajo demanda (solo cuando el usuario la pide)."""
-    t = threading.Thread(target=_solo_sintetizar, daemon=True)
-    t.start()
+    pipeline.lanzar_sintetizar()
     return jsonify({"ok": True, "mensaje": "Síntesis iniciada en background"})
+
+
+@app.route("/briefing", methods=["GET", "POST"])
+def briefing():
+    from briefing_generator import generar_briefing as _generar_briefing
+    data = pipeline.get_render_data()
+    if not data:
+        return jsonify({"ok": False, "texto": "Sin datos disponibles. Regenera el digest primero."})
+    texto = _generar_briefing(
+        data.get("procesos", []),
+        data.get("noticias", {}),
+        data.get("alternativas", {}),
+    )
+    return jsonify({"ok": True, "texto": texto})
 
 
 @app.route("/manifest.json")
@@ -461,7 +189,7 @@ def icon_svg():
     svg = (
         '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">'
         '<rect width="192" height="192" rx="28" fill="#b5451b"/>'
-        '<text x="96" y="138" font-size="108" text-anchor="middle">📰</text>'
+        '<text x="96" y="138" font-size="108" text-anchor="middle">\U0001f4f0</text>'
         '</svg>'
     )
     return Response(svg, mimetype="image/svg+xml")
@@ -493,22 +221,6 @@ self.addEventListener('fetch', e => {
     return Response(js, mimetype="application/javascript")
 
 
-@app.route("/briefing", methods=["GET", "POST"])
-def briefing():
-    """Genera el memo de inteligencia bajo demanda y lo devuelve como JSON."""
-    from briefing_generator import generar_briefing as _generar_briefing
-    with _lock:
-        data = _render_data
-    if not data:
-        return jsonify({"ok": False, "texto": "Sin datos disponibles. Regenera el digest primero."})
-    texto = _generar_briefing(
-        data.get("procesos", []),
-        data.get("noticias", {}),
-        data.get("alternativas", {}),
-    )
-    return jsonify({"ok": True, "texto": texto})
-
-
 @app.route("/ping")
 def ping():
     return Response("ok", mimetype="text/plain")
@@ -516,22 +228,7 @@ def ping():
 
 @app.route("/estado")
 def estado():
-    """Devuelve el estado actual en JSON (útil para monitorización)."""
-    from config import ANTHROPIC_API_KEY
-    from article_cache import shared as _cache
-    stats = _cache.stats()
-    from claude_client import resumen_coste
-    with _lock:
-        return jsonify({
-            "generando":              _generando,
-            "tiene_cache":            _html_cache is not None,
-            "ultimo_update":          _ultimo_update.isoformat() if _ultimo_update else None,
-            "ultimo_error":           _ultimo_error is not None,
-            "anthropic_key_ok":       ANTHROPIC_API_KEY not in ("", None),
-            "cache_articulos":        stats["articulos_cacheados"],
-            "cache_sintesis":         stats["sintesis_cacheadas"],
-            "coste_ultima_generacion": resumen_coste(),
-        })
+    return jsonify(pipeline.get_estado())
 
 
 # ---------------------------------------------------------------------------
@@ -539,17 +236,15 @@ def estado():
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    # Validar API key antes de arrancar para detectar el error rápido
     from config import ANTHROPIC_API_KEY as _key
     if _key in ("", None):
-        print(f"[{datetime.now():%H:%M:%S}] ⚠  ANTHROPIC_API_KEY no configurada — "
-              "el análisis IA estará desactivado. Usa SIN_IA=1 para silenciar este aviso.")
+        print(
+            f"[{datetime.now():%H:%M:%S}] ⚠  ANTHROPIC_API_KEY no configurada — "
+            "el análisis IA estará desactivado. Usa SIN_IA=1 para silenciar este aviso."
+        )
 
-    # Genera el digest al arrancar (en background para no bloquear el bind del puerto)
-    _lanzar_generacion()
-
-    # Regenera automáticamente cada _INTERVALO_HORAS
-    threading.Thread(target=_scheduler, daemon=True).start()
+    pipeline.lanzar_generacion()
+    threading.Thread(target=pipeline.scheduler, daemon=True).start()
 
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=False)
