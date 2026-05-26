@@ -59,19 +59,26 @@ class ArticleCache:
     # ── Carga / guardado ─────────────────────────────────────────────────────
 
     def _cargar(self) -> dict:
+        data = None
         if self._redis:
             try:
                 raw = self._redis.get(_REDIS_KEY)
                 if raw:
-                    return json.loads(raw)
+                    data = json.loads(raw)
             except Exception as e:
                 print(f"  ⚠ Error leyendo Redis: {e}")
-        try:
-            if _CACHE_FILE.exists():
-                return json.loads(_CACHE_FILE.read_text(encoding="utf-8"))
-        except Exception:
-            pass
-        return {"articulos": {}, "categorias": {}, "sintesis": {}}
+        if data is None:
+            try:
+                if _CACHE_FILE.exists():
+                    data = json.loads(_CACHE_FILE.read_text(encoding="utf-8"))
+            except Exception:
+                pass
+        if data is None:
+            data = {}
+        data.setdefault("articulos",  {})
+        data.setdefault("categorias", {})
+        data.setdefault("sintesis",   {})
+        return data
 
     def guardar(self) -> None:
         with self._lock:

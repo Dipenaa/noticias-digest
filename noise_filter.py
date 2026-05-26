@@ -61,6 +61,12 @@ def detectar_ruido(noticias: dict) -> dict:
     if cached:
         try:
             scores = {item["id"]: item for item in json.loads(cached)}
+            # _ruido_idx no está asignado aún — asignarlo igual que en el path normal
+            idx = 0
+            for arts in noticias.values():
+                for a in arts:
+                    a["_ruido_idx"] = idx
+                    idx += 1
             _aplicar_scores(noticias, scores)
             n_ruido = sum(1 for arts in noticias.values() for a in arts if a.get("es_ruido"))
             print(f"  ✓ Ruido/señal: desde caché ({n_ruido} artículos marcados como ruido)")
