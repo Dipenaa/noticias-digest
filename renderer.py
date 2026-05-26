@@ -189,11 +189,12 @@ def _nav(categorias: list[str]) -> str:
 
 
 def _featured_card(articulo: dict, categoria: str,
-                   verificados: frozenset = frozenset()) -> str:
+                   verificados: frozenset = frozenset(), orden: int = 0) -> str:
     sesgo_fuente = articulo.get("sesgo_fuente") or "desconocido"
     sesgo_ia     = articulo.get("sesgo_ia")     or "desconocido"
     sentimiento  = articulo.get("sentimiento")  or ""
     critica      = (articulo.get("critica") or "").strip()
+    importante   = "true" if articulo.get("importante") else "false"
     critica_html = (
         f'<div class="critica"><span class="critica-icono">💡</span>{_html.escape(critica)}</div>'
         if critica else ""
@@ -224,6 +225,7 @@ def _featured_card(articulo: dict, categoria: str,
      data-fecha="{da['fecha']}"     data-enlace="{da['enlace']}"
      data-resumen="{da['resumen']}" data-critica="{da['critica']}"
      data-categoria="{da['categoria']}" data-sentimiento="{da['sentimiento']}"
+     data-importante="{importante}" data-order="{orden}"
      onclick="if(!event.target.closest('a,.bookmark-btn'))abrirArticulo(this)">
   <div class="tarjeta-meta">
     <div class="fuente-bloque">
@@ -372,7 +374,7 @@ def _tab_destacadas(noticias: dict[str, list[dict]],
     if not seleccionados:
         return '<p class="sin-destacadas">No hay artículos destacados disponibles.</p>'
 
-    cards = "\n".join(_featured_card(a, cat, verificados) for cat, a in seleccionados)
+    cards = "\n".join(_featured_card(a, cat, verificados, i) for i, (cat, a) in enumerate(seleccionados))
     fuente_label = "seleccionadas por Claude" if any(
         a.get("importante") for arts in noticias.values() for a in arts
     ) else "primera noticia de cada sección (ejecuta con análisis IA para selección automática)"
