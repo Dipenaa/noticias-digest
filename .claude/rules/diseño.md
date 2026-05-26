@@ -88,6 +88,35 @@ Estos NO usan variables CSS — hay que cambiarlos manualmente:
 - `#tab-libertaria` → acento rojo `#dc2626`
 - `.asombro-*` → acento violeta `#7c3aed`
 
+## CRÍTICO: CSS que se pierde al migrar de tema
+
+Al reemplazar `styles.py` con un nuevo tema, estas familias **deben migrar también** o el UI queda roto:
+
+| Familia | Por qué es crítico |
+|---|---|
+| `.proceso-*` (grid, strip, body, nombre, watermark, imp, articulos, footer, sparkline) | Pestaña Actualidad queda en blanco |
+| `.conexiones-*` (panel, titulo, item, nombres, rel) | Conexiones entre procesos invisibles |
+| `.briefing-*` (header, close, texto, btn) + `#briefing-panel` | Briefing no funciona |
+
+**Checklist al aplicar un nuevo tema:**
+```
+[ ] proceso-grid visible con grid-template-columns
+[ ] proceso-strip-escalada / estable / resolucion con colores propios
+[ ] proceso-body con padding y texto legible
+[ ] conexiones-panel con borde de acento
+[ ] #briefing-panel con fondo y padding
+[ ] --txt-3 contraste mínimo sobre fondo (no bajar de #636366 en oscuro)
+[ ] --txt-2 contraste mínimo sobre fondo (no bajar de #aeaeb2 en oscuro)
+[ ] nav a y .sort-btn inactivos visibles (no solo var(--txt-3))
+```
+
+## Contraste mínimo (tema oscuro)
+- `--txt-2`: no bajar de `#aeaeb2` sobre `#000`
+- `--txt-3`: no bajar de `#636366` sobre `#000`
+- `.sort-btn` inactivo: mínimo `rgba(255,255,255,0.5)`
+- `nav a` inactivo: mínimo `rgba(255,255,255,0.45)`
+- `.analisis-general`: usar `--txt-2`, nunca `--txt-3`
+
 ## Validación antes de commit
 ```powershell
 python -c "import renderer; print('OK')"
