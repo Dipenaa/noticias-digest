@@ -1,5 +1,5 @@
 """
-claude_client.py — Cliente Anthropic compartido con retry y prompt caching.
+claude_client.py — Cliente Anthropic compartido con retry, prompt caching y logging de coste.
 
 Un único cliente para todo el proyecto (analyzer + synthesizer).
 El prompt caching reduce hasta un 80% el coste de los tokens de instrucciones
@@ -17,6 +17,49 @@ _ESPERA_BASE_429 = 30
 _ESPERA_BASE_5XX = 5
 
 _client: anthropic.Anthropic | None = None
+
+# Acumulador de coste para la generación en curso (en dólares).
+# Se reinicia al llamar reset_coste().
+_coste_total: float = 0.0
+_llamadas:    int   = 0
+
+# Precios por millón de tokens (MTok) — mayo 2026
+_PRECIOS: dict[str, dict[str, float]] = {
+    "claude-haiku-4-5-20251001": {
+        "input":          0.80,   # $/MTok
+        "output":         4.00,
+        "cache_write":    1.00,   # escritura de caché (1.25× input)
+        "cache_read":     0.08,   # lectura de caché (0.1× input)
+    },
+    "claude-sonnet-4-6": {
+        "input":          3.00,
+        "output":        15.00,
+        "cache_write":    3.75,
+        "cache_read":     0.30,
+    },
+}
+_PRECIOS_DEFAULT = {"input": 3.00, "output": 15.00, "cache_write": 3.75, "cache_read": 0.30}
+
+
+def _calcular_coste(model: str, usage) -> float:
+    p = _PRECIOS.get(model, _PRECIOS_DEFAULT)
+    inp   = getattr(usage, "input_tokens",                0) or 0
+    out   = getattr(usage, "output_tokens",               0) or 0
+    cw    = getattr(usage, "cache_creation_input_tokens", 0) or 0
+    cr    = getattr(usage, "cache_read_input_tokens",     0) or 0
+    # Los tokens de caché se cobran diferente; los input_tokens ya NO incluyen los de caché
+    return (inp * p["input"] + out * p["output"] +
+            cw  * p["cache_write"] + cr * p["cache_read"]) / 1_000_000
+
+
+def reset_coste() -> None:
+    global _coste_total, _llamadas
+    _coste_total = 0.0
+    _llamadas    = 0
+
+
+def resumen_coste() -> str:
+    return f"${_coste_total:.4f} en {_llamadas} llamada(s)"
 
 
 def get_client() -> anthropic.Anthropic:
@@ -41,6 +84,7 @@ def llamar_claude(
     Si cache_system=True, marca el system prompt como cacheable (ephemeral).
     Ahorra tokens en llamadas consecutivas con el mismo system prompt.
     """
+    global _coste_total, _llamadas
     from config import CLAUDE_MODEL_ANALISIS
     model = model or CLAUDE_MODEL_ANALISIS
     client = get_client()
@@ -66,6 +110,20 @@ def llamar_claude(
 
             message = client.messages.create(**kwargs)
             texto = message.content[0].text.strip()
+
+            # Logging de uso y coste
+            u = message.usage
+            coste = _calcular_coste(model, u)
+            _coste_total += coste
+            _llamadas    += 1
+            inp = getattr(u, "input_tokens",                0) or 0
+            out = getattr(u, "output_tokens",               0) or 0
+            cw  = getattr(u, "cache_creation_input_tokens", 0) or 0
+            cr  = getattr(u, "cache_read_input_tokens",     0) or 0
+            cache_info = ""
+            if cw: cache_info += f" cache_write={cw}"
+            if cr: cache_info += f" cache_read={cr}"
+            print(f"    💰 {model.split('-')[1][:6]} in={inp} out={out}{cache_info} → ${coste:.4f} (total ${_coste_total:.4f})")
 
             if raw_text:
                 return texto

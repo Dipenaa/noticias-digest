@@ -87,6 +87,8 @@ def _generar():
         _generando = True
 
     try:
+        from claude_client import reset_coste, resumen_coste
+        reset_coste()
         print(f"[{datetime.now():%H:%M:%S}] Iniciando generación del digest...")
 
         # 1. Descarga
@@ -172,7 +174,7 @@ def _generar():
             _ultimo_update = datetime.now()
             _ultimo_error  = None
 
-        print(f"[{datetime.now():%H:%M:%S}] Digest generado correctamente.")
+        print(f"[{datetime.now():%H:%M:%S}] Digest generado correctamente. Coste IA: {resumen_coste()}")
 
     except Exception:
         err = traceback.format_exc()
@@ -518,6 +520,7 @@ def estado():
     from config import ANTHROPIC_API_KEY
     from article_cache import shared as _cache
     stats = _cache.stats()
+    from claude_client import resumen_coste
     with _lock:
         return jsonify({
             "generando":              _generando,
@@ -527,6 +530,7 @@ def estado():
             "anthropic_key_ok":       ANTHROPIC_API_KEY not in ("", None),
             "cache_articulos":        stats["articulos_cacheados"],
             "cache_sintesis":         stats["sintesis_cacheadas"],
+            "coste_ultima_generacion": resumen_coste(),
         })
 
 
