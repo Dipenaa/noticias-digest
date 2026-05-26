@@ -12,13 +12,53 @@ El resultado alimenta la pestaña "Síntesis" del digest HTML.
 
 import json
 import hashlib
+import re
 
 from config import CLAUDE_MODEL, IDIOMA_ANALISIS
 from article_cache import shared as _cache
 from claude_client import llamar_claude
 
-# Máximo de artículos que se envían a Claude.
-_MAX_ARTICULOS_SINTESIS = 120
+# Tope de artículos candidatos que se mandan a Claude (tras el pre-filtro).
+_MAX_ARTICULOS_SINTESIS = 60
+
+# Palabras vacías en español (no sirven para detectar similitud temática).
+_STOPWORDS = frozenset("""
+a al algo ante año así aunque bajo bien como con cual cuando de del desde donde
+durante el ella ellos en entre era es ese eso está este fue gran había han hay
+hasta he hizo incluso ja la las le les lo los más me mi mismo muy ni no nos o
+para pero poco por que quien se se ser si sin sobre su sus también tan te toda
+todo tras tu un una uno unas unos va ya yo
+""".split())
+
+
+def _palabras_clave(titulo: str) -> frozenset[str]:
+    """Extrae palabras significativas de un título (≥4 chars, no stopwords)."""
+    palabras = re.findall(r"[a-záéíóúüñ]{4,}", titulo.lower())
+    return frozenset(p for p in palabras if p not in _STOPWORDS)
+
+
+def _pre_filtrar_candidatos(todos: list[dict]) -> list[dict]:
+    """
+    Devuelve solo los artículos que comparten ≥2 palabras clave con al menos
+    otro artículo de DISTINTA fuente. El resto son temas únicos y no producirán
+    grupos en síntesis — no tiene sentido mandárselos a Claude.
+    """
+    claves = [_palabras_clave(a.get("titulo", "")) for a in todos]
+    fuentes = [a.get("fuente", "") for a in todos]
+    n = len(todos)
+    tiene_par = [False] * n
+
+    for i in range(n):
+        if not claves[i]:
+            continue
+        for j in range(i + 1, n):
+            if fuentes[i] == fuentes[j]:
+                continue  # misma fuente no cuenta
+            if len(claves[i] & claves[j]) >= 2:
+                tiene_par[i] = True
+                tiene_par[j] = True
+
+    return [a for a, ok in zip(todos, tiene_par) if ok]
 
 _PROMPT = """
 Eres un editor periodístico experto en análisis comparativo de medios.
@@ -97,10 +137,18 @@ def sintetizar_noticias(
     if not todos:
         return []
 
+    # Pre-filtro local: solo artículos con ≥2 palabras clave en común con otro
+    # artículo de distinta fuente. Evita mandar a Claude temas únicos.
+    total_antes = len(todos)
+    todos = _pre_filtrar_candidatos(todos)
+    if not todos:
+        print(f"  ℹ Pre-filtro: 0 candidatos de {total_antes} — ningún tema compartido")
+        return []
+
     if len(todos) > _MAX_ARTICULOS_SINTESIS:
-        print(f"  ℹ Limitando a {_MAX_ARTICULOS_SINTESIS} artículos para síntesis "
-              f"(de {len(todos)} totales)")
         todos = todos[:_MAX_ARTICULOS_SINTESIS]
+
+    print(f"  ℹ Pre-filtro: {len(todos)} candidatos de {total_antes} artículos totales")
 
     # Comprobar caché antes de llamar a Claude
     _clave_cache = hashlib.md5(
@@ -126,7 +174,7 @@ def sintetizar_noticias(
         articulos_json=json.dumps(payload, ensure_ascii=False, indent=2),
     )
 
-    print(f"  → Analizando {len(todos)} artículos en busca de historias comunes...")
+    print(f"  → Enviando {len(todos)} candidatos a Claude para síntesis...")
     resultado = llamar_claude(prompt, model=CLAUDE_MODEL, max_tokens=4096, temperature=0.3)
 
     if resultado is None:
