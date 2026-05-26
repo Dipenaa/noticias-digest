@@ -767,8 +767,6 @@ def renderizar_html(
     total_alt           = sum(len(a) for a in (alternativas or {}).values())
     n_sintesis          = len(grupos_sintesis) if grupos_sintesis else 0
     n_procesos          = len(procesos) if procesos else 0
-    n_alertas           = len(alertas_watch) if alertas_watch else 0
-
     # colores de sesgo para el JS del cliente
     sesgo_colores_js = "{" + ",".join(
         f'"{k}":"{v}"' for k, v in COLORES_SESGO.items()
