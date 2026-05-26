@@ -109,6 +109,9 @@ def llamar_claude(
                 kwargs["system"] = system_param
 
             message = client.messages.create(**kwargs)
+            if not message.content:
+                print(f"  ✗ Respuesta vacía de la API")
+                return None
             texto = message.content[0].text.strip()
 
             # Logging de uso y coste

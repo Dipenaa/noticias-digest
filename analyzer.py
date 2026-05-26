@@ -172,9 +172,9 @@ def _analizar_categoria(categoria: str, articulos: list[dict]) -> tuple[list[dic
             continue
         cached = _cache.get_articulo(a["enlace"])
         if cached:
-            a["sesgo_ia"]      = cached["sesgo_ia"]
-            a["critica"]       = cached["critica"]
-            a["sentimiento"]   = cached["sentimiento"]
+            a["sesgo_ia"]      = cached.get("sesgo_ia", "desconocido")
+            a["critica"]       = cached.get("critica", "")
+            a["sentimiento"]   = cached.get("sentimiento", "neutral")
             a["asombro"]       = cached.get("asombro", 0)
             a["asombro_razon"] = cached.get("asombro_razon")
             a["importante"]    = bool(cached.get("importante", False))
