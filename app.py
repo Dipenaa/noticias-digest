@@ -114,11 +114,19 @@ def _generar():
         from config import ANTHROPIC_API_KEY
         ia_disponible = (not _sin_ia) and ANTHROPIC_API_KEY not in ("TU_API_KEY_AQUÍ", "", None)
 
+        grupos_sintesis: list = []
+
         if ia_disponible:
             print(f"[{datetime.now():%H:%M:%S}] Analizando con Claude...")
             noticias,     analisis     = analizar_todas_las_noticias(noticias)
             alternativas, analisis_alt = analizar_todas_las_noticias(alternativas)
-            # síntesis bajo demanda — no se llama aquí
+
+            # Síntesis cruzada (incluida en la generación normal)
+            try:
+                grupos_sintesis = sintetizar_noticias(noticias, alternativas)
+                print(f"[{datetime.now():%H:%M:%S}] Síntesis: {len(grupos_sintesis)} historia(s).")
+            except Exception as _e:
+                print(f"[{datetime.now():%H:%M:%S}] Síntesis falló (no crítico): {_e}")
 
             # Persistir artículos analizados en el pool de 3 días
             for cat, arts in noticias.items():
@@ -148,11 +156,11 @@ def _generar():
                 "alertas_watch": alertas_watch,
             }
 
-        # 3. Renderiza (sin síntesis — se genera cuando el usuario la pide)
+        # 3. Renderiza
         html = renderizar_html(
             noticias, analisis,
             alternativas, analisis_alt,
-            [],
+            grupos_sintesis,
             fuentes_fallidas=get_fuentes_fallidas(),
             procesos=macro["procesos"],
             conexiones=macro["conexiones"],

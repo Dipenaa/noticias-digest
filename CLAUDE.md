@@ -87,20 +87,22 @@ Scripts reutilizables guardados: `autoresearch_analyzer.py` y `autoresearch_synt
 - **Autenticación básica:** app.py protege todas las rutas con contraseña (DIGEST_PASSWORD)
 - **synthesizer.py:** corregido modelo incorrecto (era Haiku, debe ser Sonnet)
 - **Botones de regeneración IA eliminados (25 mayo 2026):** quitados el botón "Regenerar análisis IA" del banner y el botón "Generar síntesis con Claude" de la pestaña Síntesis — evita llamadas API no autorizadas
+- **Tema Dark Premium aplicado (25-26 mayo 2026):** `styles.py` reemplazado por el sandbox oscuro + correcciones
+- **Síntesis en generación normal (26 mayo 2026):** `_generar()` en app.py ahora llama a `sintetizar_noticias()` — antes solo se ejecutaba via `/analizar`
+- **CSS proceso-* restaurado (26 mayo 2026):** toda la CSS de `.proceso-strip`, `.proceso-body`, `.proceso-grid`, etc. se perdió al aplicar el tema y fue restaurada adaptada al tema oscuro
+- **Contraste mejorado (26 mayo 2026):** `--txt-3` subió de `#3d3d3f` a `#636366`; `--txt-2` de `#86868b` a `#aeaeb2`; `nav a` y `.sort-btn` más visibles
 
-## Diseño en progreso — rama `claude/buenas-xo9D9` (25 mayo 2026)
-El nuevo tema **Dark Premium** está en `styles_sandbox.py`. Aún no aplicado a producción (`styles.py`).
+## Estado del diseño — rama `claude/buenas-xo9D9` (26 mayo 2026)
+El tema **Dark Premium** ya está en producción (`styles.py`).
 
-Cambios del sandbox respecto a producción:
-- Tema completamente oscuro (#000 fondo, glassmorphism en cards)
-- Cards con hover expansion: el resumen se despliega y la crítica IA emerge al pasar el ratón
-- Barras de espectro de sesgo (CSS puro, selectores `[title="sesgo"]`)
-- Buscador estilo Spotlight: pequeño en reposo, se expande al hacer foco
-- Sort bar como control segmentado iOS (4 opciones, compacto y alineado a la derecha)
-- Sidebar con pestañas: acento azul en la activa, inactivas legibles
+Características:
+- Fondo negro puro (`#000`), glassmorphism en cards (`rgba(255,255,255,0.033)`)
+- Cards con hover expansion: resumen se despliega, crítica IA emerge
+- Barras de espectro de sesgo (CSS puro con `[title="sesgo"]`)
+- Buscador estilo Spotlight (180px → 400px al hacer foco)
+- Sort bar como control segmentado iOS (4 opciones, derecha)
+- Sidebar con pestañas: acento azul en activa
 - Tipografía fluida con `clamp()`, títulos serif con gradiente
-
-Para aplicar a producción: copiar `styles_sandbox.py` → `styles.py` y hacer push a master.
 
 ## Cómo activar Redis (Upstash — gratuito)
 1. Ir a https://upstash.com y crear una base de datos Redis gratuita
@@ -125,3 +127,4 @@ python preview.py       # vista previa en localhost:5001
 - Configurar cron-job.org para keep-alive (ping a /estado cada 14 min)
 - Verificar feeds RSS de Historia y Antropología en producción; usar discoverer.py si fallan
 - Considerar Upstash Redis para que la caché sobreviva reinicios de Render
+- Configurar Playwright MCP para iterar diseño con screenshots reales (usuario aprobó)
