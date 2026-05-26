@@ -123,8 +123,10 @@ python app.py           # servidor web en localhost:5000
 python preview.py       # vista previa en localhost:5001
 ```
 
+## Infraestructura activa (confirmado 26 mayo 2026)
+- **Upstash Redis** — base de datos "Noticias", AWS Ireland, activa, $0.00/mes
+- **Cron-job.org** — ping a `/icon.svg` cada 10 min, todos los eventos 200 OK
+
 ## Pendiente
-- Configurar cron-job.org para keep-alive (ping a /estado cada 14 min)
-- Verificar feeds RSS de Historia y Antropología en producción; usar discoverer.py si fallan
-- Considerar Upstash Redis para que la caché sobreviva reinicios de Render
+- Verificar feeds RSS de Historia y Antropología (no se puede desde entorno remoto — comprobar en pestaña Estadísticas en producción)
 - Configurar Playwright MCP para iterar diseño con screenshots reales (usuario aprobó)
