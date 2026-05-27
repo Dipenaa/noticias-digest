@@ -77,7 +77,7 @@ def generar_briefing(procesos: list[dict], noticias: dict, alternativas: dict | 
             todos_arts.append((a.get("novedad", 2), a.get("importante", False), a))
 
     todos_arts.sort(key=lambda x: (x[0] == 3, x[1]), reverse=True)
-    seleccionados = [t[2] for t in todos_arts[:30]]
+    seleccionados = [t[2] for t in todos_arts[:20]]
 
     titulares_str = "\n".join(
         f"- [{a.get('fuente','')}] {a.get('titulo','')}"
@@ -89,9 +89,10 @@ def generar_briefing(procesos: list[dict], noticias: dict, alternativas: dict | 
         prompt,
         system=_SYSTEM,
         model=CLAUDE_MODEL,
-        max_tokens=700,
+        max_tokens=550,
         temperature=0.4,
         raw_text=True,
+        cache_system=True,
     )
 
     if not texto:

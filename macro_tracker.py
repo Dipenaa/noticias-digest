@@ -8,6 +8,7 @@ Estrategia de coste mínimo:
 """
 
 import json
+import re
 import hashlib
 from datetime import datetime, timedelta
 
@@ -24,18 +25,21 @@ _KEY_SNAP      = "macro:snap:{fecha}"  # {proceso_id: n_articulos}
 _ESTADOS = {"escalada", "estable", "resolucion", "silencio"}
 _HORIZONTES = {"dias", "semanas", "meses", "anos"}
 
-_SYSTEM = """Eres un analista geopolítico senior. Identificas los grandes procesos del mundo,
-no las noticias del día. Un proceso es un conflicto, crisis, transición o fenómeno estructural
-que lleva semanas o meses activo y tiene impacto significativo en vidas humanas o en el orden global."""
+# Categorías que pueden contener procesos actuales; el resto (Historia, Ciencia…) se omiten.
+# Comparación exacta (no substring) para no incluir "España Libertaria" o "Internacional Libertario".
+_CATEGORIAS_PROCESO = {"España", "Internacional", "Economía", "Política", "Social"}
 
-_PROMPT = """Analiza estos artículos de noticias de hoy e identifica los 3-5 PROCESOS MUNDIALES
-más importantes que están en curso. No son noticias del día — son situaciones abiertas con historia
-y continuidad.
+_SYSTEM = """Eres un analista político senior. Identificas los procesos más relevantes del momento,
+tanto internacionales como nacionales. Un proceso es un conflicto, crisis, negociación, transición
+o tensión política/social que lleva días o meses activo y tiene impacto real en las personas."""
+
+_PROMPT = """Analiza estos artículos de noticias e identifica los 2-5 PROCESOS MÁS IMPORTANTES
+que están en curso ahora mismo — internacionales, europeos o españoles.
 
 Artículos disponibles (id | fuente | título | resumen):
 {articulos}
 
-Responde ÚNICAMENTE con JSON válido:
+Responde ÚNICAMENTE con un objeto JSON válido, sin texto antes ni después:
 {{
   "procesos": [
     {{
@@ -51,14 +55,18 @@ Responde ÚNICAMENTE con JSON válido:
   ]
 }}
 
-Ordena por importancia descendente. Sé exigente: solo procesos realmente significativos."""
+Si los artículos no cubren ningún proceso relevante, devuelve {{"procesos": []}}.
+Ordena por importancia descendente."""
 
 
 def _compactar_articulos(noticias: dict) -> tuple[list[dict], list[dict]]:
-    """Aplana y compacta todos los artículos para el prompt."""
+    """Aplana y compacta artículos de categorías relevantes para el prompt."""
     compactos = []
     todos = []
     for cat, arts in noticias.items():
+        # Skip categories that never contain current political/social processes
+        if _CATEGORIAS_PROCESO and cat not in _CATEGORIAS_PROCESO:
+            continue
         for a in arts:
             todos.append(a)
             compactos.append({
@@ -67,6 +75,18 @@ def _compactar_articulos(noticias: dict) -> tuple[list[dict], list[dict]]:
                 "titulo":  a.get("titulo", ""),
                 "resumen": (a.get("resumen") or "")[:120],
             })
+    # Fallback: if filtering removed everything, use all articles
+    if not compactos:
+        todos = []
+        for arts in noticias.values():
+            for a in arts:
+                todos.append(a)
+                compactos.append({
+                    "id":      len(compactos),
+                    "fuente":  a.get("fuente", ""),
+                    "titulo":  a.get("titulo", ""),
+                    "resumen": (a.get("resumen") or "")[:120],
+                })
     return compactos, todos
 
 
@@ -76,16 +96,36 @@ def _llamar_haiku(articulos_compactos: list[dict]) -> list[dict] | None:
         for a in articulos_compactos
     ]
     prompt = _PROMPT.format(articulos="\n".join(lineas))
-    resultado = llamar_claude(
+    texto = llamar_claude(
         prompt,
         system=_SYSTEM,
         model=CLAUDE_MODEL_ANALISIS,
         max_tokens=1500,
         temperature=0.3,
+        raw_text=True,
     )
-    if resultado is None:
+    if texto is None:
+        print("  ✗ Macro: llamar_claude devolvió None")
         return None
-    return resultado.get("procesos", [])
+
+    # Parse JSON; fall back to regex extraction if Claude added surrounding text
+    resultado = None
+    try:
+        resultado = json.loads(texto)
+    except json.JSONDecodeError:
+        m = re.search(r'\{[\s\S]*\}', texto)
+        if m:
+            try:
+                resultado = json.loads(m.group())
+            except json.JSONDecodeError:
+                pass
+    if resultado is None:
+        print(f"  ✗ Macro: JSON no parseable. Respuesta: {texto[:200]}")
+        return None
+
+    procesos = resultado.get("procesos", [])
+    print(f"  → Macro: Claude identificó {len(procesos)} proceso(s) en {len(articulos_compactos)} artículos")
+    return procesos
 
 
 def _enriquecer_con_articulos(procesos: list[dict], todos_articulos: list[dict]) -> list[dict]:

@@ -81,7 +81,7 @@ def detectar_ruido(noticias: dict) -> dict:
             idx = len(compactos)
             a["_ruido_idx"] = idx
             compactos.append(
-                f"{idx} | {a.get('fuente','')} | {a.get('titulo','')} | {(a.get('resumen') or '')[:110]}"
+                f"{idx} | {a.get('fuente','')} | {a.get('titulo','')} | {(a.get('resumen') or '')[:75]}"
             )
 
     if len(compactos) < 2:
@@ -93,8 +93,9 @@ def detectar_ruido(noticias: dict) -> dict:
         prompt,
         system=_SYSTEM,
         model=CLAUDE_MODEL_ANALISIS,
-        max_tokens=2000,
+        max_tokens=1200,
         temperature=0.1,
+        cache_system=True,
     )
 
     if resultado is None:

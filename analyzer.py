@@ -196,7 +196,7 @@ def _analizar_categoria(categoria: str, articulos: list[dict]) -> tuple[list[dic
 
     system  = _SYSTEM.format(idioma=IDIOMA_ANALISIS)
     user    = _USER_TMPL.format(articulos_json=json.dumps(payload, ensure_ascii=False))
-    resultado = llamar_claude(user, system=system, max_tokens=1024, cache_system=True)
+    resultado = llamar_claude(user, system=system, max_tokens=700, cache_system=True)
 
     if resultado is None:
         for i in nuevos_idx:

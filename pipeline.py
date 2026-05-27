@@ -16,7 +16,7 @@ from analyzer import analizar_todas_las_noticias
 from synthesizer import sintetizar_noticias
 from renderer import renderizar_html
 
-_INTERVALO_HORAS = 12
+_INTERVALO_HORAS = 18
 
 _lock             = threading.Lock()
 _html_cache: str | None       = None

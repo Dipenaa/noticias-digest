@@ -22,7 +22,7 @@ GEMINI_MODEL   = "gemini-2.0-flash"
 # ---------------------------------------------------------------------------
 # Parámetros generales
 # ---------------------------------------------------------------------------
-MAX_ARTICULOS_POR_FUENTE = 2   # 2 por fuente — menos ruido, menos tokens
+MAX_ARTICULOS_POR_FUENTE = 1   # 1 por fuente — suficiente señal, -50% tokens
 ARCHIVO_SALIDA           = "noticias.html"
 IDIOMA_ANALISIS          = "español"
 

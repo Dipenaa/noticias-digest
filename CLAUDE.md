@@ -49,19 +49,32 @@ autoresearch_synthesizer.py  — Script de autoresearch para optimizar el prompt
 ### Skills de proyecto (`.claude/skills/`)
 - **`redisenar`** — Workflow completo para iterar el diseño visual sin gastar tokens. Usa `preview.py`.
 - **`crear-skill`** — Crea o mejora skills para este proyecto.
+- **`briefing`** — Memo de inteligencia estilo PDB sobre el digest del día (~300 palabras).
+- **`vigilar`** — Gestiona condiciones de alerta que se comprueban en cada generación del digest.
 
 ### Skills globales (`~/.claude/skills/`) — disponibles en todos los proyectos
 | Skill | Trigger | Qué hace |
 |---|---|---|
-| `/pensar` | Manual | Análisis profundo con ultrathink + effort max. Para decisiones importantes. |
-| `/explorar` | Automático | Brainstorming, posibilidades, ángulos no obvios. |
+| `/pensar` | Manual | Análisis profundo para tomar una decisión difícil. Convergente. |
+| `/explorar` | Automático | Genera opciones y posibilidades antes de decidir. Divergente. |
 | `/criticar` | Automático | Crítica honesta de código, planes o textos. |
 | `/sintetizar` | Automático | Síntesis densa de información compleja. |
+| `/investigar` | Automático | Research web → síntesis → guardar. |
 | `/autoresearch` | Manual | Loop autónomo de experimentación: optimiza un fichero iterando y midiendo. |
 | `/auto-mejora` | Manual | Convierte lo aprendido en sesiones en reglas y skills duraderas. |
 | `/enjambre` | Manual | Divide tareas grandes en subtareas paralelas (hasta 12 agentes). |
-| `/orientar` | Manual | Recupera contexto cuando se pierde el hilo entre sesiones. |
+| `/orientar` | Automático | Recupera contexto al inicio de sesión. Bootstrap si memoria vacía. |
+| `/rutina-diaria` | Manual | Inicio de jornada: orientación + briefing + producción + agenda. |
 | `/session-report` | Manual | Resumen de lo hecho en la sesión para handoff. |
+| `/pipeline` | Manual | Encadena skills: `/pipeline briefing → guardar`. |
+
+### Pipelines nombradas (`~/.claude/pipelines.md`)
+| Pipeline | Cadena | Cuándo |
+|---|---|---|
+| `/morning` | orientar → briefing → check-status prod | Al empezar el día |
+| `/cierre` | session-report → guardar | Al terminar |
+| `/research` | investigar → sintetizar → guardar | Investigación completa |
+| `/audit` | criticar → explorar | Revisar algo a fondo |
 
 ## Autoresearch de prompts (21 mayo 2026)
 Se ejecutó `/autoresearch` sobre los dos prompts principales con artículos ficticios de prueba:

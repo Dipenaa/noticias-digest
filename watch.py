@@ -11,7 +11,7 @@ Formato del fichero de condiciones:
   {"id": "ia-act", "condicion": "La UE publica el texto final de la AI Act"}
 ]
 
-Coste: una llamada Haiku por condición activa. Caché de resultados 6h.
+Coste: una llamada Haiku batch para todas las condiciones pendientes. Caché por condición 6h.
 """
 
 import json
@@ -27,24 +27,31 @@ _WATCH_FILE = Path(os.getenv("NOTICIAS_WATCH_FILE",
                              str(Path.home() / ".noticias-watch.json")))
 _TTL = 6 * 3600
 
-_SYSTEM = """Eres un analista de noticias. Determinas si una condición específica
-se ha cumplido hoy basándote en los artículos disponibles."""
+_SYSTEM = """Eres un analista de noticias. Determinas si condiciones específicas
+se han cumplido hoy basándote en los artículos disponibles.
+Solo marca cumplida=true si hay evidencia clara y directa en los artículos."""
 
-_PROMPT = """¿Se ha cumplido HOY la siguiente condición basándote en los artículos?
+_PROMPT_BATCH = """Comprueba si estas condiciones se han cumplido HOY según los artículos.
 
-CONDICIÓN A VIGILAR: {condicion}
+CONDICIONES:
+{condiciones_json}
 
-ARTÍCULOS DE HOY (fuente | título | resumen):
+ARTÍCULOS (fuente | título | resumen):
 {articulos}
 
 Responde ÚNICAMENTE con JSON:
 {{
-  "cumplida": true,
-  "confianza": 0.85,
-  "explicacion": "Breve explicación de por qué sí/no se cumplió"
+  "resultados": [
+    {{
+      "id": "condicion-id",
+      "cumplida": false,
+      "confianza": 0.0,
+      "explicacion": "Por qué sí o no"
+    }}
+  ]
 }}
 
-confianza: 0.0-1.0. Solo marca cumplida=true si hay evidencia clara en los artículos."""
+Devuelve un resultado por cada condición del array, en el mismo orden. confianza: 0.0-1.0."""
 
 
 def cargar_condiciones() -> list[dict]:
@@ -81,15 +88,14 @@ def eliminar_condicion(cond_id: str) -> bool:
 
 def verificar_condiciones(noticias: dict, alternativas: dict | None = None) -> list[dict]:
     """
-    Comprueba cada condición activa contra los artículos de hoy.
-    Devuelve lista de alertas disparadas:
-    [{"id": ..., "condicion": ..., "confianza": ..., "explicacion": ...}]
+    Comprueba todas las condiciones activas en UNA sola llamada (batch).
+    Las condiciones ya cacheadas no van a la API.
+    Devuelve lista de alertas disparadas.
     """
     condiciones = cargar_condiciones()
     if not condiciones:
         return []
 
-    # Artículos compactos para el prompt
     todos_arts = []
     for arts in (noticias or {}).values():
         todos_arts.extend(arts)
@@ -99,51 +105,71 @@ def verificar_condiciones(noticias: dict, alternativas: dict | None = None) -> l
     if not todos_arts:
         return []
 
+    hash_arts = _hash_arts(todos_arts)
     articulos_str = "\n".join(
-        f"{a.get('fuente','')} | {a.get('titulo','')} | {(a.get('resumen') or '')[:100]}"
-        for a in todos_arts[:60]
+        f"{a.get('fuente','')} | {a.get('titulo','')} | {(a.get('resumen') or '')[:70]}"
+        for a in todos_arts[:40]
     )
 
-    alertas = []
+    alertas: list[dict] = []
+    pendientes: list[dict] = []
+
+    # Separar condiciones cacheadas de las pendientes
     for cond in condiciones:
-        cond_id = cond.get("id", "")
+        cond_id  = cond.get("id", "")
         condicion = cond.get("condicion", "")
         if not condicion:
             continue
-
-        clave = f"watch:{cond_id}:{_hash_arts(todos_arts)}"
+        clave = f"watch:{cond_id}:{hash_arts}"
         cached = _cache._redis_get(clave)
         if cached:
             try:
-                resultado = json.loads(cached)
-                if resultado.get("cumplida") and resultado.get("confianza", 0) >= 0.7:
-                    alertas.append({**cond, **resultado})
+                res = json.loads(cached)
+                if res.get("cumplida") and res.get("confianza", 0) >= 0.7:
+                    alertas.append({**cond, **res})
                 continue
             except Exception:
                 pass
+        pendientes.append(cond)
 
-        prompt = _PROMPT.format(condicion=condicion, articulos=articulos_str)
-        resultado = llamar_claude(
-            prompt,
-            system=_SYSTEM,
-            model=CLAUDE_MODEL_ANALISIS,
-            max_tokens=300,
-            temperature=0.1,
-        )
+    if not pendientes:
+        return alertas
 
-        if resultado is None:
+    # Una sola llamada para todas las condiciones pendientes
+    condiciones_json = json.dumps(
+        [{"id": c["id"], "condicion": c["condicion"]} for c in pendientes],
+        ensure_ascii=False,
+    )
+    prompt = _PROMPT_BATCH.format(condiciones_json=condiciones_json, articulos=articulos_str)
+    resultado = llamar_claude(
+        prompt,
+        system=_SYSTEM,
+        model=CLAUDE_MODEL_ANALISIS,
+        max_tokens=400 + 150 * len(pendientes),
+        temperature=0.1,
+        cache_system=True,
+    )
+
+    if resultado is None:
+        return alertas
+
+    resultados_map = {r["id"]: r for r in resultado.get("resultados", []) if isinstance(r, dict)}
+
+    for cond in pendientes:
+        cond_id  = cond.get("id", "")
+        clave    = f"watch:{cond_id}:{hash_arts}"
+        res      = resultados_map.get(cond_id, {})
+        if not res:
             continue
-
-        _cache._redis_set(clave, json.dumps(resultado, ensure_ascii=False), ex=_TTL)
-
-        if resultado.get("cumplida") and resultado.get("confianza", 0) >= 0.7:
+        _cache._redis_set(clave, json.dumps(res, ensure_ascii=False), ex=_TTL)
+        if res.get("cumplida") and res.get("confianza", 0) >= 0.7:
             alertas.append({
-                "id":         cond_id,
-                "condicion":  condicion,
-                "confianza":  resultado.get("confianza", 0),
-                "explicacion": resultado.get("explicacion", ""),
+                "id":          cond_id,
+                "condicion":   cond.get("condicion", ""),
+                "confianza":   res.get("confianza", 0),
+                "explicacion": res.get("explicacion", ""),
             })
-            print(f"  ⚠ Vigilar: condición disparada — {condicion[:50]}")
+            print(f"  ⚠ Vigilar: condición disparada — {cond.get('condicion','')[:50]}")
 
     return alertas
 

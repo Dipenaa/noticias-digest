@@ -19,7 +19,7 @@ from article_cache import shared as _cache
 from claude_client import llamar_claude
 
 # Tope de artículos candidatos que se mandan a Claude (tras el pre-filtro).
-_MAX_ARTICULOS_SINTESIS = 60
+_MAX_ARTICULOS_SINTESIS = 80
 
 # Palabras vacías en español (no sirven para detectar similitud temática).
 _STOPWORDS = frozenset("""
@@ -137,9 +137,9 @@ FORMATO DE RESPUESTA
 ════════════════════════════════════════
 
 JSON puro, sin bloques markdown, sin texto antes ni después:
-{{"grupos": [{{"titulo": "...", "sintesis": "...", "ids": [0, 3, 7]}}]}}
+{"grupos": [{"titulo": "...", "sintesis": "...", "ids": [0, 3, 7]}]}
 
-Si ningún artículo forma un grupo válido con otro: {{"grupos": []}}"""
+Si ningún artículo forma un grupo válido con otro: {"grupos": []}"""
 
 # Template de usuario — solo los artículos dinámicos
 _USER_TMPL_SINTESIS = """Artículos disponibles (idioma de respuesta: {idioma}):
@@ -179,12 +179,15 @@ def sintetizar_noticias(
 
     for cat, arts in noticias.items():
         for a in arts:
-            todos.append({**a, "_categoria": cat, "_alt": False})
+            # Omitir ruido puro — no aporta a la síntesis cruzada
+            if not a.get("es_ruido"):
+                todos.append({**a, "_categoria": cat, "_alt": False})
 
     if alternativas:
         for cat, arts in alternativas.items():
             for a in arts:
-                todos.append({**a, "_categoria": cat, "_alt": True})
+                if not a.get("es_ruido"):
+                    todos.append({**a, "_categoria": cat, "_alt": True})
 
     if not todos:
         return []
@@ -198,6 +201,10 @@ def sintetizar_noticias(
         return []
 
     if len(todos) > _MAX_ARTICULOS_SINTESIS:
+        # Priorizar artículos con más novedad antes de truncar
+        todos.sort(key=lambda a: a.get("novedad", 2), reverse=True)
+        print(f"  ℹ Limitando a {_MAX_ARTICULOS_SINTESIS} artículos para síntesis "
+              f"(de {len(todos)} totales, ya sin ruido)")
         todos = todos[:_MAX_ARTICULOS_SINTESIS]
 
     print(f"  ℹ Pre-filtro: {len(todos)} candidatos de {total_antes} artículos totales")
@@ -216,14 +223,14 @@ def sintetizar_noticias(
             "id":      i,
             "fuente":  a["fuente"],
             "titulo":  a["titulo"],
-            "resumen": (a.get("resumen") or "")[:180],
+            "resumen": (a.get("resumen") or "")[:120],
         }
         for i, a in enumerate(todos)
     ]
 
     user_msg = _USER_TMPL_SINTESIS.format(
         idioma=IDIOMA_ANALISIS,
-        articulos_json=json.dumps(payload, ensure_ascii=False, indent=2),
+        articulos_json=json.dumps(payload, ensure_ascii=False, separators=(",", ":")),
     )
 
     print(f"  → Enviando {len(todos)} candidatos a Claude para síntesis...")
