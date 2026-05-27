@@ -23,15 +23,21 @@ Digest personal de noticias en español. Descarga feeds RSS de ~51 fuentes organ
 
 ## Arquitectura resumida
 ```
-config.py             — API keys, modelos, fuentes RSS
+config.py             — API keys, modelos, fuentes RSS; MAX_ARTICULOS_POR_FUENTE=1
 fetcher.py            — Descarga feeds RSS en paralelo; rastrea fuentes fallidas
 analyzer.py           — Análisis de sesgo con Claude Haiku (con caché y prompt caching)
-synthesizer.py        — Síntesis cruzada con Claude Sonnet (con caché)
-claude_client.py      — Cliente Claude compartido: reintentos, rate limit, prompt caching
-renderer.py           — Genera el HTML completo autocontenido
+synthesizer.py        — Síntesis cruzada con Claude Sonnet (con caché y pre-filtro de keywords)
+claude_client.py      — Cliente Claude: reintentos, rate limit, prompt caching, coste en $
+noise_filter.py       — Detecta artículos repetitivos (ruido); marca es_ruido=True
+macro_tracker.py      — Identifica 2-5 procesos mundiales del día (Haiku, caché 24h)
+watch.py              — Vigilancia de condiciones personalizadas (batch, caché 6h)
+briefing_generator.py — Memo de inteligencia diario (Sonnet, caché 12h)
+pipeline.py           — Pipeline central: estado compartido entre hilos; _INTERVALO_HORAS=18
+renderer.py           — SHIM de compatibilidad — el código real está en el paquete renderer/
+renderer/             — Paquete modular: shell.py + tabs/ + components/
 styles.py             — Todo el CSS (separado del renderer)
 article_cache.py      — Caché persistente: Redis si REDIS_URL existe, sino JSON en disco
-app.py                — Servidor Flask: /, /regenerar, /analizar, /estado, /manifest.json, /sw.js
+app.py                — Servidor Flask (~150 líneas); delega toda lógica a pipeline.py
 main.py               — Alternativa CLI para ejecutar localmente
 discoverer.py         — Herramienta para descubrir nuevos feeds RSS con Gemini
 preview.py            — Servidor local en localhost:5001 para iterar diseño sin gastar tokens
@@ -39,10 +45,29 @@ autoresearch_analyzer.py     — Script de autoresearch para optimizar el prompt
 autoresearch_synthesizer.py  — Script de autoresearch para optimizar el prompt de synthesizer.py
 ```
 
+## Presupuesto de coste API
+
+**Máximo $0.10-0.15/día.** Antes de añadir cualquier nueva llamada a Claude, estima su coste.
+
+- Haiku: $0.80 input / $4.00 output por MTok (caché read: $0.08)
+- Sonnet: $3.00 input / $15.00 output por MTok (caché read: $0.30)
+- Ver coste acumulado en los logs de Render: líneas `💰 haiku in=... → $0.00xx (total $...)`
+
+## Optimizaciones de coste ya aplicadas (no revertir)
+
+- `MAX_ARTICULOS_POR_FUENTE = 1` en config.py (era 2)
+- `_INTERVALO_HORAS = 18` en pipeline.py (era 12) — regenera cada 18h en vez de 12h
+- `cache_system=True` en TODAS las llamadas a `llamar_claude` — cachea system prompts
+- `_MAX_ARTICULOS_SINTESIS = 80` con pre-filtro de keywords (descarta temas únicos antes de Claude)
+- Filtro `es_ruido` en synthesizer — descarta artículos repetitivos antes de Claude
+- `separators=(',', ':')` en `json.dumps` del payload del synthesizer (~900 tokens menos)
+- watch.py: N condiciones → 1 llamada batch (era N llamadas individuales)
+- `max_tokens` reducidos: analyzer 700, briefing 550, noise_filter 1200
+
 ## Modelos Claude
 - **Análisis masivo:** `claude-haiku-4-5-20251001` (20× más barato que Sonnet)
 - **Síntesis cruzada:** `claude-sonnet-4-6` (solo para detectar historias comunes)
-- **Prompt caching:** el system prompt de analyzer.py se cachea entre llamadas (~80% menos tokens en ciclos normales)
+- **Prompt caching:** activo en todos los módulos vía `cache_system=True`; ahorra ~70-80% en tokens de instrucciones
 
 ## Skills disponibles
 
@@ -104,6 +129,10 @@ Scripts reutilizables guardados: `autoresearch_analyzer.py` y `autoresearch_synt
 - **Síntesis en generación normal (26 mayo 2026):** `_generar()` en app.py ahora llama a `sintetizar_noticias()` — antes solo se ejecutaba via `/analizar`
 - **CSS proceso-* restaurado (26 mayo 2026):** toda la CSS de `.proceso-strip`, `.proceso-body`, `.proceso-grid`, etc. se perdió al aplicar el tema y fue restaurada adaptada al tema oscuro
 - **Contraste mejorado (26 mayo 2026):** `--txt-3` subió de `#3d3d3f` a `#636366`; `--txt-2` de `#86868b` a `#aeaeb2`; `nav a` y `.sort-btn` más visibles
+- **Pestaña Actualidad vacía resuelta (27 mayo 2026):** macro_tracker usaba filtro substring que bloqueaba categorías válidas; corregido a exact match + prompt ampliado a procesos nacionales + fallback regex para JSON
+- **Coste API optimizado (27 mayo 2026):** 8 cambios reducen gasto estimado ~60-70% (ver sección "Optimizaciones de coste")
+- **Renderer modularizado (27 mayo 2026):** renderer.py es ahora un shim; código real en paquete `renderer/`; pipeline.py centraliza la lógica de app.py
+- **claude_client.py con tracking de coste en $ (27 mayo 2026):** `_calcular_coste()`, `reset_coste()`, `resumen_coste()` + logging `💰` con importe real por llamada
 
 ## Estado del diseño — rama `claude/buenas-xo9D9` (26 mayo 2026)
 El tema **Dark Premium** ya está en producción (`styles.py`).
