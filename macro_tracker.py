@@ -19,15 +19,14 @@ from claude_client import llamar_claude
 _TTL_PROCESOS  = 24 * 3600       # 24h — no recalcular si se regenera hoy
 _TTL_HISTORIAL = 15 * 24 * 3600  # 15 días de historial
 
-_KEY_HOY       = "macro:hoy"
+_KEY_HOY       = "macro:hoy:{fecha}"  # date-aware para evitar cache stale entre días
 _KEY_SNAP      = "macro:snap:{fecha}"  # {proceso_id: n_articulos}
 
 _ESTADOS = {"escalada", "estable", "resolucion", "silencio"}
 _HORIZONTES = {"dias", "semanas", "meses", "anos"}
 
-# Categorías que pueden contener procesos actuales; el resto (Historia, Ciencia…) se omiten.
-# Comparación exacta (no substring) para no incluir "España Libertaria" o "Internacional Libertario".
-_CATEGORIAS_PROCESO = {"España", "Internacional", "Economía", "Política", "Social"}
+# Categorías que pueden contener procesos actuales. Comparación exacta.
+_CATEGORIAS_PROCESO = {"España", "Internacional", "Economía", "Tecnología", "Ciencia", "Historia", "Antropología"}
 
 _SYSTEM = """Eres un analista político senior. Identificas los procesos más relevantes del momento,
 tanto internacionales como nacionales. Un proceso es un conflicto, crisis, negociación, transición
@@ -177,7 +176,7 @@ def _cargar_historial(proceso_id: str, dias: int = 15) -> list[dict]:
     return historial
 
 
-_KEY_CONEXIONES = "macro:conexiones:hoy"
+_KEY_CONEXIONES = "macro:conexiones:{fecha}"
 
 _SYSTEM_CONEXIONES = """Eres un analista geopolítico. Identificas relaciones causales y temáticas
 entre grandes procesos mundiales activos. Una conexión es una relación real, no trivial."""
@@ -205,7 +204,8 @@ def _identificar_conexiones(procesos: list[dict]) -> list[dict]:
     if len(procesos) < 2:
         return []
 
-    cached = _cache._redis_get(_KEY_CONEXIONES)
+    _hoy_con = datetime.now().strftime("%Y-%m-%d")
+    cached = _cache._redis_get(_KEY_CONEXIONES.format(fecha=_hoy_con))
     if cached:
         try:
             return json.loads(cached)
@@ -228,7 +228,7 @@ def _identificar_conexiones(procesos: list[dict]) -> list[dict]:
         return []
 
     conexiones = resultado.get("conexiones", [])
-    _cache._redis_set(_KEY_CONEXIONES, json.dumps(conexiones, ensure_ascii=False), ex=_TTL_PROCESOS)
+    _cache._redis_set(_KEY_CONEXIONES.format(fecha=_hoy_con), json.dumps(conexiones, ensure_ascii=False), ex=_TTL_PROCESOS)
     print(f"  ✓ Macro: {len(conexiones)} conexión(es) entre procesos")
     return conexiones
 
@@ -251,7 +251,8 @@ def obtener_procesos(noticias: dict) -> list[dict]:
     import macro_registry as _reg
 
     # ── Caché de hoy ──────────────────────────────────────────────────────────
-    cached_raw = _cache._redis_get(_KEY_HOY)
+    _hoy = datetime.now().strftime("%Y-%m-%d")
+    cached_raw = _cache._redis_get(_KEY_HOY.format(fecha=_hoy))
     if cached_raw:
         try:
             procesos = json.loads(cached_raw)
@@ -284,7 +285,7 @@ def obtener_procesos(noticias: dict) -> list[dict]:
     _reg.guardar_registro(registro)
 
     # ── Caché de hoy (24h) ───────────────────────────────────────────────────
-    _cache._redis_set(_KEY_HOY, json.dumps(procesos, ensure_ascii=False), ex=_TTL_PROCESOS)
+    _cache._redis_set(_KEY_HOY.format(fecha=_hoy), json.dumps(procesos, ensure_ascii=False), ex=_TTL_PROCESOS)
     _guardar_snapshot(procesos)
 
     # ── Enriquecer con tendencia y días activo ────────────────────────────────

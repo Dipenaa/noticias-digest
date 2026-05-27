@@ -4,7 +4,7 @@ import html as _html
 import json
 
 TAB_ID    = "actualidad"
-TAB_LABEL = "Actualidad"
+TAB_LABEL = "Procesos"
 TAB_ICON  = "🌍"
 
 _ESTADO_META = {
@@ -142,7 +142,7 @@ def render(procesos: list[dict] | None = None,
     if not procs:
         return """
 <div class="actualidad-header">
-  <h2>Actualidad Absoluta</h2>
+  <h2>Procesos</h2>
   <p>Los grandes procesos del mundo, m&#225;s all&#225; de las noticias del d&#237;a.</p>
 </div>
 <div class="actualidad-empty">
@@ -158,7 +158,7 @@ def render(procesos: list[dict] | None = None,
 
     return f"""
 <div class="actualidad-header">
-  <h2>Actualidad Absoluta</h2>
+  <h2>Procesos</h2>
   <p>{n} proceso(s) en seguimiento &mdash; situaciones con impacto sostenido en el tiempo.</p>
   <div class="historial-filtros">
     <span class="historial-filtro-label">Ver:</span>
