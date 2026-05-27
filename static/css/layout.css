@@ -124,8 +124,12 @@ main { max-width: 1360px; margin: 0 auto; padding: 3.5rem 2.5rem; }
 
 .search-bar {
   display: flex; align-items: center; gap: 0.6rem;
-  padding: 0.3rem 2.5rem; background: transparent;
-  border-bottom: none; position: sticky; z-index: 90;
+  padding: 0.3rem 2.5rem;
+  background: rgba(13,11,8,0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border-sub);
+  position: sticky; z-index: 90;
 }
 
 .search-input {
@@ -159,7 +163,10 @@ main { max-width: 1360px; margin: 0 auto; padding: 3.5rem 2.5rem; }
   display: flex; align-items: center; justify-content: flex-end;
   padding: 0.28rem 2.5rem; background: transparent;
   border-bottom: 1px solid var(--border-sub);
-  position: sticky; top: 84px; z-index: 88; gap: 0;
+  position: sticky; top: 88px; z-index: 88; gap: 0;
+  background: rgba(13,11,8,0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 .sort-label { display: none; }
 .sort-btn {

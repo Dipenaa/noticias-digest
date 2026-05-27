@@ -110,9 +110,10 @@ body.light header          { background: rgba(245,240,232,0.95); }
 body.light .tab-bar        { background: #ede8de; }
 body.light nav             { background: rgba(237,232,220,0.92); }
 body.light .drawer         { background: #ede8de; }
-body.light .tab-btn        { color: rgba(36,24,16,0.38); }
-body.light .tab-btn:hover  { color: rgba(36,24,16,0.72); }
-body.light .search-bar     { background: transparent; }
+body.light .tab-btn        { color: rgba(36,24,16,0.65); }
+body.light .tab-btn:hover  { color: rgba(36,24,16,0.88); }
+body.light .search-bar     { background: rgba(245,240,232,0.92); }
+body.light .sort-bar       { background: rgba(245,240,232,0.92); }
 body.light .search-input   {
   background-color: rgba(100,80,50,0.05);
   border-color: rgba(100,80,50,0.15);
