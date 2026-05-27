@@ -1,7 +1,7 @@
 """Pestaña Para leer — lista de artículos guardados (gestionada por JS/localStorage)."""
 
 TAB_ID    = "para-leer"
-TAB_LABEL = "&#9733; Para leer"
+TAB_LABEL = "Para leer"
 TAB_ICON  = "★"
 
 

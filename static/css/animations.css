@@ -1,0 +1,84 @@
+/* ═══════════════════════════════════════════════════════════════
+   animations.css — Keyframes, scroll-reveal, transiciones
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Keyframes ───────────────────────────────────────────────── */
+@keyframes pulso {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%       { transform: scale(1.35); opacity: 0.6; }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+/* ── Scroll reveal ───────────────────────────────────────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.55s cubic-bezier(0.2,0.9,0.3,1), transform 0.55s cubic-bezier(0.2,0.9,0.3,1);
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Entrada inicial de tarjetas ─────────────────────────────── */
+.tarjeta, .tarjeta-destacada, .sintesis-card, .asombro-card, .proceso-card, .proceso-card-hero {
+  animation: fadeInUp 0.45s cubic-bezier(0.2,0.9,0.3,1) both;
+}
+
+/* Escalonar para que no aparezcan todas a la vez */
+.grid .tarjeta:nth-child(1)  { animation-delay: 0ms;   }
+.grid .tarjeta:nth-child(2)  { animation-delay: 40ms;  }
+.grid .tarjeta:nth-child(3)  { animation-delay: 80ms;  }
+.grid .tarjeta:nth-child(4)  { animation-delay: 120ms; }
+.grid .tarjeta:nth-child(5)  { animation-delay: 160ms; }
+.grid .tarjeta:nth-child(n+6){ animation-delay: 200ms; }
+
+/* ── Transición del drawer ───────────────────────────────────── */
+.drawer { transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1); }
+
+/* ── Hover de tarjeta — glow de acento ───────────────────────── */
+.tarjeta::after {
+  content: '';
+  position: absolute; inset: 0;
+  border-radius: var(--r);
+  background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(200,164,112,0.05) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+.tarjeta:hover::after { opacity: 1; }
+
+/* ── Pulsación de la tensión del día ─────────────────────────── */
+.tension-dot { animation: pulso 2.5s ease-in-out infinite; }
+
+/* ── Fade-in para la entrada del splash (eliminado) ─────────── */
+
+/* ── Transiciones de la barra de búsqueda ────────────────────── */
+.search-input {
+  transition:
+    width 0.4s cubic-bezier(0.2,0.9,0.3,1),
+    box-shadow 0.25s ease,
+    border-color 0.2s ease,
+    background 0.2s ease,
+    border-radius 0.2s ease;
+}
+
+/* ── Hover de nav links ──────────────────────────────────────── */
+nav a {
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+/* ── Stat bar fill — entrada suave ───────────────────────────── */
+.stat-bar-fill {
+  transition: width 0.7s cubic-bezier(0.2,0.9,0.3,1);
+  animation-fill-mode: both;
+}

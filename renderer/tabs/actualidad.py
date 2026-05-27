@@ -4,7 +4,7 @@ import html as _html
 import json
 
 TAB_ID    = "actualidad"
-TAB_LABEL = "&#127758; Actualidad"
+TAB_LABEL = "Actualidad"
 TAB_ICON  = "🌍"
 
 _ESTADO_META = {

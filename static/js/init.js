@@ -27,45 +27,38 @@ function dismissSplash() {
   if (el) el.textContent = g;
 })();
 
-/* Modo oscuro */
+/* Modo día / oscuro */
 function toggleDark() {
-  var dark = document.body.classList.toggle('dark');
-  try { localStorage.setItem('digestDark', dark ? '1' : '0'); } catch(e) {}
+  var light = document.body.classList.toggle('light');
+  try { localStorage.setItem('digestLight', light ? '1' : '0'); } catch(e) {}
   var btn = document.getElementById('dark-toggle');
-  if (btn) btn.textContent = dark ? '☀ Modo día' : '☾ Modo oscuro';
+  if (btn) btn.textContent = light ? '☾ Modo oscuro' : '☀ Modo día';
 }
 
 (function() {
   try {
-    if (localStorage.getItem('digestDark') === '1') {
-      document.body.classList.add('dark');
+    if (localStorage.getItem('digestLight') === '1') {
+      document.body.classList.add('light');
       var btn = document.getElementById('dark-toggle');
-      if (btn) btn.textContent = '☀ Modo día';
+      if (btn) btn.textContent = '☾ Modo oscuro';
     }
   } catch(e) {}
 })();
 
-/* Banner de IA (artículos sin análisis) */
+/* Sidebar toggle */
+function toggleSidebar() {
+  var hidden = document.body.classList.toggle('sidebar-hidden');
+  try { localStorage.setItem('digestSidebarHidden', hidden ? '1' : '0'); } catch(e) {}
+}
+
 (function() {
   try {
-    var sinIA       = document.querySelectorAll('[data-sesgo-ia="desconocido"]').length;
-    var bannerCount = document.getElementById('ia-banner-count');
-    var bannerEl    = document.getElementById('ia-banner');
-    if (sinIA > 0) {
-      if (bannerCount) bannerCount.textContent = sinIA;
-      if (bannerEl)    bannerEl.style.display  = 'flex';
-      if (window.location.protocol === 'file:') {
-        var regenBtn = document.getElementById('ia-regen-btn');
-        if (regenBtn) {
-          regenBtn.textContent = 'Iniciar servidor Flask';
-          regenBtn.onclick = function() {
-            alert('Inicia el servidor Flask (app.py) o el .bat del escritorio para regenerar el análisis IA.');
-          };
-        }
-      }
+    if (localStorage.getItem('digestSidebarHidden') === '1') {
+      document.body.classList.add('sidebar-hidden');
     }
   } catch(e) {}
 })();
+
 
 /* Restaurar keywords guardadas */
 (function() {

@@ -3,7 +3,7 @@
 from renderer.components.tarjeta import tarjeta_asombro
 
 TAB_ID    = "asombro"
-TAB_LABEL = "&#10024; Asombro"
+TAB_LABEL = "Asombro"
 TAB_ICON  = "✨"
 
 

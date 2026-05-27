@@ -42,7 +42,7 @@ def _auth():
         return Response(
             "Acceso restringido",
             401,
-            {"WWW-Authenticate": 'Basic realm="Noticias Digest"'},
+            {"WWW-Authenticate": 'Basic realm="EnPapel"'},
         )
 
 
@@ -171,13 +171,13 @@ def briefing():
 @app.route("/manifest.json")
 def manifest():
     return jsonify({
-        "name":             "Noticias Digest",
-        "short_name":       "Noticias",
-        "description":      "Digest de noticias con análisis de sesgo por IA",
+        "name":             "EnPapel",
+        "short_name":       "EnPapel",
+        "description":      "Noticias con análisis de sesgo por IA",
         "start_url":        "/",
         "display":          "standalone",
-        "background_color": "#060e08",
-        "theme_color":      "#22c55e",
+        "background_color": "#0d0b08",
+        "theme_color":      "#c8a470",
         "icons": [
             {"src": "/icon.svg", "sizes": "any", "type": "image/svg+xml"},
         ],

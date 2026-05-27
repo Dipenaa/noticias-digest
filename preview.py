@@ -52,33 +52,7 @@ _GRUPOS = [
     }
 ]
 
-_BOTON_PREVIEW = """
-<div id="_prev-btn" style="
-  position:fixed; bottom:1.5rem; right:1.5rem; z-index:9999;
-  display:flex; flex-direction:column; gap:.5rem; align-items:flex-end;">
-  <div id="_prev-msg" style="
-    background:#1a1208; color:#fff; font-size:.75rem; padding:.35rem .75rem;
-    border-radius:.375rem; opacity:0; transition:opacity .3s; white-space:nowrap;">
-  </div>
-  <button onclick="_regen()" style="
-    background:#2d5a2d; color:#fff; border:none; border-radius:.5rem;
-    padding:.6rem 1.1rem; font-size:.85rem; font-weight:600; cursor:pointer;
-    box-shadow:0 2px 8px rgba(0,0,0,.2); font-family:inherit;">
-    🔄 Regenerar
-  </button>
-</div>
-<script>
-function _regen() {
-  var msg = document.getElementById('_prev-msg');
-  msg.textContent = 'Regenerando...'; msg.style.opacity = '1';
-  fetch('/regen').then(function(r){ return r.json(); }).then(function(d){
-    msg.textContent = d.ok ? '✓ Listo' : '✗ Error';
-    if(d.ok) setTimeout(function(){ location.reload(); }, 200);
-    else setTimeout(function(){ msg.style.opacity='0'; }, 3000);
-  });
-}
-</script>
-"""
+_BOTON_PREVIEW = ""
 
 
 def _generar_html():
@@ -113,6 +87,6 @@ def regen():
 
 if __name__ == "__main__":
     print("Preview server en http://localhost:5001")
-    print("Pulsa el botón 🔄 en el navegador para ver cambios tras editar renderer.py")
+    print("Pulsa el boton [Regenerar] en el navegador para ver cambios tras editar renderer.py")
     _cache_html = _generar_html()
     app.run(port=5001, debug=False)

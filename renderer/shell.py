@@ -11,7 +11,6 @@ import os
 from datetime import datetime
 
 from analyzer import COLORES_SESGO
-from styles import _CSS
 
 
 # ── JS estático — cargado desde static/js/ ──────────────────────────────────
@@ -85,7 +84,7 @@ def _tab_bar(tabs: list, n_asombro: int, n_procesos: int, n_sintesis: int) -> st
     btns = "\n  ".join(_btn(t) for t in tabs)
     return f"""<div class="tab-bar">
   {btns}
-  <button class="dark-toggle" id="dark-toggle" onclick="toggleDark()">&#9790; Modo oscuro</button>
+  <button class="dark-toggle" id="dark-toggle" onclick="toggleDark()">&#9728; Modo d&iacute;a</button>
 </div>"""
 
 
@@ -130,26 +129,30 @@ def construir(
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Digest de Noticias — {ahora}</title>
+  <title>EnPapel — {ahora}</title>
   <meta name="theme-color" content="{sesgo_colores.get('centro', '#3d7a52')}">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="Noticias Digest">
+  <meta name="apple-mobile-web-app-title" content="EnPapel">
   <link rel="manifest" href="/manifest.json">
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
-  <style>{_CSS}</style>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/reset.css">
+  <link rel="stylesheet" href="/static/css/layout.css">
+  <link rel="stylesheet" href="/static/css/components.css">
+  <link rel="stylesheet" href="/static/css/animations.css">
 </head>
 <body>
 
 <header>
+  <button class="sidebar-toggle-btn" id="sidebar-toggle" onclick="toggleSidebar()" title="Menú">&#9776;</button>
   <div class="header-logo">
-    <div class="icono">📰</div>
+    <div class="icono">D</div>
     <div>
       <div style="font-size:0.65rem;color:var(--txt-3);font-weight:600;letter-spacing:0.04em;margin-bottom:0.1rem" id="header-greeting"></div>
-      <h1>Digest de Noticias</h1>
+      <h1>EnPapel</h1>
     </div>
   </div>
   <div class="meta">
@@ -161,11 +164,6 @@ def construir(
 
 {alertas_blk}
 
-<div id="ia-banner" style="display:none">
-  <span class="ia-msg">&#9888; <strong><span id="ia-banner-count">0</span> art&#237;culos</strong> sin an&#225;lisis IA &mdash; resumen, sesgo y s&#237;ntesis pueden estar incompletos</span>
-  <button class="ia-regen" id="ia-regen-btn" onclick="lanzarAnalisisIA()">Regenerar an&#225;lisis IA</button>
-  <button class="ia-close" onclick="document.getElementById('ia-banner').style.display='none'" title="Cerrar">&#215;</button>
-</div>
 
 {tab_bar_blk}
 
@@ -205,7 +203,7 @@ def construir(
 <!-- ── Splash de portada ────────────────────────────────────────────── -->
 <div id="splash" onclick="dismissSplash()">
   <div class="splash-eyebrow">{ahora}</div>
-  <div class="splash-logo">Digest</div>
+  <div class="splash-logo">EnPapel</div>
   <div class="splash-divider"></div>
   <div class="splash-headlines">{splash_hls}</div>
   <div class="splash-hint">toca para entrar</div>

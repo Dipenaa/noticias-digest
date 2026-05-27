@@ -1,7 +1,7 @@
 """Pestaña Estadísticas — distribución de sesgos y cobertura (calculada por JS)."""
 
 TAB_ID    = "estadisticas"
-TAB_LABEL = "&#128200; Estad&#237;sticas"
+TAB_LABEL = "Estadísticas"
 TAB_ICON  = "📊"
 
 

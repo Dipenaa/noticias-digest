@@ -1,0 +1,138 @@
+/* ═══════════════════════════════════════════════════════════════
+   reset.css — Variables globales, reset, base
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Paleta orgánica — arena, crema, madera ── */
+  --bg:          #0d0b08;
+  --surface:     #141009;
+  --surface-2:   #1c1710;
+  --surface-3:   #251e14;
+  --border:      rgba(200,164,112,0.14);
+  --border-sub:  rgba(200,164,112,0.07);
+
+  /* ── Tipografía ── */
+  --txt-1:       #f0e8d8;
+  --txt-2:       #b8a48a;
+  --txt-3:       #7a6650;
+
+  /* ── Acentos ── */
+  --accent:      #c8a470;
+  --accent-2:    #e0bc8a;
+  --accent-warm: #c87840;
+  --accent-cyan: #8aa898;
+  --accent-blue: #8898aa;
+
+  /* ── Glows ── */
+  --glow-gold:   rgba(200,164,112,0.12);
+  --glow-warm:   rgba(200,120,64,0.10);
+
+  /* ── Misc ── */
+  --r:           10px;
+  --font-serif:  'Playfair Display', Georgia, 'Times New Roman', serif;
+
+  /* Compat con código legado */
+  --glow-blue:   rgba(200,164,112,0.10);
+  --glow-purple: rgba(124,58,237,0.14);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  background:
+    radial-gradient(ellipse 90% 55% at 20% 15%, rgba(200,164,112,0.055) 0%, transparent 65%),
+    radial-gradient(ellipse 55% 75% at 82% 78%, rgba(190,100,50,0.04) 0%, transparent 60%),
+    var(--bg);
+  color: var(--txt-1);
+  line-height: 1.65;
+  font-size: 15px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body.light {
+  background:
+    radial-gradient(ellipse 90% 55% at 20% 15%, rgba(220,190,140,0.30) 0%, transparent 65%),
+    radial-gradient(ellipse 55% 75% at 82% 78%, rgba(200,160,100,0.18) 0%, transparent 60%),
+    var(--bg);
+}
+
+::selection {
+  background: rgba(200,164,112,0.25);
+  color: var(--txt-1);
+}
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--surface); }
+::-webkit-scrollbar-thumb { background: rgba(200,164,112,0.22); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(200,164,112,0.40); }
+
+.tab-content { display: none; }
+
+/* ── Modo día ────────────────────────────────────────────────────── */
+body.light {
+  --bg:          #f5f0e8;
+  --surface:     #ede8de;
+  --surface-2:   #e4ddd0;
+  --surface-3:   #d8d0c0;
+  --border:      rgba(100,80,50,0.18);
+  --border-sub:  rgba(100,80,50,0.10);
+  --txt-1:       #241810;
+  --txt-2:       #5e4832;
+  --txt-3:       #9a806a;
+  --accent:      #7a5528;
+  --accent-2:    #9a7040;
+  --accent-warm: #b86030;
+  --accent-cyan: #4a7868;
+  --accent-blue: #5a6878;
+  --glow-gold:   rgba(100,80,50,0.10);
+  --glow-warm:   rgba(160,80,40,0.08);
+  --glow-blue:   rgba(100,80,50,0.08);
+}
+
+/* Overrides para fondos hardcodeados en modo día */
+body.light nav a                { color: rgba(36,24,16,0.55); }
+body.light nav a:hover          { color: rgba(36,24,16,0.85); background: var(--surface-2); }
+body.light .sort-btn            { color: rgba(36,24,16,0.55); }
+body.light .sort-btn:hover      { color: rgba(36,24,16,0.80); }
+body.light header          { background: rgba(245,240,232,0.95); }
+body.light .tab-bar        { background: #ede8de; }
+body.light nav             { background: rgba(237,232,220,0.92); }
+body.light .drawer         { background: #ede8de; }
+body.light .tab-btn        { color: rgba(36,24,16,0.38); }
+body.light .tab-btn:hover  { color: rgba(36,24,16,0.72); }
+body.light .search-bar     { background: transparent; }
+body.light .search-input   {
+  background-color: rgba(100,80,50,0.05);
+  border-color: rgba(100,80,50,0.15);
+  color: var(--txt-1);
+}
+body.light .search-input:focus {
+  background-color: rgba(100,80,50,0.08);
+}
+body.light .tarjeta,
+body.light .tarjeta-destacada,
+body.light .sintesis-card,
+body.light .asombro-card,
+body.light .proceso-card,
+body.light .proceso-card-hero { background: rgba(255,255,255,0.60); }
+body.light .tarjeta:hover,
+body.light .tarjeta-destacada:hover {
+  background: rgba(255,255,255,0.90);
+  box-shadow: 0 12px 40px rgba(100,80,50,0.12), 0 0 0 1px rgba(100,80,50,0.14);
+  border-color: rgba(100,80,50,0.22);
+}
+body.light .stat-kpi,
+body.light .stat-card,
+body.light .conexion-card   { background: rgba(255,255,255,0.50); }

@@ -4,7 +4,7 @@ from renderer.components.tarjeta import tarjeta
 from renderer.components.badges import leyenda as _leyenda
 
 TAB_ID    = "libertaria"
-TAB_LABEL = "&#9733; Izquierda Crítica"
+TAB_LABEL = "Izquierda Crítica"
 TAB_ICON  = "★"
 
 
