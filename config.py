@@ -89,32 +89,26 @@ FUENTES = {
 }
 
 # ---------------------------------------------------------------------------
-# Fuentes alternativas — prensa libertaria, anarquista y afines
+# Fuentes alternativas — izquierda crítica, anarquista e intelectual
 # ---------------------------------------------------------------------------
-# Se muestran en la pestaña "Prensa Libertaria" del digest.
-# Sesgo: se usa "libertario" para fuentes explícitamente anarquistas/libertarias.
+# Se muestran en la pestaña "Izquierda Crítica" del digest.
+# Criterio: rigor intelectual y crítica sistémica, no alarmismo ni propaganda.
 
 FUENTES_ALTERNATIVAS = {
-    "España Libertaria": [
+    "Izquierda Crítica España": [
         {"nombre": "El Salto Diario",  "url": "https://www.elsaltodiario.com/rss",                                 "sesgo": "izquierda"},
+        {"nombre": "La Marea",         "url": "https://www.lamarea.com/feed/",                                     "sesgo": "izquierda"},
         {"nombre": "Rebelión",         "url": "https://rebelion.org/feed/",                                        "sesgo": "izquierda"},
-        {"nombre": "Kaos en la Red",   "url": "https://kaosenlared.net/feed/",                                     "sesgo": "izquierda"},
-        {"nombre": "La Haine",         "url": "https://www.lahaine.org/rss/rss.php",                               "sesgo": "izquierda"},
-        {"nombre": "CGT España",       "url": "https://cgt.org.es/feed/",                                          "sesgo": "izquierda"},
-        {"nombre": "Tierra y Libertad","url": "https://www.tierraylibertad.org/feed/",                             "sesgo": "izquierda"},  # revista CNT
-    ],
-    "Internacional Libertario": [
-        {"nombre": "CrimethInc",       "url": "https://crimethinc.com/feed.atom",                                  "sesgo": "izquierda"},
-        {"nombre": "It's Going Down",  "url": "https://itsgoingdown.org/feed/",                                    "sesgo": "izquierda"},
-        {"nombre": "Freedom News",     "url": "https://freedomnews.org.uk/feed/",                                  "sesgo": "izquierda"},
-        {"nombre": "Anarchist News",   "url": "https://anarchistnews.org/rss.xml",                                  "sesgo": "izquierda"},
-        {"nombre": "Enough 14",        "url": "https://enoughisenough14.org/feed/",                                "sesgo": "izquierda"},
-    ],
-    "Contrainformación": [
-        {"nombre": "Diagonal (arch.)", "url": "https://www.diagonalperiodico.net/feeds/portada",                   "sesgo": "izquierda"},
+        {"nombre": "Tierra y Libertad","url": "https://www.tierraylibertad.org/feed/",                             "sesgo": "izquierda"},
         {"nombre": "Pikara Magazine",  "url": "https://www.pikaramagazine.com/feed/",                              "sesgo": "izquierda"},
-        {"nombre": "Mondoweiss",       "url": "https://mondoweiss.net/feed/",                                      "sesgo": "izquierda"},
-        {"nombre": "Common Dreams",    "url": "https://rss.commondreams.org/commondreams/views05.rss",             "sesgo": "izquierda"},
+        {"nombre": "CGT España",       "url": "https://cgt.org.es/feed/",                                          "sesgo": "izquierda"},
+    ],
+    "Pensamiento Crítico Internacional": [
+        {"nombre": "Sin Permiso",      "url": "https://sinpermiso.info/rss.xml",                                   "sesgo": "izquierda"},
+        {"nombre": "Jacobin Lat.",     "url": "https://jacobinlat.com/feed/",                                      "sesgo": "izquierda"},
         {"nombre": "The Intercept",    "url": "https://theintercept.com/feed/?rss",                                "sesgo": "izquierda"},
+        {"nombre": "Common Dreams",    "url": "https://rss.commondreams.org/commondreams/views05.rss",             "sesgo": "izquierda"},
+        {"nombre": "Freedom News",     "url": "https://freedomnews.org.uk/feed/",                                  "sesgo": "izquierda"},
+        {"nombre": "Mondoweiss",       "url": "https://mondoweiss.net/feed/",                                      "sesgo": "izquierda"},
     ],
 }

@@ -16,7 +16,6 @@ function setHistorialDias(n) {
   });
   document.querySelectorAll('.proceso-card, .proceso-card-hero').forEach(function(card) {
     _renderSparkline(card.querySelector('.proceso-sparkline'));
-    _renderTrend(card);
   });
 }
 
@@ -32,12 +31,12 @@ function filtrarProcesos(estado, btn) {
   });
 }
 
-function _renderSparkline(el) {
-  if (!el) return;
-  var card = el.closest('[data-historial]');
+function _renderSparkline(canvas) {
+  if (!canvas || !canvas.getContext) return;
+  var card = canvas.closest('[data-historial]');
   if (!card) return;
   var estado = card.dataset.estado || 'estable';
-  var color  = PROCESO_COLORES[estado] || '#2d5a2d';
+  var color  = PROCESO_COLORES[estado] || '#2563eb';
   var historial;
   try { historial = JSON.parse(card.dataset.historial || '[]'); } catch(e) { historial = []; }
   var slice = historial.slice(-_historialDias);
@@ -45,52 +44,45 @@ function _renderSparkline(el) {
   slice.forEach(function(d) { if ((d.cobertura||0) > max) max = d.cobertura||0; });
   if (max === 0) max = 1;
 
-  while (el.firstChild) el.removeChild(el.firstChild);
-  slice.forEach(function(d) {
-    var pct   = d.cobertura > 0 ? Math.max(8, Math.round((d.cobertura / max) * 100)) : 4;
-    var parts = (d.fecha || '').split('-');
-    var label = parts.length === 3 ? parts[2] + '/' + parts[1] : d.fecha;
-    var bar   = document.createElement('div');
-    bar.className        = 'spark-bar';
-    bar.style.height     = pct + '%';
-    bar.style.opacity    = d.cobertura > 0 ? '0.85' : '0.18';
-    bar.style.background = 'linear-gradient(to top,' + color + '55,' + color + ')';
-    bar.title            = label + ': ' + (d.cobertura || 0) + ' art.';
-    el.appendChild(bar);
+  var W = canvas.offsetWidth || canvas.parentElement.clientWidth || 280;
+  var H = parseInt(canvas.getAttribute('height')) || 44;
+  canvas.width  = W;
+  canvas.height = H;
+
+  var ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, W, H);
+  if (!slice.length) return;
+
+  var n      = slice.length;
+  var gap    = 2;
+  var barW   = Math.max(2, Math.floor((W - gap * (n - 1)) / n));
+
+  slice.forEach(function(d, i) {
+    var pct  = d.cobertura > 0 ? Math.max(0.08, d.cobertura / max) : 0.04;
+    var barH = Math.max(2, Math.round(pct * H));
+    var x    = i * (barW + gap);
+    var y    = H - barH;
+    var r    = Math.min(2, barW / 2);
+
+    ctx.globalAlpha = d.cobertura > 0 ? 0.85 : 0.2;
+    ctx.fillStyle   = color;
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + barW - r, y);
+    ctx.quadraticCurveTo(x + barW, y, x + barW, y + r);
+    ctx.lineTo(x + barW, H);
+    ctx.lineTo(x, H);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+    ctx.fill();
   });
-}
-
-function _renderTrend(card) {
-  if (!card) return;
-  var wrap = card.querySelector('.proceso-trend-wrap');
-  if (!wrap) return;
-  var estado = card.dataset.estado || 'estable';
-  var color  = PROCESO_COLORES[estado] || '#6b7280';
-  var historial;
-  try { historial = JSON.parse(card.dataset.historial || '[]'); } catch(e) { historial = []; }
-  var slice = historial.slice(-_historialDias);
-  if (slice.length < 4) { while(wrap.firstChild) wrap.removeChild(wrap.firstChild); return; }
-  var half   = Math.floor(slice.length / 2);
-  var before = slice.slice(0, half).reduce(function(s,d) { return s+(d.cobertura||0); },0) / half;
-  var after  = slice.slice(half).reduce(function(s,d) { return s+(d.cobertura||0); },0) / (slice.length-half);
-  var pct    = before > 0 ? Math.round(((after-before)/before)*100) : (after>0?100:0);
-
-  while(wrap.firstChild) wrap.removeChild(wrap.firstChild);
-  var span = document.createElement('span');
-  if (Math.abs(pct) < 8) {
-    span.style.color  = '#9ca3af';
-    span.textContent  = '→ Cobertura estable';
-  } else {
-    span.style.color  = color;
-    span.textContent  = (pct > 0 ? '↑ +' : '↓ ') + pct + '% cobertura esta semana';
-  }
-  wrap.appendChild(span);
+  ctx.globalAlpha = 1;
 }
 
 (function() {
   document.querySelectorAll('.proceso-card, .proceso-card-hero').forEach(function(card) {
     _renderSparkline(card.querySelector('.proceso-sparkline'));
-    _renderTrend(card);
   });
 })();
 

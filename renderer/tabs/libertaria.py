@@ -1,11 +1,11 @@
-"""Pestaña Prensa Libertaria — fuentes anarquistas, libertarias y de contrainformación."""
+"""Pestaña Izquierda Crítica — fuentes de izquierda intelectual, anarquista y de análisis sistémico."""
 
 from renderer.components.tarjeta import tarjeta
 from renderer.components.badges import leyenda as _leyenda
 
 TAB_ID    = "libertaria"
-TAB_LABEL = "&#9889; Prensa Libertaria"
-TAB_ICON  = "⚡"
+TAB_LABEL = "&#9733; Izquierda Crítica"
+TAB_ICON  = "★"
 
 
 def _seccion(categoria: str, articulos: list[dict], analisis_txt: str,
@@ -52,9 +52,9 @@ def render(alternativas: dict[str, list[dict]] | None = None,
     )
 
     aviso = """<div class="libertaria-header">
-  <strong>⚡ Prensa Libertaria y Contrainformación</strong>
-  Fuentes anarquistas, libertarias y de contrainformación. Perspectivas
-  críticas con el orden establecido, el Estado y el capitalismo.
+  <strong>&#9733; Izquierda Crítica</strong>
+  Prensa de izquierda intelectual, anarquista y de análisis sistémico.
+  Perspectivas que critican el orden establecido desde el rigor, no desde el alarmismo.
   Como en el resto del digest, el análisis de sesgo es orientativo.
 </div>"""
 

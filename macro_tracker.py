@@ -239,27 +239,29 @@ def _identificar_conexiones(procesos: list[dict]) -> list[dict]:
 
 def obtener_procesos(noticias: dict) -> list[dict]:
     """
-    Identifica los procesos del día a partir de los artículos.
+    Identifica los procesos del día y los reconcilia con el registro persistente.
 
-    Usa caché Redis 24h: si ya se calculó hoy, devuelve el resultado sin coste.
-    Si no hay Redis disponible, calcula sin guardar historial.
-
-    Devuelve lista de procesos con artículos relacionados e historial de cobertura.
+    Flujo:
+      1. Si ya hay caché de hoy → devuelve directamente (0 tokens).
+      2. Claude identifica procesos en los artículos de hoy.
+      3. macro_registry reconcilia con el registro canónico (1 llamada extra Haiku).
+      4. Se actualiza el registro permanente y la caché de hoy.
+      5. Se enriquece con días activo y tendencia antes de devolver.
     """
-    # Intentar caché de hoy
+    import macro_registry as _reg
+
+    # ── Caché de hoy ──────────────────────────────────────────────────────────
     cached_raw = _cache._redis_get(_KEY_HOY)
     if cached_raw:
         try:
             procesos = json.loads(cached_raw)
             print(f"  ✓ Macro: {len(procesos)} proceso(s) desde caché (0 tokens)")
-            # Añadir historial aunque venga de caché
-            for p in procesos:
-                p["historial"] = _cargar_historial(p["id"])
-            return procesos
+            registro = _reg.cargar_registro()
+            return _reg.enriquecer(procesos, registro)
         except Exception:
             pass
 
-    # Calcular desde cero
+    # ── Detectar procesos con Claude ──────────────────────────────────────────
     compactos, todos = _compactar_articulos(noticias)
     if not compactos:
         return []
@@ -271,15 +273,24 @@ def obtener_procesos(noticias: dict) -> list[dict]:
 
     procesos = _enriquecer_con_articulos(procesos, todos)
 
-    # Guardar en Redis
+    # ── Reconciliar con registro canónico ────────────────────────────────────
+    registro = _reg.cargar_registro()
+    if registro:
+        print(f"  → Macro: reconciliando con {len(registro)} proceso(s) conocido(s)...")
+        procesos = _reg.reconciliar(procesos, registro)
+
+    # ── Actualizar registro permanente ────────────────────────────────────────
+    registro = _reg.actualizar_registro(registro, procesos)
+    _reg.guardar_registro(registro)
+
+    # ── Caché de hoy (24h) ───────────────────────────────────────────────────
     _cache._redis_set(_KEY_HOY, json.dumps(procesos, ensure_ascii=False), ex=_TTL_PROCESOS)
     _guardar_snapshot(procesos)
 
-    # Añadir historial (el de hoy ya está guardado)
-    for p in procesos:
-        p["historial"] = _cargar_historial(p["id"])
+    # ── Enriquecer con tendencia y días activo ────────────────────────────────
+    procesos = _reg.enriquecer(procesos, registro)
 
-    print(f"  ✓ Macro: {len(procesos)} proceso(s) identificado(s)")
+    print(f"  ✓ Macro: {len(procesos)} proceso(s) identificado(s) · registro: {len(registro)} total")
     return procesos
 
 

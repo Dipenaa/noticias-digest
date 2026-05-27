@@ -8,66 +8,111 @@ TAB_LABEL = "&#127758; Actualidad"
 TAB_ICON  = "🌍"
 
 _ESTADO_META = {
-    "escalada":   ("&#8593;", "estado-escalada",   "Escalada"),
-    "estable":    ("&#61;",   "estado-estable",    "Estable"),
-    "resolucion": ("&#8595;", "estado-resolucion", "Resolviendo"),
-    "silencio":   ("&#9675;", "estado-silencio",   "En silencio"),
+    "escalada":   ("↑", "estado-escalada",   "Escalada"),
+    "estable":    ("=", "estado-estable",     "Estable"),
+    "resolucion": ("↓", "estado-resolucion",  "Resolviendo"),
+    "silencio":   ("○", "estado-silencio",    "En silencio"),
 }
-_HORIZONTE_LABEL = {"dias": "días", "semanas": "semanas", "meses": "meses", "anos": "años"}
+_HORIZONTE_LABEL = {
+    "dias": "días", "semanas": "semanas", "meses": "meses", "anos": "años",
+}
+
+
+def _tendencia_html(pct: int) -> str:
+    """Badge de tendencia de cobertura vs hace 7 días."""
+    if pct > 15:
+        return f'<span class="proceso-tendencia proceso-tendencia-sube">&#8593; +{pct}%</span>'
+    if pct < -15:
+        return f'<span class="proceso-tendencia proceso-tendencia-baja">&#8595; {pct}%</span>'
+    return '<span class="proceso-tendencia proceso-tendencia-estable">&#8594;</span>'
+
+
+def _dias_html(dias: int, fecha_inicio: str) -> str:
+    """Badge de antigüedad del proceso."""
+    if dias <= 1:
+        return '<span class="proceso-edad">Nuevo hoy</span>'
+    if dias < 7:
+        return f'<span class="proceso-edad">{dias} días</span>'
+    if dias < 30:
+        semanas = dias // 7
+        return f'<span class="proceso-edad">{semanas} sem.</span>'
+    meses = dias // 30
+    return f'<span class="proceso-edad">{meses} mes{"es" if meses > 1 else ""}</span>'
 
 
 def _proceso_card(p: dict, hero: bool = False) -> str:
     estado    = p.get("estado", "estable")
     icono, cls_estado, label_estado = _ESTADO_META.get(estado, ("=", "estado-estable", "Estable"))
-    importancia    = int(p.get("importancia") or 5)
-    horizonte      = _HORIZONTE_LABEL.get(p.get("horizonte", "meses"), p.get("horizonte", "meses"))
-    historial_json = _html.escape(json.dumps(p.get("historial", []), ensure_ascii=False), quote=True)
-    n_arts_hoy     = len(p.get("articulos") or [])
-    proceso_id     = p.get("id", "")
+    importancia   = int(p.get("importancia") or 5)
+    horizonte     = _HORIZONTE_LABEL.get(p.get("horizonte", "meses"), p.get("horizonte", "meses"))
+    dias_activo   = int(p.get("dias_activo") or 1)
+    tendencia_pct = int(p.get("tendencia_pct") or 0)
+    fecha_inicio  = p.get("fecha_inicio", "")
+    n_arts_hoy    = len(p.get("articulos") or [])
+    proceso_id    = p.get("id", "")
 
+    historial_json = _html.escape(
+        json.dumps(p.get("historial", []), ensure_ascii=False), quote=True
+    )
+
+    # Artículos relacionados
     arts_html = ""
-    for a in (p.get("articulos") or [])[:5]:
+    for a in (p.get("articulos") or [])[:4]:
         titulo_a = _html.escape(a.get("titulo", ""))
         fuente_a = _html.escape(a.get("fuente", ""))
         enlace_a = _html.escape(a.get("enlace", "#"), quote=True)
-        arts_html += f'<li><a href="{enlace_a}" target="_blank" rel="noopener">{titulo_a}</a> <span class="proceso-art-fuente">— {fuente_a}</span></li>'
-
+        arts_html += (
+            f'<li><a href="{enlace_a}" target="_blank" rel="noopener">{titulo_a}</a>'
+            f' <span class="proceso-art-fuente">— {fuente_a}</span></li>'
+        )
     arts_section = f'<ul class="proceso-articulos">{arts_html}</ul>' if arts_html else ""
-    resumen      = _html.escape(p.get("resumen_hoy", ""))
-    descripcion  = _html.escape(p.get("descripcion", ""))
-    nombre       = _html.escape(p.get("nombre", ""))
-    hero_cls     = " proceso-card-hero" if hero else ""
-    imp_pct      = importancia * 10
+
+    resumen     = _html.escape(p.get("resumen_hoy", ""))
+    descripcion = _html.escape(p.get("descripcion", ""))
+    nombre      = _html.escape(p.get("nombre", ""))
+    hero_cls    = " proceso-card-hero" if hero else ""
+    imp_pct     = importancia * 10
+
+    tendencia   = _tendencia_html(tendencia_pct)
+    edad        = _dias_html(dias_activo, fecha_inicio)
 
     return f"""
-<div class="proceso-card{hero_cls}" data-historial="{historial_json}" data-estado="{estado}" data-importancia="{importancia}">
+<div class="proceso-card{hero_cls}"
+     data-historial="{historial_json}"
+     data-estado="{estado}"
+     data-importancia="{importancia}">
+
   <div class="proceso-strip proceso-strip-{estado}">
-    <span class="proceso-strip-icono">{icono}</span>
-    <span class="proceso-strip-label">{label_estado.upper()}</span>
-    <span class="proceso-strip-dot">·</span>
-    <span class="proceso-strip-horizonte">{horizonte.upper()}</span>
-    <span class="proceso-strip-arts">{n_arts_hoy} art. hoy</span>
+    <span class="proceso-strip-estado">{icono} {label_estado.upper()}</span>
+    <span class="proceso-strip-meta">
+      {edad}
+      {tendencia}
+      <span class="proceso-strip-arts">{n_arts_hoy} art. hoy</span>
+    </span>
   </div>
+
   <div class="proceso-body">
-    <div class="proceso-watermark">{importancia}</div>
+    <div class="proceso-imp-badge">{importancia}<span>/10</span></div>
     <div class="proceso-nombre">{nombre}</div>
     <div class="proceso-descripcion">{descripcion}</div>
-    <div class="proceso-imp-row">
-      <div class="proceso-imp-track">
-        <div class="proceso-imp-fill proceso-imp-fill-{estado}" style="width:{imp_pct}%"></div>
-      </div>
-      <span class="proceso-imp-num">{importancia}/10</span>
+
+    <div class="proceso-barra-wrap">
+      <div class="proceso-barra-fill proceso-barra-{estado}" style="width:{imp_pct}%"></div>
     </div>
+
     <p class="proceso-resumen">{resumen}</p>
+
     {arts_section}
   </div>
+
   <div class="proceso-footer">
-    <div class="proceso-trend-wrap" id="trend-{proceso_id}"></div>
-    <div class="proceso-spark-label-row">
-      <span class="proceso-spark-label">Cobertura</span>
+    <div class="proceso-spark-header">
+      <span class="proceso-spark-label">Cobertura · {horizonte.upper()}</span>
+      <span class="proceso-spark-dias">{dias_activo} días en seguimiento</span>
     </div>
-    <div class="proceso-sparkline"></div>
+    <canvas class="proceso-sparkline" id="spark-{proceso_id}" height="44"></canvas>
   </div>
+
 </div>"""
 
 
@@ -114,17 +159,17 @@ def render(procesos: list[dict] | None = None,
     return f"""
 <div class="actualidad-header">
   <h2>Actualidad Absoluta</h2>
-  <p>{n} proceso(s) en curso &mdash; situaciones con impacto global sostenido.</p>
+  <p>{n} proceso(s) en seguimiento &mdash; situaciones con impacto sostenido en el tiempo.</p>
   <div class="historial-filtros">
-    <span class="historial-filtro-label">Historial:</span>
-    <button class="historial-filter-btn" data-dias="5" onclick="setHistorialDias(5)">5 d&#237;as</button>
-    <button class="historial-filter-btn active" data-dias="10" onclick="setHistorialDias(10)">10 d&#237;as</button>
-    <button class="historial-filter-btn" data-dias="15" onclick="setHistorialDias(15)">15 d&#237;as</button>
+    <span class="historial-filtro-label">Ver:</span>
+    <button class="historial-filter-btn" data-dias="7"  onclick="setHistorialDias(7)">7 d&#237;as</button>
+    <button class="historial-filter-btn active" data-dias="15" onclick="setHistorialDias(15)">15 d&#237;as</button>
+    <button class="historial-filter-btn" data-dias="30" onclick="setHistorialDias(30)">30 d&#237;as</button>
     <span class="historial-filtro-sep">|</span>
-    <button class="historial-filter-btn" data-estado="escalada" onclick="filtrarProcesos('escalada',this)">&#8593; Escalada</button>
-    <button class="historial-filter-btn" data-estado="estable" onclick="filtrarProcesos('estable',this)">= Estable</button>
+    <button class="historial-filter-btn" data-estado="escalada"  onclick="filtrarProcesos('escalada',this)">&#8593; Escalada</button>
+    <button class="historial-filter-btn" data-estado="estable"   onclick="filtrarProcesos('estable',this)">=&nbsp;Estable</button>
     <button class="historial-filter-btn" data-estado="resolucion" onclick="filtrarProcesos('resolucion',this)">&#8595; Resuelve</button>
-    <button class="historial-filter-btn" data-estado="todos" onclick="filtrarProcesos('todos',this)">Todos</button>
+    <button class="historial-filter-btn" data-estado="todos"     onclick="filtrarProcesos('todos',this)">Todos</button>
     <span class="historial-filtro-sep">|</span>
     <button class="historial-filter-btn briefing-btn" onclick="generarBriefing()">&#128196; Briefing</button>
   </div>

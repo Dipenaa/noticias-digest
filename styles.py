@@ -874,57 +874,56 @@ header    { top: 0; }
 
 /* Strip de estado — banda superior compacta */
 .proceso-strip {
-  display: flex; align-items: center; gap: .4rem;
-  padding: .35rem .875rem;
-  font-size: .6rem; font-weight: 800; letter-spacing: .1em;
-  text-transform: uppercase; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .35rem .875rem; flex-shrink: 0;
 }
+.proceso-strip-estado { font-size: .6rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+.proceso-strip-meta   { display: flex; align-items: center; gap: .4rem; flex-shrink: 0; }
 .proceso-strip-escalada   { background: rgba(239,68,68,0.1);   color: #f87171; }
 .proceso-strip-estable    { background: rgba(67,97,238,0.08);  color: var(--accent-blue); }
 .proceso-strip-resolucion { background: rgba(74,222,128,0.07); color: #4ade80; }
 .proceso-strip-silencio   { background: rgba(107,114,128,0.07);color: #636366; }
-.proceso-strip-dot      { opacity: .3; margin: 0 .1rem; }
-.proceso-strip-horizonte { opacity: .7; font-weight: 600; }
-.proceso-strip-arts     { margin-left: auto; font-weight: 600; opacity: .6; font-size: .58rem; }
+.proceso-strip-arts { font-weight: 600; opacity: .6; font-size: .58rem; }
+
+/* Badges de edad y tendencia de cobertura */
+.proceso-edad { font-size: .58rem; font-weight: 700; color: var(--txt-3); white-space: nowrap; }
+.proceso-tendencia { font-size: .6rem; font-weight: 700; padding: .05rem .25rem; border-radius: 3px; white-space: nowrap; }
+.proceso-tendencia-sube   { background: rgba(239,68,68,0.15); color: #f87171; }
+.proceso-tendencia-baja   { background: rgba(74,222,128,0.12); color: #4ade80; }
+.proceso-tendencia-estable { color: var(--txt-3); }
 
 /* Body */
 .proceso-body {
   padding: 1rem 1.1rem .875rem;
+  position: relative; overflow: hidden;
   display: flex; flex-direction: column; gap: .6rem; flex: 1;
 }
 
-/* Watermark: oculto en móvil, decorativo en desktop */
-.proceso-watermark { display: none; }
-@media (min-width: 600px) {
-  .proceso-body { position: relative; overflow: hidden; }
-  .proceso-watermark {
-    display: block; position: absolute; right: .5rem; top: -.5rem;
-    font-size: 5rem; font-weight: 900; line-height: 1;
-    opacity: .035; color: var(--txt-1); pointer-events: none; user-select: none;
-  }
-  .proceso-card-hero .proceso-watermark { font-size: 8rem; }
+/* Badge de importancia — número grande semitransparente */
+.proceso-imp-badge {
+  position: absolute; top: .75rem; right: .9rem;
+  font-size: 2rem; font-weight: 900; line-height: 1;
+  color: var(--txt-1); opacity: .09; pointer-events: none; user-select: none;
 }
+.proceso-imp-badge span { font-size: .55rem; font-weight: 600; vertical-align: super; }
+.proceso-card-hero .proceso-imp-badge { font-size: 3rem; }
 
 /* Nombre y descripción */
 .proceso-nombre {
   font-family: var(--font-serif);
   font-size: 1.1rem; font-weight: 700; color: var(--txt-1);
-  line-height: 1.25; letter-spacing: -0.02em; position: relative;
+  line-height: 1.25; letter-spacing: -0.02em;
 }
 .proceso-card-hero .proceso-nombre { font-size: 1.35rem; }
-.proceso-descripcion {
-  font-size: .75rem; color: var(--txt-2); line-height: 1.5;
-}
+.proceso-descripcion { font-size: .75rem; color: var(--txt-2); line-height: 1.5; }
 
 /* Barra de importancia */
-.proceso-imp-row { display: flex; align-items: center; gap: .5rem; }
-.proceso-imp-track { flex: 1; height: 3px; background: var(--surface-3); border-radius: 3px; overflow: hidden; }
-.proceso-imp-fill  { height: 100%; border-radius: 3px; }
-.proceso-imp-fill-escalada   { background: linear-gradient(90deg, #dc2626, #f87171); }
-.proceso-imp-fill-estable    { background: linear-gradient(90deg, var(--accent), var(--accent-blue)); }
-.proceso-imp-fill-resolucion { background: linear-gradient(90deg, #22c55e, #4ade80); }
-.proceso-imp-fill-silencio   { background: linear-gradient(90deg, #52525b, #a1a1aa); }
-.proceso-imp-num { font-size: .62rem; font-weight: 700; color: var(--txt-3); white-space: nowrap; }
+.proceso-barra-wrap { height: 3px; background: var(--surface-3); border-radius: 3px; overflow: hidden; }
+.proceso-barra-fill { height: 100%; border-radius: 3px; transition: width .4s ease; }
+.proceso-barra-escalada   { background: linear-gradient(90deg, #dc2626, #f87171); }
+.proceso-barra-estable    { background: linear-gradient(90deg, var(--accent), var(--accent-blue)); }
+.proceso-barra-resolucion { background: linear-gradient(90deg, #22c55e, #4ade80); }
+.proceso-barra-silencio   { background: linear-gradient(90deg, #52525b, #a1a1aa); }
 
 /* Resumen del día */
 .proceso-resumen { font-size: .81rem; color: var(--txt-2); line-height: 1.6; margin: 0; }
@@ -939,29 +938,23 @@ header    { top: 0; }
   font-size: .71rem; line-height: 1.35;
   display: flex; align-items: baseline; gap: .4rem; flex-wrap: wrap;
 }
-.proceso-articulos a {
-  color: var(--txt-1); text-decoration: none; flex: 1;
-  transition: color .12s;
-}
+.proceso-articulos a { color: var(--txt-1); text-decoration: none; flex: 1; transition: color .12s; }
 .proceso-articulos a:hover { color: var(--accent-blue); }
 .proceso-art-fuente {
   font-size: .58rem; font-weight: 700; text-transform: uppercase;
   letter-spacing: .06em; color: var(--txt-3); white-space: nowrap; flex-shrink: 0;
 }
 
-/* Footer con sparkline */
+/* Footer con sparkline canvas */
 .proceso-footer {
   border-top: 1px solid var(--border-sub);
   padding: .5rem .875rem .7rem;
-  display: flex; flex-direction: column; gap: .25rem;
+  display: flex; flex-direction: column; gap: .35rem;
 }
-.proceso-trend-wrap { font-size: .72rem; font-weight: 600; min-height: 1em; }
-.proceso-spark-label-row { display: flex; align-items: center; justify-content: space-between; }
-.proceso-spark-label { font-size: .55rem; color: var(--txt-3); font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
-.proceso-sparkline { display: flex; align-items: flex-end; gap: 2px; height: 40px; }
-.proceso-card-hero .proceso-sparkline { height: 56px; }
-.spark-bar { flex: 1; border-radius: 2px 2px 0 0; min-height: 2px; cursor: default; transition: opacity .12s, transform .1s; transform-origin: bottom; }
-.spark-bar:hover { opacity: .7 !important; transform: scaleY(1.07); }
+.proceso-spark-header { display: flex; align-items: center; justify-content: space-between; }
+.proceso-spark-label  { font-size: .55rem; color: var(--txt-3); font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
+.proceso-spark-dias   { font-size: .55rem; color: var(--txt-3); font-weight: 600; }
+.proceso-sparkline    { display: block; width: 100%; border-radius: 2px; }
 
 /* ── Conexiones entre procesos ─────────────────────────────────────────── */
 .conexiones-panel {
