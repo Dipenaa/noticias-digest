@@ -35,7 +35,7 @@ briefing_generator.py — Memo de inteligencia diario (Sonnet, caché 12h)
 pipeline.py           — Pipeline central: estado compartido entre hilos; _INTERVALO_HORAS=18
 renderer.py           — SHIM de compatibilidad — el código real está en el paquete renderer/
 renderer/             — Paquete modular: shell.py + tabs/ + components/
-styles.py             — Todo el CSS (separado del renderer)
+static/css/           — CSS en 4 ficheros: reset.css, layout.css, components.css, animations.css
 article_cache.py      — Caché persistente: Redis si REDIS_URL existe, sino JSON en disco
 app.py                — Servidor Flask (~150 líneas); delega toda lógica a pipeline.py
 main.py               — Alternativa CLI para ejecutar localmente
@@ -134,17 +134,21 @@ Scripts reutilizables guardados: `autoresearch_analyzer.py` y `autoresearch_synt
 - **Renderer modularizado (27 mayo 2026):** renderer.py es ahora un shim; código real en paquete `renderer/`; pipeline.py centraliza la lógica de app.py
 - **claude_client.py con tracking de coste en $ (27 mayo 2026):** `_calcular_coste()`, `reset_coste()`, `resumen_coste()` + logging `💰` con importe real por llamada
 
-## Estado del diseño — rama `claude/buenas-xo9D9` (26 mayo 2026)
-El tema **Dark Premium** ya está en producción (`styles.py`).
+## Estado del diseño — EnPapel (28 mayo 2026)
+
+Rebrand completo. CSS en `static/css/` (4 ficheros). App renombrada a **EnPapel**.
 
 Características:
-- Fondo negro puro (`#000`), glassmorphism en cards (`rgba(255,255,255,0.033)`)
-- Cards con hover expansion: resumen se despliega, crítica IA emerge
-- Barras de espectro de sesgo (CSS puro con `[title="sesgo"]`)
-- Buscador estilo Spotlight (180px → 400px al hacer foco)
-- Sort bar como control segmentado iOS (4 opciones, derecha)
-- Sidebar con pestañas: acento azul en activa
-- Tipografía fluida con `clamp()`, títulos serif con gradiente
+
+- Paleta arena/crema oscura: fondo `#0d0b08`, acento dorado `#c8a470`
+- Tipografía Playfair Display (serif) para títulos y logo
+- Monograma D en header (CSS-only, no emoji)
+- Sidebar toggle (☰) con animación + persistencia localStorage
+- Modo día (`body.light`) con redefinición completa de variables CSS
+- Degradado radial orgánico en body (arena cálida + terracota)
+- Buscador Spotlight (180px → 400px al enfocar) + backdrop-filter
+- Sticky elements con fondo opaco para evitar fantasmas de scroll
+- Sin emojis en pestañas; sin banner IA; sin botón Regenerar en preview
 
 ## Cómo activar Redis (Upstash — gratuito)
 1. Ir a https://upstash.com y crear una base de datos Redis gratuita
