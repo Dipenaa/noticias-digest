@@ -1,5 +1,5 @@
 /* ── Actualidad Absoluta — procesos globales y briefing ──────────────── */
-var _historialDias       = 10;
+var _historialDias       = 15;
 var _procesoEstadoFiltro = 'todos';
 
 var PROCESO_COLORES = {

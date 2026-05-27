@@ -32,6 +32,15 @@ function switchTab(name) {
   var noSort   = noSearch || name === 'sintesis' || name === 'asombro';
   if (sortBar) sortBar.style.display = noSort ? 'none' : 'flex';
 
+  if (name === 'actualidad') {
+    // Re-render canvas sparklines at correct size now that the tab is visible
+    setTimeout(function() {
+      document.querySelectorAll('.proceso-sparkline').forEach(function(c) {
+        if (typeof _renderSparkline === 'function') _renderSparkline(c);
+      });
+    }, 0);
+  }
+
   try {
     if (name === 'estadisticas') {
       if (!_statsReady) { renderEstadisticas(); _statsReady = true; }

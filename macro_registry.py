@@ -28,7 +28,7 @@ Estructura de cada entrada:
 """
 
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 from article_cache import shared as _cache
@@ -202,21 +202,35 @@ def enriquecer(procesos: list[dict], registro: dict[str, dict]) -> list[dict]:
       - dias_activo    : días que el proceso lleva en el registro
       - fecha_inicio   : cuándo fue detectado por primera vez
       - tendencia_pct  : % de cambio en cobertura vs hace 7 días
+      - historial      : lista de 30 días {fecha, cobertura} para la sparkline
     """
+    today = datetime.now()
     for p in procesos:
         pid = p.get("id", "")
         r   = registro.get(pid, {})
 
         p["dias_activo"]  = r.get("n_dias_cubiertos", 1)
-        p["fecha_inicio"] = r.get("fecha_inicio", datetime.now().strftime("%Y-%m-%d"))
+        p["fecha_inicio"] = r.get("fecha_inicio", today.strftime("%Y-%m-%d"))
 
-        hist = r.get("historial", [])
+        hist  = r.get("historial", [])
         n_hoy = len(p.get("articulos") or [])
         if len(hist) >= 7:
             n_ref = hist[-7].get("n_articulos", 0)
             p["tendencia_pct"] = int((n_hoy - n_ref) / max(n_ref, 1) * 100)
         else:
             p["tendencia_pct"] = 0
+
+        # 30-day calendar historial for sparkline — fills calendar gaps with 0
+        hist_by_date = {h["fecha"]: h.get("n_articulos", 0) for h in hist}
+        p["historial"] = [
+            {
+                "fecha":     (today - timedelta(days=i)).strftime("%Y-%m-%d"),
+                "cobertura": hist_by_date.get(
+                    (today - timedelta(days=i)).strftime("%Y-%m-%d"), 0
+                ),
+            }
+            for i in range(29, -1, -1)
+        ]
 
     return procesos
 
