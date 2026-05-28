@@ -221,6 +221,25 @@ self.addEventListener('fetch', e => {
     return Response(js, mimetype="application/javascript")
 
 
+@app.route("/debug/macro")
+def debug_macro():
+    """Diagnóstico: muestra estado del macro_tracker."""
+    from article_cache import shared as _cache
+    hoy = datetime.now().strftime("%Y-%m-%d")
+    cache_val = _cache._redis_get(f"macro:hoy:{hoy}")
+    render_data = pipeline.get_render_data()
+    n_procesos = len(render_data.get("procesos", [])) if render_data else 0
+    stats = _cache.stats()
+    estado = pipeline.get_estado()
+    return jsonify({
+        "redis_backend":     stats["backend"],
+        "redis_macro_hoy":   cache_val[:300] if cache_val else None,
+        "procesos_en_html":  n_procesos,
+        "ia_ok":             estado["anthropic_key_ok"],
+        "ultimo_error":      estado["ultimo_error"],
+    })
+
+
 @app.route("/ping")
 def ping():
     return Response("ok", mimetype="text/plain")

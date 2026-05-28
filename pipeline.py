@@ -59,7 +59,7 @@ def get_estado() -> dict:
             "generando":               _generando,
             "tiene_cache":             _html_cache is not None,
             "ultimo_update":           _ultimo_update.isoformat() if _ultimo_update else None,
-            "ultimo_error":            _ultimo_error is not None,
+            "ultimo_error":            _ultimo_error,
             "anthropic_key_ok":        ANTHROPIC_API_KEY not in ("", None),
             "cache_articulos":         stats["articulos_cacheados"],
             "cache_sintesis":          stats["sintesis_cacheadas"],
@@ -102,7 +102,12 @@ def _pipeline_ia(noticias: dict, alternativas: dict):
     from noise_filter import detectar_ruido as _ruido
     from watch import verificar_condiciones as _watch
 
-    macro = _macro(noticias) if ia else {"procesos": [], "conexiones": []}
+    try:
+        macro = _macro(noticias) if ia else {"procesos": [], "conexiones": []}
+    except Exception as e:
+        print(f"[{datetime.now():%H:%M:%S}] Macro falló (no crítico): {e}")
+        import traceback as _tb; _tb.print_exc()
+        macro = {"procesos": [], "conexiones": []}
     if ia:
         noticias     = _ruido(noticias)
         alternativas = _ruido(alternativas)
