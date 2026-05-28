@@ -42,6 +42,45 @@
 .grid .tarjeta:nth-child(5)  { animation-delay: 160ms; }
 .grid .tarjeta:nth-child(n+6){ animation-delay: 200ms; }
 
+/* ── Barra de progreso de lectura (CSS scroll-driven) ─────────── */
+@supports (animation-timeline: scroll()) {
+  html::after {
+    content: '';
+    position: fixed;
+    top: 0; left: 218px; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-warm));
+    transform-origin: left center;
+    transform: scaleX(0);
+    animation: reading-progress linear forwards;
+    animation-timeline: scroll(root);
+    z-index: 9999;
+    pointer-events: none;
+  }
+  @keyframes reading-progress {
+    from { transform: scaleX(0); }
+    to   { transform: scaleX(1); }
+  }
+  body.sidebar-hidden html::after,
+  body.sidebar-hidden::after { left: 0; }
+}
+
+/* ── Scroll-driven card entrance (progressive enhancement) ───── */
+@supports (animation-timeline: view()) {
+  .tarjeta, .tarjeta-destacada, .sintesis-card, .asombro-card, .proceso-card {
+    animation: fadeInUp linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 22%;
+  }
+  /* Sin delay artificial en browsers modernos — el scroll lo templa */
+  .grid .tarjeta:nth-child(1),
+  .grid .tarjeta:nth-child(2),
+  .grid .tarjeta:nth-child(3),
+  .grid .tarjeta:nth-child(4),
+  .grid .tarjeta:nth-child(5),
+  .grid .tarjeta:nth-child(n+6) { animation-delay: 0ms; }
+}
+
 /* ── Transición del drawer ───────────────────────────────────── */
 .drawer { transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1); }
 

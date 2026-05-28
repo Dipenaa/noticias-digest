@@ -226,8 +226,8 @@
 /* ── Título ──────────────────────────────────────────────────── */
 .titulo {
   font-family: var(--font-serif);
-  font-size: 1.18rem; font-weight: 700;
-  line-height: 1.28; letter-spacing: -0.02em;
+  font-size: 1.3rem; font-weight: 700;
+  line-height: 1.25; letter-spacing: -0.025em;
   color: var(--txt-1);
 }
 .titulo a {
