@@ -1,18 +1,18 @@
 """
 macro_tracker.py — Identifica los 3-5 procesos mundiales más importantes del día.
 
-Estrategia de coste mínimo:
-- Haiku (no Sonnet) para identificar procesos: ~0.3 céntimos/día
+Estrategia:
+- Sonnet para identificar procesos: ~2-3 céntimos/día (1 llamada caché 24h)
+- Haiku fue sustituido porque devolvía [] con JSON complejo; Sonnet es más fiable
 - Caché Redis 24h: solo ejecuta una vez aunque el digest se regenere varias veces
 - Guarda snapshot diario en Redis (TTL 15 días) para el historial de cobertura
 """
 
 import json
 import re
-import hashlib
 from datetime import datetime, timedelta
 
-from config import CLAUDE_MODEL_ANALISIS, IDIOMA_ANALISIS
+from config import CLAUDE_MODEL, CLAUDE_MODEL_ANALISIS
 from article_cache import shared as _cache
 from claude_client import llamar_claude
 
@@ -32,92 +32,97 @@ _CATEGORIAS_PROCESO = {"España", "Internacional", "Economía"}
 # Límite de artículos enviados a Claude — evita prompts enormes cuando el pool acumula 3 días
 _MAX_ARTICULOS_MACRO = 50
 
-_SYSTEM = """Eres un analista político senior. Identificas los procesos más relevantes del momento,
-tanto internacionales como nacionales. Un proceso es un conflicto, crisis, negociación, transición
-o tensión política/social que lleva días o meses activo y tiene impacto real en las personas."""
+_SYSTEM = """Eres un analista geopolítico senior especializado en España y asuntos internacionales.
+Tu tarea es identificar los grandes procesos en curso: conflictos, crisis, negociaciones, tensiones
+políticas o sociales que llevan días o semanas activos y tienen impacto real en las personas.
+Siempre respondes con JSON válido, sin explicaciones adicionales."""
 
-_PROMPT = """Analiza estos artículos de noticias e identifica los 2-5 PROCESOS MÁS IMPORTANTES
-que están en curso ahora mismo — internacionales, europeos o españoles.
+_PROMPT = """Analiza estos titulares de noticias e identifica los 2-5 PROCESOS más importantes
+en curso ahora mismo — conflictos, crisis políticas, negociaciones o tensiones que persisten
+en el tiempo (no eventos únicos de hoy).
 
-Artículos disponibles (id | fuente | título | resumen):
+Los artículos están ordenados del más reciente al más antiguo. Usa la fecha para distinguir
+si algo es un proceso activo (aparece en varios días) o un evento puntual.
+
+Artículos (id | fecha | fuente | título | resumen):
 {articulos}
 
-Responde ÚNICAMENTE con un objeto JSON válido, sin texto antes ni después:
+EJEMPLO de respuesta correcta:
 {{
   "procesos": [
     {{
-      "id": "slug-kebab-case-estable",
-      "nombre": "Nombre del proceso (máx 5 palabras)",
-      "descripcion": "Qué es y por qué importa en 1 frase",
-      "estado": "escalada|estable|resolucion|silencio",
-      "importancia": 8,
-      "horizonte": "dias|semanas|meses|anos",
-      "resumen_hoy": "2-3 frases sobre lo que está pasando HOY según los artículos",
-      "ids_articulos": [0, 3, 7]
+      "id": "guerra-ucrania",
+      "nombre": "Guerra en Ucrania",
+      "descripcion": "Invasión rusa en curso desde 2022 con escaladas periódicas.",
+      "estado": "escalada",
+      "importancia": 9,
+      "horizonte": "anos",
+      "resumen_hoy": "Rusia lanza nueva oleada de drones sobre Kiev. Zelenski pide más defensa aérea a la OTAN. EE.UU. debate nuevo paquete de ayuda.",
+      "ids_articulos": [1, 4, 9]
     }}
   ]
 }}
 
-Si los artículos no cubren ningún proceso relevante, devuelve {{"procesos": []}}.
-Ordena por importancia descendente."""
+Devuelve JSON válido con esta estructura exacta. Si no hay procesos claros, devuelve {{"procesos": []}}.
+Ordena por importancia (mayor primero)."""
 
 
 def _compactar_articulos(noticias: dict) -> tuple[list[dict], list[dict]]:
-    """Aplana y compacta artículos de categorías relevantes para el prompt."""
-    compactos = []
-    todos = []
+    """Aplana, ordena por fecha desc y compacta artículos de categorías relevantes."""
+    pares = []  # (articulo_original, categoria)
     for cat, arts in noticias.items():
-        # Skip categories that never contain current political/social processes
         if _CATEGORIAS_PROCESO and cat not in _CATEGORIAS_PROCESO:
             continue
         for a in arts:
-            todos.append(a)
-            compactos.append({
-                "id":      len(compactos),
-                "fuente":  a.get("fuente", ""),
-                "titulo":  a.get("titulo", ""),
-                "resumen": (a.get("resumen") or "")[:120],
-            })
-    # Fallback: if filtering removed everything, use all articles
-    if not compactos:
-        todos = []
+            pares.append(a)
+
+    # Fallback: si el filtro vacía todo, usar todos los artículos
+    if not pares:
         for arts in noticias.values():
-            for a in arts:
-                todos.append(a)
-                compactos.append({
-                    "id":      len(compactos),
-                    "fuente":  a.get("fuente", ""),
-                    "titulo":  a.get("titulo", ""),
-                    "resumen": (a.get("resumen") or "")[:120],
-                })
+            pares.extend(arts)
 
-    # Limitar artículos para evitar prompts gigantes por acumulación del pool
-    if len(compactos) > _MAX_ARTICULOS_MACRO:
-        compactos = compactos[:_MAX_ARTICULOS_MACRO]
-        todos     = todos[:_MAX_ARTICULOS_MACRO]
+    # Ordenar del más reciente al más antiguo antes de capturar
+    pares.sort(key=lambda a: a.get("fecha", ""), reverse=True)
 
+    # Aplicar límite sobre los más recientes
+    pares = pares[:_MAX_ARTICULOS_MACRO]
+
+    todos = pares
+    compactos = [
+        {
+            "id":      i,
+            "fecha":   a.get("fecha", "")[:10],
+            "fuente":  a.get("fuente", ""),
+            "titulo":  a.get("titulo", ""),
+            "resumen": (a.get("resumen") or "")[:120],
+        }
+        for i, a in enumerate(pares)
+    ]
     return compactos, todos
 
 
-def _llamar_haiku(articulos_compactos: list[dict]) -> list[dict] | None:
+def _llamar_sonnet(articulos_compactos: list[dict]) -> list[dict] | None:
     lineas = [
-        f"{a['id']} | {a['fuente']} | {a['titulo']} | {a['resumen']}"
+        f"{a['id']} | {a['fecha']} | {a['fuente']} | {a['titulo']} | {a['resumen']}"
         for a in articulos_compactos
     ]
     prompt = _PROMPT.format(articulos="\n".join(lineas))
+    print(f"  → Macro: enviando {len(articulos_compactos)} artículos a Sonnet...")
     texto = llamar_claude(
         prompt,
         system=_SYSTEM,
-        model=CLAUDE_MODEL_ANALISIS,
+        model=CLAUDE_MODEL,
         max_tokens=1500,
-        temperature=0.3,
+        temperature=0.2,
         raw_text=True,
     )
     if texto is None:
-        print("  ✗ Macro: llamar_claude devolvió None")
+        print("  ✗ Macro: llamar_claude devolvió None (API error o rate limit)")
         return None
 
-    # Parse JSON; fall back to regex extraction if Claude added surrounding text
+    print(f"  → Macro: respuesta Sonnet ({len(texto)} chars): {texto[:400]}")
+
+    # Parse JSON; fall back to regex extraction if Sonnet added surrounding text
     resultado = None
     try:
         resultado = json.loads(texto)
@@ -278,7 +283,7 @@ def obtener_procesos(noticias: dict) -> list[dict]:
         return []
 
     print(f"  → Macro: identificando procesos en {len(compactos)} artículos...")
-    procesos = _llamar_haiku(compactos)
+    procesos = _llamar_sonnet(compactos)
     if not procesos:
         return []
 
