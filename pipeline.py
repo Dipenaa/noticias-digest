@@ -105,8 +105,11 @@ def _pipeline_ia(noticias: dict, alternativas: dict):
     try:
         macro = _macro(noticias) if ia else {"procesos": [], "conexiones": []}
     except Exception as e:
-        print(f"[{datetime.now():%H:%M:%S}] Macro falló (no crítico): {e}")
-        import traceback as _tb; _tb.print_exc()
+        err_str = traceback.format_exc()
+        print(f"[{datetime.now():%H:%M:%S}] Macro falló (no crítico): {e}\n{err_str}")
+        global _ultimo_error
+        with _lock:
+            _ultimo_error = f"[macro] {str(e)}"
         macro = {"procesos": [], "conexiones": []}
     if ia:
         noticias     = _ruido(noticias)

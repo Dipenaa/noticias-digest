@@ -29,12 +29,10 @@ Estructura de cada entrada:
 
 import json
 from datetime import datetime, timedelta
-from pathlib import Path
 
 from article_cache import shared as _cache
 
 _KEY_REGISTRO   = "macro:registro:v1"
-_BACKUP_PATH    = Path("macro_registro.json")
 _TTL_1_YEAR     = 365 * 24 * 3600   # 1 año en segundos; se renueva en cada escritura
 _MAX_HISTORIAL  = 180                # días de historial por proceso
 
@@ -60,29 +58,20 @@ Responde ÚNICAMENTE con JSON válido:
 # ---------------------------------------------------------------------------
 
 def cargar_registro() -> dict[str, dict]:
-    """Carga el registro desde Redis; fallback a JSON en disco."""
+    """Carga el registro desde Redis."""
     raw = _cache._redis_get(_KEY_REGISTRO)
     if raw:
         try:
             return json.loads(raw)
         except Exception:
             pass
-    if _BACKUP_PATH.exists():
-        try:
-            return json.loads(_BACKUP_PATH.read_text(encoding="utf-8"))
-        except Exception:
-            pass
     return {}
 
 
 def guardar_registro(registro: dict[str, dict]) -> None:
-    """Persiste el registro en Redis (TTL 1 año, se renueva) y en disco."""
+    """Persiste el registro en Redis (TTL 1 año, se renueva)."""
     datos = json.dumps(registro, ensure_ascii=False, indent=2)
     _cache._redis_set(_KEY_REGISTRO, datos, ex=_TTL_1_YEAR)
-    try:
-        _BACKUP_PATH.write_text(datos, encoding="utf-8")
-    except Exception:
-        pass
 
 
 # ---------------------------------------------------------------------------
@@ -99,6 +88,11 @@ def reconciliar(procesos_hoy: list[dict], registro: dict[str, dict]) -> list[dic
     Añade el campo '_nuevo_en_registro' (bool) a cada proceso.
     """
     if not registro:
+        for p in procesos_hoy:
+            p["_nuevo_en_registro"] = True
+        return procesos_hoy
+
+    if len(registro) < 3:
         for p in procesos_hoy:
             p["_nuevo_en_registro"] = True
         return procesos_hoy
@@ -188,6 +182,11 @@ def actualizar_registro(registro: dict[str, dict], procesos_hoy: list[dict]) -> 
             r["fecha_ultimo"]   = hoy
             r["importancia_max"] = max(r.get("importancia_max", 0), p.get("importancia", 5))
             r["estado_actual"]  = p.get("estado", "estable")
+
+    # Purgar procesos sin actividad en los últimos 90 días
+    cutoff = (datetime.now() - timedelta(days=90)).strftime("%Y-%m-%d")
+    registro = {pid: r for pid, r in registro.items()
+                if r.get("fecha_ultimo", "") >= cutoff}
 
     return registro
 

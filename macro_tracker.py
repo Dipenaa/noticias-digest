@@ -5,22 +5,19 @@ Estrategia:
 - Sonnet para identificar procesos: ~2-3 céntimos/día (1 llamada caché 24h)
 - Haiku fue sustituido porque devolvía [] con JSON complejo; Sonnet es más fiable
 - Caché Redis 24h: solo ejecuta una vez aunque el digest se regenere varias veces
-- Guarda snapshot diario en Redis (TTL 15 días) para el historial de cobertura
 """
 
 import json
 import re
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from config import CLAUDE_MODEL, CLAUDE_MODEL_ANALISIS
 from article_cache import shared as _cache
 from claude_client import llamar_claude
 
 _TTL_PROCESOS  = 24 * 3600       # 24h — no recalcular si se regenera hoy
-_TTL_HISTORIAL = 15 * 24 * 3600  # 15 días de historial
 
 _KEY_HOY       = "macro:hoy:{fecha}"  # date-aware para evitar cache stale entre días
-_KEY_SNAP      = "macro:snap:{fecha}"  # {proceso_id: n_articulos}
 
 _ESTADOS = {"escalada", "estable", "resolucion", "silencio"}
 _HORIZONTES = {"dias", "semanas", "meses", "anos"}
@@ -146,15 +143,18 @@ def _enriquecer_con_articulos(procesos: list[dict], todos_articulos: list[dict])
     """Añade los objetos artículo completos a cada proceso."""
     for p in procesos:
         ids = p.get("ids_articulos", [])
-        p["articulos"] = [
-            {
-                "titulo": todos_articulos[i].get("titulo", ""),
-                "fuente": todos_articulos[i].get("fuente", ""),
-                "enlace": todos_articulos[i].get("enlace", "#"),
-                "fecha":  todos_articulos[i].get("fecha", datetime.now().strftime("%Y-%m-%d")),
-            }
-            for i in ids if 0 <= i < len(todos_articulos)
-        ]
+        articulos = []
+        for i in ids:
+            if 0 <= i < len(todos_articulos):
+                articulos.append({
+                    "titulo": todos_articulos[i].get("titulo", ""),
+                    "fuente": todos_articulos[i].get("fuente", ""),
+                    "enlace": todos_articulos[i].get("enlace", "#"),
+                    "fecha":  todos_articulos[i].get("fecha", datetime.now().strftime("%Y-%m-%d")),
+                })
+            else:
+                print(f"  ⚠ Macro: índice {i} fuera de rango (total: {len(todos_articulos)})")
+        p["articulos"] = articulos
         # Normalizar campos
         if p.get("estado") not in _ESTADOS:
             p["estado"] = "estable"
@@ -163,32 +163,6 @@ def _enriquecer_con_articulos(procesos: list[dict], todos_articulos: list[dict])
         p["importancia"] = max(1, min(10, int(p.get("importancia") or 5)))
     return procesos
 
-
-def _guardar_snapshot(procesos: list[dict]) -> None:
-    """Guarda cuántos artículos tuvo cada proceso hoy."""
-    fecha = datetime.now().strftime("%Y-%m-%d")
-    snap = {p["id"]: len(p.get("articulos", [])) for p in procesos}
-    key = _KEY_SNAP.format(fecha=fecha)
-    _cache._redis_set(key, json.dumps(snap), ex=_TTL_HISTORIAL)
-
-
-def _cargar_historial(proceso_id: str, dias: int = 15) -> list[dict]:
-    """Devuelve lista de {fecha, cobertura} para los últimos N días."""
-    historial = []
-    hoy = datetime.now()
-    for i in range(dias - 1, -1, -1):
-        fecha = (hoy - timedelta(days=i)).strftime("%Y-%m-%d")
-        key = _KEY_SNAP.format(fecha=fecha)
-        raw = _cache._redis_get(key)
-        cobertura = 0
-        if raw:
-            try:
-                snap = json.loads(raw)
-                cobertura = snap.get(proceso_id, 0)
-            except Exception:
-                pass
-        historial.append({"fecha": fecha, "cobertura": cobertura})
-    return historial
 
 
 _KEY_CONEXIONES = "macro:conexiones:{fecha}"
@@ -301,7 +275,6 @@ def obtener_procesos(noticias: dict) -> list[dict]:
 
     # ── Caché de hoy (24h) ───────────────────────────────────────────────────
     _cache._redis_set(_KEY_HOY.format(fecha=_hoy), json.dumps(procesos, ensure_ascii=False), ex=_TTL_PROCESOS)
-    _guardar_snapshot(procesos)
 
     # ── Enriquecer con tendencia y días activo ────────────────────────────────
     procesos = _reg.enriquecer(procesos, registro)
