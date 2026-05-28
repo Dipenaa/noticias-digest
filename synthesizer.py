@@ -259,6 +259,7 @@ def sintetizar_noticias(
                     "fuente":       a["fuente"],
                     "titulo":       a["titulo"],
                     "enlace":       a["enlace"],
+                    "fecha":        a.get("fecha", ""),
                     "categoria":    a["_categoria"],
                     "sesgo_fuente": a.get("sesgo_fuente", "desconocido"),
                     "alt":          a["_alt"],

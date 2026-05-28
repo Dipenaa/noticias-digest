@@ -165,10 +165,48 @@ def tarjeta_asombro(articulo: dict) -> str:
 </div>"""
 
 
+def _edad_info(fecha_str: str) -> tuple[str, str]:
+    """Devuelve (etiqueta, clase_css) según la antigüedad de un artículo."""
+    from datetime import datetime
+    try:
+        dias = (datetime.now().date() - datetime.strptime(fecha_str[:10], "%Y-%m-%d").date()).days
+    except Exception:
+        return "", "edad-antigua"
+    if dias == 0:
+        return "hoy", "edad-hoy"
+    if dias == 1:
+        return "ayer", "edad-ayer"
+    return f"{dias}d", "edad-antigua"
+
+
 def tarjeta_sintesis(grupo: dict) -> str:
-    """Tarjeta de síntesis con comparador de ángulos por sesgo político."""
-    articulos = grupo["articulos"]
+    """Tarjeta de síntesis con comparador de ángulos por sesgo político e indicadores de frescura."""
+    from datetime import datetime
+
+    # Ordenar artículos del más reciente al más antiguo
+    articulos = sorted(
+        grupo["articulos"],
+        key=lambda a: a.get("fecha", ""),
+        reverse=True,
+    )
     n = len(articulos)
+
+    # Calcular frescura del grupo
+    fechas = [a.get("fecha", "") for a in articulos if a.get("fecha")]
+    max_fecha = max(fechas) if fechas else ""
+    try:
+        dias_grupo = (datetime.now().date() - datetime.strptime(max_fecha[:10], "%Y-%m-%d").date()).days
+    except Exception:
+        dias_grupo = 99
+
+    if dias_grupo == 0:
+        frescura_label, frescura_clase = "activo hoy", "sintesis-fresco"
+    elif dias_grupo == 1:
+        frescura_label, frescura_clase = "activo ayer", "sintesis-reciente"
+    else:
+        frescura_label, frescura_clase = f"hace {dias_grupo}d", "sintesis-archivo"
+
+    card_clase = "sintesis-card en-archivo" if dias_grupo >= 2 else "sintesis-card"
 
     _izq = ["izquierda", "centro-izquierda"]
     _der = ["centro-derecha", "derecha"]
@@ -184,11 +222,14 @@ def tarjeta_sintesis(grupo: dict) -> str:
     fuentes_html = ""
     for art in articulos:
         alt_badge = '<span class="sintesis-fuente-alt">ALT</span>' if art.get("alt") else ""
+        etiqueta, clase = _edad_info(art.get("fecha", ""))
+        edad_html = f'<span class="sintesis-edad {clase}">{etiqueta}</span>' if etiqueta else ""
         fuentes_html += f"""
 <div class="sintesis-fuente-item">
   <span class="sintesis-fuente-nombre">{art["fuente"]}</span>
   {badge(art.get("sesgo_fuente") or "desconocido")}
   {alt_badge}
+  {edad_html}
   <a class="sintesis-fuente-link" href="{art['enlace']}" target="_blank" rel="noopener noreferrer">
     {art["titulo"]}
   </a>
@@ -199,7 +240,10 @@ def tarjeta_sintesis(grupo: dict) -> str:
         columnas = ""
         for nombre, arts in cols_con_datos.items():
             items = "".join(
-                f'<div class="angulo-item"><a href="{a["enlace"]}" target="_blank" rel="noopener noreferrer">{a["titulo"]}</a></div>'
+                f'<div class="angulo-item">'
+                f'<span class="angulo-edad {_edad_info(a.get("fecha",""))[1]}">{_edad_info(a.get("fecha",""))[0]}</span>'
+                f'<a href="{a["enlace"]}" target="_blank" rel="noopener noreferrer">{a["titulo"]}</a>'
+                f'</div>'
                 for a in arts
             )
             columnas += f'<div class="angulo-col"><div class="angulo-label">{nombre}</div>{items}</div>'
@@ -211,10 +255,13 @@ def tarjeta_sintesis(grupo: dict) -> str:
     )
 
     return f"""
-<div class="sintesis-card" data-search="{grupo['titulo'].lower()} {' '.join(a['fuente'].lower() for a in articulos)}">
+<div class="{card_clase}" data-search="{grupo['titulo'].lower()} {' '.join(a['fuente'].lower() for a in articulos)}">
   <div class="sintesis-meta">
     <span class="sintesis-fuentes-count">{n} fuente{"s" if n != 1 else ""}</span>
-    {comparador_badge}
+    <div class="sintesis-meta-right">
+      <span class="sintesis-frescura {frescura_clase}">{frescura_label}</span>
+      {comparador_badge}
+    </div>
   </div>
   <div class="sintesis-titulo">{grupo["titulo"]}</div>
   <div class="sintesis-texto">{grupo["sintesis"]}</div>
