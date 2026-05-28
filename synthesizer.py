@@ -257,7 +257,7 @@ def sintetizar_noticias(
                 a = todos[i]
                 articulos_grupo.append({
                     "fuente":       a["fuente"],
-                    "titulo":       a["titulo"],
+                    "titulo":       a.get("titulo_es") or a["titulo"],
                     "enlace":       a["enlace"],
                     "fecha":        a.get("fecha", ""),
                     "categoria":    a["_categoria"],

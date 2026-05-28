@@ -90,6 +90,11 @@ CAMPOS QUE DEBES DEVOLVER POR ARTÍCULO
   Solo si asombro >= 2: frase de 15-25 palabras explicando POR QUÉ es fascinante o excepcional. Específica, no retórica.
   Si asombro < 2: null obligatoriamente.
 
+▸ "titulo_es"
+  Título traducido al español. Si ya está en español, devuelve el mismo texto sin cambios.
+  Traduce solo si está en otro idioma (inglés, francés, alemán, árabe, etc.).
+  Mantén la longitud y el tono periodístico del original.
+
 ════════════════════════════════════════
 CAMPO DEL CONJUNTO: analisis_general
 ════════════════════════════════════════
@@ -155,7 +160,7 @@ _USER_TMPL = """Artículos:
 {articulos_json}
 
 Responde con este JSON exacto:
-{{"articulos":[{{"sesgo_ia":"...","critica":"...","importante":false,"sentimiento":"neutral","asombro":0,"asombro_razon":null}}],"analisis_general":"..."}}"""
+{{"articulos":[{{"sesgo_ia":"...","critica":"...","importante":false,"sentimiento":"neutral","asombro":0,"asombro_razon":null,"titulo_es":"..."}}],"analisis_general":"..."}}"""
 
 _MAX_WORKERS_ANALYSIS = 5
 
@@ -177,6 +182,7 @@ def _analizar_categoria(categoria: str, articulos: list[dict]) -> tuple[list[dic
             a["sentimiento"]   = cached.get("sentimiento", "neutral")
             a["asombro"]       = cached.get("asombro", 0)
             a["asombro_razon"] = cached.get("asombro_razon")
+            a["titulo_es"]     = cached.get("titulo_es", "")
             a["importante"]    = bool(cached.get("importante", False))
         else:
             nuevos_idx.append(i)
@@ -213,10 +219,12 @@ def _analizar_categoria(categoria: str, articulos: list[dict]) -> tuple[list[dic
         a["sentimiento"]   = datos.get("sentimiento", "neutral")
         a["asombro"]       = int(datos.get("asombro") or 0)
         a["asombro_razon"] = datos.get("asombro_razon") or None
+        a["titulo_es"]     = datos.get("titulo_es") or a["titulo"]
         _cache.set_articulo(a["enlace"], {
             "sesgo_ia": a["sesgo_ia"], "critica": a["critica"],
             "sentimiento": a["sentimiento"], "asombro": a["asombro"],
             "asombro_razon": a["asombro_razon"], "importante": a["importante"],
+            "titulo_es": a["titulo_es"],
         })
 
     analisis_general = resultado.get("analisis_general", "")

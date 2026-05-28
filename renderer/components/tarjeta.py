@@ -23,9 +23,11 @@ def tarjeta(articulo: dict, verificados: frozenset = frozenset(), orden: int = 0
         if articulo.get("enlace") in verificados else ""
     )
     novedad_html = badge_novedad(articulo)
-    search_data  = f'{articulo["titulo"].lower()} {articulo["fuente"].lower()} {(articulo.get("resumen") or "").lower()}'
-    da = _escape(articulo, ["titulo", "fuente", "fecha", "enlace", "resumen", "sentimiento"])
-    da["critica"]   = _html.escape(critica, quote=True)
+    titulo_mostrar = articulo.get("titulo_es") or articulo["titulo"]
+    search_data  = f'{titulo_mostrar.lower()} {articulo["fuente"].lower()} {(articulo.get("resumen") or "").lower()}'
+    da = _escape(articulo, ["fuente", "fecha", "enlace", "resumen", "sentimiento"])
+    da["titulo"]  = _html.escape(titulo_mostrar, quote=True)
+    da["critica"] = _html.escape(critica, quote=True)
     importante = "true" if articulo.get("importante") else "false"
 
     return f"""
@@ -81,8 +83,10 @@ def tarjeta_destacada(articulo: dict, categoria: str,
         if articulo.get("enlace") in verificados else ""
     )
     novedad_html  = badge_novedad(articulo)
-    search_data   = f'{articulo["titulo"].lower()} {articulo["fuente"].lower()} {categoria.lower()}'
-    da = _escape(articulo, ["titulo", "fuente", "fecha", "enlace", "resumen", "sentimiento"])
+    titulo_mostrar = articulo.get("titulo_es") or articulo["titulo"]
+    search_data   = f'{titulo_mostrar.lower()} {articulo["fuente"].lower()} {categoria.lower()}'
+    da = _escape(articulo, ["fuente", "fecha", "enlace", "resumen", "sentimiento"])
+    da["titulo"]    = _html.escape(titulo_mostrar, quote=True)
     da["critica"]   = _html.escape(critica, quote=True)
     da["categoria"] = _html.escape(categoria, quote=True)
 
@@ -132,8 +136,10 @@ def tarjeta_asombro(articulo: dict) -> str:
     sesgo_fuente = articulo.get("sesgo_fuente") or "desconocido"
     importante   = "true" if articulo.get("importante") else "false"
     estrellas    = "✦" * score + "✧" * (3 - score)
-    search_data  = f'{articulo["titulo"].lower()} {articulo["fuente"].lower()}'
-    da = _escape(articulo, ["titulo", "fuente", "fecha", "enlace", "resumen", "sentimiento"])
+    titulo_mostrar = articulo.get("titulo_es") or articulo["titulo"]
+    search_data  = f'{titulo_mostrar.lower()} {articulo["fuente"].lower()}'
+    da = _escape(articulo, ["fuente", "fecha", "enlace", "resumen", "sentimiento"])
+    da["titulo"] = _html.escape(titulo_mostrar, quote=True)
     da["critica"] = _html.escape(articulo.get("critica") or "", quote=True)
 
     razon_html    = f'<p class="asombro-razon">💡 {_html.escape(razon)}</p>' if razon else ""
