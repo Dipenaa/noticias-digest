@@ -225,18 +225,30 @@ self.addEventListener('fetch', e => {
 def debug_macro():
     """Diagnóstico: muestra estado del macro_tracker."""
     from article_cache import shared as _cache
+    from macro_tracker import _compactar_articulos, _CATEGORIAS_PROCESO, _MAX_ARTICULOS_MACRO
     hoy = datetime.now().strftime("%Y-%m-%d")
     cache_val = _cache._redis_get(f"macro:hoy:{hoy}")
     render_data = pipeline.get_render_data()
     n_procesos = len(render_data.get("procesos", [])) if render_data else 0
     stats = _cache.stats()
     estado = pipeline.get_estado()
+    # Contar cuántos artículos vería macro_tracker ahora mismo
+    noticias_raw = pipeline.get_render_data() or {}
+    noticias_para_macro = noticias_raw.get("noticias", {})
+    try:
+        compactos, _ = _compactar_articulos(noticias_para_macro)
+        n_arts = len(compactos)
+    except Exception:
+        n_arts = -1
     return jsonify({
-        "redis_backend":     stats["backend"],
-        "redis_macro_hoy":   cache_val[:300] if cache_val else None,
-        "procesos_en_html":  n_procesos,
-        "ia_ok":             estado["anthropic_key_ok"],
-        "ultimo_error":      estado["ultimo_error"],
+        "redis_backend":       stats["backend"],
+        "redis_macro_hoy":     cache_val[:300] if cache_val else None,
+        "procesos_en_html":    n_procesos,
+        "ia_ok":               estado["anthropic_key_ok"],
+        "categorias_filtro":   sorted(_CATEGORIAS_PROCESO),
+        "max_articulos":       _MAX_ARTICULOS_MACRO,
+        "articulos_disponibles": n_arts,
+        "ultimo_error":        estado["ultimo_error"],
     })
 
 

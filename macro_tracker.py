@@ -25,8 +25,12 @@ _KEY_SNAP      = "macro:snap:{fecha}"  # {proceso_id: n_articulos}
 _ESTADOS = {"escalada", "estable", "resolucion", "silencio"}
 _HORIZONTES = {"dias", "semanas", "meses", "anos"}
 
-# Categorías que pueden contener procesos actuales. Comparación exacta.
-_CATEGORIAS_PROCESO = {"España", "Internacional", "Economía", "Tecnología", "Ciencia", "Historia", "Antropología"}
+# Solo categorías con noticias de actualidad política/social. Comparación exacta.
+# Historia/Ciencia/Tecnología se excluyen — Claude no identifica procesos actuales en esas categorías.
+_CATEGORIAS_PROCESO = {"España", "Internacional", "Economía"}
+
+# Límite de artículos enviados a Claude — evita prompts enormes cuando el pool acumula 3 días
+_MAX_ARTICULOS_MACRO = 50
 
 _SYSTEM = """Eres un analista político senior. Identificas los procesos más relevantes del momento,
 tanto internacionales como nacionales. Un proceso es un conflicto, crisis, negociación, transición
@@ -86,6 +90,12 @@ def _compactar_articulos(noticias: dict) -> tuple[list[dict], list[dict]]:
                     "titulo":  a.get("titulo", ""),
                     "resumen": (a.get("resumen") or "")[:120],
                 })
+
+    # Limitar artículos para evitar prompts gigantes por acumulación del pool
+    if len(compactos) > _MAX_ARTICULOS_MACRO:
+        compactos = compactos[:_MAX_ARTICULOS_MACRO]
+        todos     = todos[:_MAX_ARTICULOS_MACRO]
+
     return compactos, todos
 
 
