@@ -37,9 +37,13 @@ function toggleDark() {
 
 (function() {
   try {
-    if (localStorage.getItem('digestLight') === '1') {
+    var pref = localStorage.getItem('digestLight');
+    var btn = document.getElementById('dark-toggle');
+    if (pref === '0') {            /* el usuario eligió oscuro explícitamente */
+      document.body.classList.remove('light');
+      if (btn) btn.textContent = '☀ Modo día';
+    } else {                        /* por defecto (o '1') → día claro */
       document.body.classList.add('light');
-      var btn = document.getElementById('dark-toggle');
       if (btn) btn.textContent = '☾ Modo oscuro';
     }
   } catch(e) {}

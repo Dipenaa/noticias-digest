@@ -84,7 +84,7 @@ def _tab_bar(tabs: list, n_asombro: int, n_procesos: int, n_sintesis: int) -> st
     btns = "\n  ".join(_btn(t) for t in tabs)
     return f"""<div class="tab-bar">
   {btns}
-  <button class="dark-toggle" id="dark-toggle" onclick="toggleDark()">&#9728; Modo d&iacute;a</button>
+  <button class="dark-toggle" id="dark-toggle" onclick="toggleDark()">&#9790; Modo oscuro</button>
 </div>"""
 
 
@@ -138,26 +138,22 @@ def construir(
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/css/reset.css">
   <link rel="stylesheet" href="/static/css/layout.css">
   <link rel="stylesheet" href="/static/css/components.css">
   <link rel="stylesheet" href="/static/css/animations.css">
 </head>
-<body>
+<body class="light">
 
 <header>
   <button class="sidebar-toggle-btn" id="sidebar-toggle" onclick="toggleSidebar()" title="Menú">&#9776;</button>
   <div class="header-logo">
-    <div class="icono">D</div>
-    <div>
-      <div style="font-size:0.65rem;color:var(--txt-3);font-weight:600;letter-spacing:0.04em;margin-bottom:0.1rem" id="header-greeting"></div>
-      <h1>EnPapel</h1>
-    </div>
+    <h1>EnPapel</h1>
   </div>
   <div class="meta">
-    {ahora}<br>
-    {total} principales · {total_alt} alternativas · Claude
+    <span class="meta-fecha">{ahora}</span>
+    <span class="meta-count">{total} noticias · {total_alt} alternativas</span>
     {tension_html}
   </div>
 </header>

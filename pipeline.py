@@ -89,6 +89,14 @@ def _pipeline_ia(noticias: dict, alternativas: dict):
         try:
             grupos_sintesis = sintetizar_noticias(noticias, alternativas)
             print(f"[{datetime.now():%H:%M:%S}] Síntesis: {len(grupos_sintesis)} historia(s).")
+            # Segundo pase (B-lite): perspectivas globales por historia vía Google News (sin coste IA)
+            try:
+                from fuentes_dinamicas import enriquecer_grupos
+                enriquecer_grupos(grupos_sintesis)
+                n_ext = sum(len(g.get("perspectivas_extra", [])) for g in grupos_sintesis)
+                print(f"[{datetime.now():%H:%M:%S}] Perspectivas extra: {n_ext} ángulo(s) global(es).")
+            except Exception as e:
+                print(f"[{datetime.now():%H:%M:%S}] Perspectivas extra fallaron (no crítico): {e}")
         except Exception as e:
             print(f"[{datetime.now():%H:%M:%S}] Síntesis falló (no crítico): {e}")
 

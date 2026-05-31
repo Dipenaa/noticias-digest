@@ -29,6 +29,10 @@ def tarjeta(articulo: dict, verificados: frozenset = frozenset(), orden: int = 0
     da["titulo"]  = _html.escape(titulo_mostrar, quote=True)
     da["critica"] = _html.escape(critica, quote=True)
     importante = "true" if articulo.get("importante") else "false"
+    resumen_html = (
+        f'<p class="resumen">{_html.escape(articulo.get("resumen") or "")}</p>'
+        if articulo.get("resumen") else ""
+    )
 
     return f"""
 <div class="tarjeta"
@@ -64,6 +68,7 @@ def tarjeta(articulo: dict, verificados: frozenset = frozenset(), orden: int = 0
       {articulo["titulo"]}
     </a>
   </div>
+  {resumen_html}
   {critica_html}
 </div>"""
 
@@ -89,6 +94,10 @@ def tarjeta_destacada(articulo: dict, categoria: str,
     da["titulo"]    = _html.escape(titulo_mostrar, quote=True)
     da["critica"]   = _html.escape(critica, quote=True)
     da["categoria"] = _html.escape(categoria, quote=True)
+    resumen_html = (
+        f'<p class="resumen">{_html.escape(articulo.get("resumen") or "")}</p>'
+        if articulo.get("resumen") else ""
+    )
 
     return f"""
 <div class="tarjeta-destacada"
@@ -124,6 +133,7 @@ def tarjeta_destacada(articulo: dict, categoria: str,
       {articulo["titulo"]}
     </a>
   </div>
+  {resumen_html}
   {critica_html}
 </div>"""
 
@@ -260,6 +270,24 @@ def tarjeta_sintesis(grupo: dict) -> str:
         if hay_comparador else ""
     )
 
+    # Perspectivas extra (fuentes dinámicas de Google News — B-lite, sin IA)
+    extra = grupo.get("perspectivas_extra") or []
+    perspectivas_html = ""
+    if extra:
+        items = "".join(
+            f"""<a class="persp-item" href="{a['enlace']}" target="_blank" rel="noopener noreferrer">
+  <span class="persp-fuente">{_html.escape(a['fuente'])}</span>
+  <span class="badges">{badge(a.get('sesgo_fuente') or 'desconocido')}</span>
+  <span class="persp-titulo">{_html.escape(a['titulo'])}</span>
+</a>"""
+            for a in extra
+        )
+        perspectivas_html = f"""
+<div class="perspectivas-extra">
+  <div class="perspectivas-label">&#127758; M&#225;s perspectivas — medios de todo el mundo sobre esta historia</div>
+  {items}
+</div>"""
+
     return f"""
 <div class="{card_clase}" data-search="{grupo['titulo'].lower()} {' '.join(a['fuente'].lower() for a in articulos)}">
   <div class="sintesis-meta">
@@ -272,4 +300,5 @@ def tarjeta_sintesis(grupo: dict) -> str:
   <div class="sintesis-titulo">{grupo["titulo"]}</div>
   <div class="sintesis-texto">{grupo["sintesis"]}</div>
   {angulos_html if hay_comparador else f'<div class="sintesis-fuentes">{fuentes_html}</div>'}
+  {perspectivas_html}
 </div>"""

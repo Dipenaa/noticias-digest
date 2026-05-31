@@ -49,6 +49,12 @@ _GRUPOS = [
             {"fuente": "El Mundo",  "titulo": "La oposición denuncia falta de transparencia", "enlace": "https://example.com/2", "categoria": "Política", "sesgo_fuente": "centro-derecha",   "alt": False},
             {"fuente": "Expansión", "titulo": "Analistas valoran las medidas fiscales",        "enlace": "https://example.com/3", "categoria": "Política", "sesgo_fuente": "centro",            "alt": False},
         ],
+        "perspectivas_extra": [
+            {"fuente": "The Guardian", "titulo": "Spain passes budget amid coalition tensions", "enlace": "https://example.com/g1", "sesgo_fuente": "centro-izquierda", "_extra": True},
+            {"fuente": "Reuters",      "titulo": "Spanish government approves 2026 budget",      "enlace": "https://example.com/r1", "sesgo_fuente": "centro",           "_extra": True},
+            {"fuente": "Le Figaro",    "titulo": "L'Espagne adopte son budget 2026",            "enlace": "https://example.com/f1", "sesgo_fuente": "centro-derecha",   "_extra": True},
+            {"fuente": "Valencia News","titulo": "Reacciones autonómicas al nuevo presupuesto",  "enlace": "https://example.com/v1", "sesgo_fuente": "desconocido",      "_extra": True},
+        ],
     }
 ]
 

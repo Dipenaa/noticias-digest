@@ -2,109 +2,92 @@
    layout.css — Estructura: header, sidebar, nav, main, footer
    ═══════════════════════════════════════════════════════════════ */
 
-/* ── Header ─────────────────────────────────────────────────── */
+/* ── Header (masthead) ──────────────────────────────────────── */
 header {
-  background: rgba(13,11,8,0.92);
-  backdrop-filter: blur(24px) saturate(160%);
-  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  background: rgba(21,23,15,0.82);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
   border-bottom: 1px solid var(--border-sub);
   padding: 0 2.5rem;
-  height: 52px;
+  height: 62px;
   position: sticky; top: 0; z-index: 200;
   display: flex; justify-content: space-between; align-items: center; gap: 1rem;
 }
 
-.header-logo { display: flex; align-items: center; gap: 0.75rem; }
-
-.header-logo .icono {
-  width: 28px; height: 28px;
-  background: linear-gradient(135deg, var(--accent), var(--accent-warm));
-  border-radius: 4px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 15px; flex-shrink: 0;
-  font-family: var(--font-serif); font-weight: 700; font-style: italic;
-  color: #0d0b08;
-  box-shadow: 0 0 18px rgba(200,164,112,0.22);
-}
+.header-logo { display: flex; align-items: center; gap: 0.6rem; }
 
 .header-logo h1 {
   font-family: var(--font-serif);
-  font-size: 0.88rem; font-weight: 700;
+  font-size: 1.35rem; font-weight: 600;
   font-style: italic;
-  color: var(--txt-1); letter-spacing: 0.02em;
+  color: var(--txt-1); letter-spacing: -0.015em;
+  line-height: 1;
 }
 
 header .meta {
-  font-size: 0.6rem; color: var(--txt-3);
-  text-align: right; line-height: 1.5;
+  font-size: 0.62rem; color: var(--txt-3);
+  display: flex; align-items: center; gap: 0.7rem;
+  line-height: 1.5;
   font-family: ui-monospace, 'Cascadia Code', monospace;
+  letter-spacing: 0.03em;
 }
+header .meta-fecha { color: var(--txt-2); font-weight: 600; }
+header .meta-count { color: var(--txt-3); }
+@media (max-width: 640px) { header .meta-count { display: none; } }
 
 /* ── Sidebar ─────────────────────────────────────────────────── */
 .tab-bar {
-  position: fixed; left: 0; top: 0; bottom: 0; width: 218px;
-  background: #0e0b08;
+  position: fixed; left: 0; top: 0; bottom: 0; width: 236px;
+  background: rgba(26,29,18,0.6);
   border-right: 1px solid var(--border-sub);
-  padding: 4.25rem 0 5rem;
+  padding: 1.5rem 0 5rem;
   display: flex; flex-direction: column; gap: 0;
   z-index: 300; overflow-y: auto; overflow-x: hidden;
   transition: transform 0.32s cubic-bezier(0.2,0.9,0.3,1);
 }
 
-.tab-bar::before {
-  content: 'EnPapel';
-  position: absolute; top: 0; left: 0; right: 0; height: 4.25rem;
-  display: flex; align-items: center; padding: 0 1.25rem;
-  font-family: var(--font-serif);
-  font-weight: 700; font-style: italic;
-  font-size: 1.05rem; letter-spacing: 0.01em;
-  color: var(--txt-1);
-  border-bottom: 1px solid var(--border-sub);
-  background: none;
-}
-
 .tab-bar-section {
-  font-size: 0.44rem; font-weight: 700; text-transform: uppercase;
-  letter-spacing: 0.22em; color: var(--txt-3);
-  padding: 1.5rem 1.25rem 0.5rem;
+  font-size: 0.5rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.2em; color: var(--txt-3);
+  padding: 1.6rem 1.5rem 0.6rem;
   user-select: none;
   font-family: ui-monospace, monospace;
 }
 
 .tab-btn {
-  background: none; border: none; border-left: 2px solid transparent;
-  color: rgba(240,230,208,0.55);
+  background: none; border: none; border-left: 3px solid transparent;
+  color: var(--txt-2);
   cursor: pointer;
-  font-size: 0.72rem; font-weight: 400; font-family: inherit;
-  letter-spacing: 0.02em;
-  padding: 0.42rem 0.875rem 0.42rem 0.75rem;
+  font-family: var(--font-serif);
+  font-size: 1rem; font-weight: 500;
+  letter-spacing: -0.005em;
+  padding: 0.62rem 1.1rem 0.62rem 1.25rem;
   text-align: left;
-  width: calc(100% - 0.75rem);
-  margin: 0 0.375rem 0.03rem 0.375rem;
-  border-radius: 3px;
-  transition: color 0.18s, border-color 0.18s;
-  display: block;
+  width: 100%;
+  border-radius: 0;
+  transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+  display: flex; align-items: center; gap: 0.5rem;
 }
 .tab-btn:hover {
-  color: rgba(240,230,208,0.82);
-  background: none;
+  color: var(--txt-1);
+  background: rgba(154,165,106,0.06);
 }
 .tab-btn.active {
   color: var(--accent);
-  font-weight: 500;
-  background: none;
+  font-weight: 600;
+  background: rgba(154,165,106,0.10);
   border-left-color: var(--accent);
 }
 
 /* ── Nav de categorías ───────────────────────────────────────── */
 nav {
-  background: rgba(20,16,9,0.75);
+  background: rgba(26,29,18,0.75);
   backdrop-filter: blur(16px);
   padding: 0 2.5rem;
   height: 36px;
   display: flex; align-items: center; gap: 0.1rem;
   border-bottom: 1px solid var(--border-sub);
-  position: sticky; top: 52px; z-index: 100; overflow-x: auto;
+  position: sticky; top: 62px; z-index: 100; overflow-x: auto;
 }
 nav a {
   color: rgba(240,230,208,0.4); text-decoration: none;
@@ -116,7 +99,7 @@ nav a {
 nav a:hover { background: var(--surface-2); color: rgba(240,230,208,0.8); }
 
 /* ── Layout principal ────────────────────────────────────────── */
-main { max-width: 1360px; margin: 0 auto; padding: 3.5rem 2.5rem; }
+main { max-width: 1360px; margin: 0 auto; padding: 2.25rem 2.5rem; }
 
 /* ── Buscador ────────────────────────────────────────────────── */
 .kw-sep { display: none; }
@@ -125,7 +108,7 @@ main { max-width: 1360px; margin: 0 auto; padding: 3.5rem 2.5rem; }
 .search-bar {
   display: flex; align-items: center; gap: 0.6rem;
   padding: 0.3rem 2.5rem;
-  background: rgba(13,11,8,0.88);
+  background: rgba(21,23,15,0.88);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border-sub);
@@ -134,8 +117,8 @@ main { max-width: 1360px; margin: 0 auto; padding: 3.5rem 2.5rem; }
 
 .search-input {
   width: 180px;
-  background: rgba(200,164,112,0.05);
-  border: 1px solid rgba(200,164,112,0.12);
+  background: rgba(111,125,74,0.05);
+  border: 1px solid rgba(111,125,74,0.12);
   border-radius: 20px; color: var(--txt-1); font-family: inherit;
   font-size: 0.74rem; padding: 0.3rem 0.875rem 0.3rem 1.9rem;
   outline: none;
@@ -146,8 +129,8 @@ main { max-width: 1360px; margin: 0 auto; padding: 3.5rem 2.5rem; }
 .search-input::placeholder { color: var(--txt-3); font-size: 0.72rem; }
 .search-input:focus {
   width: 400px; border-color: var(--accent); border-radius: 10px;
-  background-color: rgba(200,164,112,0.07);
-  box-shadow: 0 0 0 3px rgba(200,164,112,0.12), 0 8px 32px rgba(0,0,0,0.5);
+  background-color: rgba(111,125,74,0.07);
+  box-shadow: 0 0 0 3px rgba(111,125,74,0.12), 0 8px 32px rgba(0,0,0,0.5);
 }
 
 .search-count { font-size: 0.6rem; color: var(--txt-3); white-space: nowrap; flex-shrink: 0; }
@@ -163,8 +146,8 @@ main { max-width: 1360px; margin: 0 auto; padding: 3.5rem 2.5rem; }
   display: flex; align-items: center; justify-content: flex-end;
   padding: 0.28rem 2.5rem; background: transparent;
   border-bottom: 1px solid var(--border-sub);
-  position: sticky; top: 88px; z-index: 88; gap: 0;
-  background: rgba(13,11,8,0.88);
+  position: sticky; top: 98px; z-index: 88; gap: 0;
+  background: rgba(21,23,15,0.88);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
 }
@@ -172,8 +155,8 @@ main { max-width: 1360px; margin: 0 auto; padding: 3.5rem 2.5rem; }
 .sort-btn {
   font-size: 0.58rem; font-weight: 600; letter-spacing: 0.025em;
   padding: 0.22rem 0.7rem;
-  background: rgba(200,164,112,0.03);
-  border: 1px solid rgba(200,164,112,0.1);
+  background: rgba(111,125,74,0.03);
+  border: 1px solid rgba(111,125,74,0.1);
   border-right: none;
   color: rgba(240,230,208,0.4);
   cursor: pointer; font-family: inherit;
@@ -181,21 +164,21 @@ main { max-width: 1360px; margin: 0 auto; padding: 3.5rem 2.5rem; }
   white-space: nowrap;
 }
 .sort-btn:first-of-type { border-radius: 5px 0 0 5px; }
-.sort-btn:last-of-type  { border-radius: 0 5px 5px 0; border-right: 1px solid rgba(200,164,112,0.08); }
-.sort-btn:hover { background: rgba(200,164,112,0.08); color: rgba(240,230,208,0.8); }
+.sort-btn:last-of-type  { border-radius: 0 5px 5px 0; border-right: 1px solid rgba(111,125,74,0.08); }
+.sort-btn:hover { background: rgba(111,125,74,0.08); color: rgba(240,230,208,0.8); }
 .sort-btn.active {
-  background: rgba(200,164,112,0.12);
-  border-color: rgba(200,164,112,0.3);
+  background: rgba(111,125,74,0.12);
+  border-color: rgba(111,125,74,0.3);
   color: var(--accent);
 }
-.sort-btn.active + .sort-btn { border-left-color: rgba(200,164,112,0.3); }
+.sort-btn.active + .sort-btn { border-left-color: rgba(111,125,74,0.3); }
 .sort-btn:nth-child(n+6) { display: none; }
-.sort-btn:nth-child(5)   { border-radius: 0 5px 5px 0 !important; border-right: 1px solid rgba(200,164,112,0.08) !important; }
+.sort-btn:nth-child(5)   { border-radius: 0 5px 5px 0 !important; border-right: 1px solid rgba(111,125,74,0.08) !important; }
 
 /* ── Banner IA ───────────────────────────────────────────────── */
 #ia-banner {
   display: none; align-items: center; gap: .75rem;
-  background: rgba(200,164,112,0.04); border: 1px solid rgba(200,164,112,0.12);
+  background: rgba(111,125,74,0.04); border: 1px solid rgba(111,125,74,0.12);
   border-radius: 0; padding: .55rem 2.5rem; font-size: .77rem; color: var(--txt-2);
 }
 #ia-banner .ia-msg { flex: 1; }
@@ -241,8 +224,8 @@ header, #ia-banner, .search-bar, .sort-bar, nav, main, footer {
   transition: margin-left 0.32s cubic-bezier(0.2,0.9,0.3,1);
 }
 header    { top: 0; }
-.search-bar { top: 52px; }
-#cat-nav    { top: 116px; }
+.search-bar { top: 62px; }
+#cat-nav    { top: 126px; }
 
 /* ── Sidebar colapsado ───────────────────────────────────────── */
 body.sidebar-hidden .tab-bar { transform: translateX(-218px); pointer-events: none; }
@@ -279,8 +262,8 @@ body.sidebar-hidden footer  { margin-left: 0; }
   }
   header, #ia-banner, .search-bar, .sort-bar, nav, main, footer { margin-left: 0; }
   main { padding-bottom: 4.5rem; padding-left: 1.25rem; padding-right: 1.25rem; }
-  .search-bar { top: 52px; }
-  #cat-nav { top: 116px; }
+  .search-bar { top: 62px; }
+  #cat-nav { top: 126px; }
   .search-bar::after { display: none; }
   .sidebar-toggle-btn { display: none; }
   .search-input:focus { width: 200px; }

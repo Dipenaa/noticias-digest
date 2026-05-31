@@ -4,7 +4,7 @@ import html as _html
 import json
 
 TAB_ID    = "actualidad"
-TAB_LABEL = "Procesos"
+TAB_LABEL = "Hilos"
 TAB_ICON  = "🌍"
 
 _ESTADO_META = {
@@ -130,7 +130,7 @@ def _conexiones_html(conexiones: list[dict], procesos: list[dict]) -> str:
   <span class="conexion-rel">{rel}</span>
 </div>"""
     return f"""<div class="conexiones-panel">
-  <div class="conexiones-titulo">&#128280; Conexiones entre procesos</div>
+  <div class="conexiones-titulo">&#128280; Conexiones entre hilos</div>
   {items}
 </div>"""
 
@@ -142,11 +142,11 @@ def render(procesos: list[dict] | None = None,
     if not procs:
         return """
 <div class="actualidad-header">
-  <h2>Procesos</h2>
-  <p>Los grandes procesos del mundo, m&#225;s all&#225; de las noticias del d&#237;a.</p>
+  <h2>Hilos</h2>
+  <p>Los grandes hilos del mundo, m&#225;s all&#225; de las noticias del d&#237;a.</p>
 </div>
 <div class="actualidad-empty">
-  <p>No hay procesos identificados a&#250;n. Se generan autom&#225;ticamente con el digest.</p>
+  <p>No hay hilos identificados a&#250;n. Se generan autom&#225;ticamente con el digest.</p>
 </div>"""
 
     ordered   = sorted(procs, key=lambda x: int(x.get("importancia") or 0), reverse=True)
@@ -158,8 +158,8 @@ def render(procesos: list[dict] | None = None,
 
     return f"""
 <div class="actualidad-header">
-  <h2>Procesos</h2>
-  <p>{n} proceso(s) en seguimiento &mdash; situaciones con impacto sostenido en el tiempo.</p>
+  <h2>Hilos</h2>
+  <p>{n} hilo(s) en seguimiento &mdash; situaciones con impacto sostenido en el tiempo.</p>
   <div class="historial-filtros">
     <span class="historial-filtro-label">Ver:</span>
     <button class="historial-filter-btn" data-dias="7"  onclick="setHistorialDias(7)">7 d&#237;as</button>
