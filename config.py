@@ -5,6 +5,23 @@ Modifica este archivo para personalizar fuentes, temas y comportamiento.
 """
 
 import os
+import pathlib
+
+# ---------------------------------------------------------------------------
+# Carga automática de .env (sin requerir python-dotenv)
+# ---------------------------------------------------------------------------
+_ENV_PATH = pathlib.Path(__file__).parent / ".env"
+if _ENV_PATH.exists():
+    with open(_ENV_PATH, encoding="utf-8") as _f:
+        for _line in _f:
+            _line = _line.strip()
+            if not _line or _line.startswith("#") or "=" not in _line:
+                continue
+            _key, _, _val = _line.partition("=")
+            _key = _key.strip()
+            _val = _val.strip().strip('"').strip("'")
+            if _key and _key not in os.environ:
+                os.environ[_key] = _val
 
 # ---------------------------------------------------------------------------
 # API de Gemini — análisis de sesgo, síntesis y descubrimiento

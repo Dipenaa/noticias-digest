@@ -75,6 +75,98 @@ def get_client() -> anthropic.Anthropic:
     return _client
 
 
+def _llamar_anthropic(
+    user_content: str,
+    system: str | None,
+    model: str,
+    max_tokens: int,
+    temperature: float,
+    cache_system: bool,
+    raw_text: bool,
+) -> dict | str | None:
+    """Rama interna: llama directamente a la API de Anthropic/Claude."""
+    global _coste_total, _llamadas
+    client = get_client()
+    if not client:
+        print("  ✗ No hay ANTHROPIC_API_KEY configurada")
+        return None
+
+    system_param = None
+    if system:
+        if cache_system:
+            system_param = [{"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}]
+        else:
+            system_param = system
+
+    for intento in range(1, _REINTENTOS_MAX + 1):
+        try:
+            kwargs = dict(
+                model=model,
+                max_tokens=max_tokens,
+                temperature=temperature,
+                messages=[{"role": "user", "content": user_content}],
+            )
+            if system_param is not None:
+                kwargs["system"] = system_param
+
+            message = client.messages.create(**kwargs)
+            if not message.content:
+                print("  ✗ Respuesta vacía de Claude")
+                return None
+            texto = message.content[0].text.strip()
+
+            u = message.usage
+            coste = _calcular_coste(model, u)
+            _coste_total += coste
+            _llamadas    += 1
+            inp = getattr(u, "input_tokens",                0) or 0
+            out = getattr(u, "output_tokens",               0) or 0
+            cw  = getattr(u, "cache_creation_input_tokens", 0) or 0
+            cr  = getattr(u, "cache_read_input_tokens",     0) or 0
+            cache_info = ""
+            if cw: cache_info += f" cache_write={cw}"
+            if cr: cache_info += f" cache_read={cr}"
+            print(f"    💰 {model.split('-')[1][:6]} in={inp} out={out}{cache_info} -> ${coste:.4f} (total ${_coste_total:.4f})")
+
+            if raw_text:
+                return texto
+            if texto.startswith("```"):
+                texto = "\n".join(texto.splitlines()[1:-1]).strip()
+            return json.loads(texto)
+
+        except anthropic.RateLimitError:
+            if intento == _REINTENTOS_MAX:
+                print("  ✗ Claude Rate limit — reintentos agotados")
+                return None
+            espera = _ESPERA_BASE_429 * (2 ** (intento - 1))
+            print(f"  Esperando {espera}s por rate limit de Claude...")
+            time.sleep(espera)
+
+        except anthropic.APIStatusError as e:
+            if e.status_code >= 500:
+                if intento == _REINTENTOS_MAX:
+                    print(f"  ✗ Claude Error {e.status_code} — reintentos agotados")
+                    return None
+                espera = _ESPERA_BASE_5XX * (2 ** (intento - 1))
+                print(f"  Esperando {espera}s por error {e.status_code} de Claude...")
+                time.sleep(espera)
+            else:
+                print(f"  ✗ Claude API {e.status_code}: {str(e)[:200]}")
+                return None
+
+        except json.JSONDecodeError as e:
+            if raw_text:
+                return texto
+            print(f"  ✗ JSON invalido de Claude: {e}")
+            return None
+
+        except Exception as e:
+            print(f"  ✗ Error inesperado en Claude: {e}")
+            return None
+
+    return None
+
+
 def llamar_claude(
     user_content: str,
     system: str | None = None,
@@ -85,13 +177,18 @@ def llamar_claude(
     raw_text: bool = False,
 ) -> dict | str | None:
     """
-    Llama a Gemini o Claude según disponibilidad y devuelve el JSON parseado (o str si raw_text).
+    Llama a Gemini si hay clave disponible; si falla fatalmente, cae a Claude.
+    Devuelve el JSON parseado (o str si raw_text=True).
     """
     global _coste_total, _llamadas
-    from config import CLAUDE_MODEL_ANALISIS, GEMINI_API_KEY
-    
-    usar_gemini = bool(GEMINI_API_KEY and GEMINI_API_KEY != "TU_API_KEY_AQUÍ")
+    from config import CLAUDE_MODEL_ANALISIS, ANTHROPIC_API_KEY, GEMINI_API_KEY
+
+    usar_gemini = bool(GEMINI_API_KEY and GEMINI_API_KEY != "TU_API_KEY_AQUI")
     model = model or CLAUDE_MODEL_ANALISIS
+
+    # Modelo Claude de fallback: si el caller pasó un modelo Gemini, usamos CLAUDE_MODEL_ANALISIS
+    from config import CLAUDE_MODEL_ANALISIS as _CLAUDE_ANALISIS
+    claude_model = _CLAUDE_ANALISIS if "gemini" in model.lower() else model
 
     if usar_gemini:
         # Mapear modelos heredados de Claude a Gemini
@@ -116,159 +213,86 @@ def llamar_claude(
         if not raw_text:
             payload["generationConfig"]["responseMimeType"] = "application/json"
 
+        gemini_ok = False
         for intento in range(1, _REINTENTOS_MAX + 1):
             try:
                 resp = requests.post(url, headers=headers, json=payload, timeout=60)
-                
+
+                # Error fatal de autenticación/autorización — no reintentar, ir a Claude
+                if resp.status_code in (401, 403):
+                    print(f"  ✗ Gemini auth error {resp.status_code} — cambiando a Claude")
+                    break
+
                 if resp.status_code == 429:
                     if intento == _REINTENTOS_MAX:
-                        print("  ✗ Gemini API Rate limit — reintentos agotados")
-                        return None
+                        print("  ✗ Gemini Rate limit agotado — cambiando a Claude")
+                        break
                     espera = _ESPERA_BASE_429 * (2 ** (intento - 1))
-                    print(f"  ⏳ Gemini Rate limit — esperando {espera}s (intento {intento}/{_REINTENTOS_MAX})...")
+                    print(f"  Gemini Rate limit — esperando {espera}s (intento {intento}/{_REINTENTOS_MAX})...")
                     time.sleep(espera)
                     continue
 
                 if resp.status_code >= 500:
                     if intento == _REINTENTOS_MAX:
-                        print(f"  ✗ Gemini API Error {resp.status_code} — reintentos agotados")
-                        return None
+                        print(f"  ✗ Gemini Error {resp.status_code} agotado — cambiando a Claude")
+                        break
                     espera = _ESPERA_BASE_5XX * (2 ** (intento - 1))
-                    print(f"  ⏳ Gemini Error {resp.status_code} — esperando {espera}s...")
+                    print(f"  Gemini Error {resp.status_code} — esperando {espera}s...")
                     time.sleep(espera)
                     continue
 
                 resp.raise_for_status()
                 resp_json = resp.json()
 
-                # Extraer el texto
                 try:
                     texto = resp_json["candidates"][0]["content"]["parts"][0]["text"].strip()
                 except (KeyError, IndexError):
-                    print("  ✗ Estructura de respuesta de Gemini inesperada")
-                    return None
+                    print("  ✗ Estructura de respuesta de Gemini inesperada — cambiando a Claude")
+                    break
 
-                # Métricas de tokens y coste
                 usage = resp_json.get("usageMetadata", {})
                 inp = usage.get("promptTokenCount", 0)
                 out = usage.get("candidatesTokenCount", 0)
-
-                # Calcular coste para Gemini
                 p_gemini = _PRECIOS.get(model, _PRECIOS["gemini-2.0-flash"])
                 coste = (inp * p_gemini["input"] + out * p_gemini["output"]) / 1_000_000
                 _coste_total += coste
                 _llamadas += 1
-
-                print(f"    💰 {model} in={inp} out={out} → ${coste:.6f} (total ${_coste_total:.6f})")
+                print(f"    [Gemini] {model} in={inp} out={out} -> ${coste:.6f} (total ${_coste_total:.6f})")
 
                 if raw_text:
                     return texto
-
-                # Si de todas formas Gemini incluyó delimitadores markdown de JSON
                 if texto.startswith("```"):
                     lineas = texto.splitlines()
-                    if lineas[0].startswith("```json"):
-                        texto = "\n".join(lineas[1:-1]).strip()
-                    else:
-                        texto = "\n".join(lineas[1:-1]).strip()
-
+                    texto = "\n".join(lineas[1:-1]).strip()
+                gemini_ok = True
                 return json.loads(texto)
 
             except requests.exceptions.RequestException as e:
-                print(f"  ✗ Error de red/petición en Gemini: {e}")
+                print(f"  ✗ Error de red en Gemini: {e}")
                 if intento == _REINTENTOS_MAX:
-                    return None
+                    print("  -> Cambiando a Claude como fallback")
+                    break
                 time.sleep(2)
+                continue
             except json.JSONDecodeError as e:
                 if raw_text:
                     return texto
-                print(f"  ✗ JSON de Gemini inválido: {e}")
-                print(f"  Snippet devuelto: {texto[:200]}")
-                return None
+                print(f"  ✗ JSON de Gemini invalido: {e} — cambiando a Claude")
+                break
             except Exception as e:
-                print(f"  ✗ Error inesperado en llamada a Gemini: {e}")
-                return None
-        return None
+                print(f"  ✗ Error inesperado en Gemini: {e} — cambiando a Claude")
+                break
+
+        if gemini_ok:
+            return None  # ya retornó arriba
+
+        # --- Fallback a Claude ---
+        if not ANTHROPIC_API_KEY:
+            print("  ✗ Sin fallback: ANTHROPIC_API_KEY no configurada")
+            return None
+        print(f"  -> Fallback a Claude ({claude_model})")
+        return _llamar_anthropic(user_content, system, claude_model, max_tokens, temperature, cache_system, raw_text)
 
     else:
-        # Fallback tradicional a Anthropic (Claude)
-        client = get_client()
-
-        # Construir el system prompt (con o sin cache_control)
-        system_param = None
-        if system:
-            if cache_system:
-                system_param = [{"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}]
-            else:
-                system_param = system
-
-        for intento in range(1, _REINTENTOS_MAX + 1):
-            try:
-                kwargs = dict(
-                    model=model,
-                    max_tokens=max_tokens,
-                    temperature=temperature,
-                    messages=[{"role": "user", "content": user_content}],
-                )
-                if system_param is not None:
-                    kwargs["system"] = system_param
-
-                message = client.messages.create(**kwargs)
-                if not message.content:
-                    print(f"  ✗ Respuesta vacía de la API")
-                    return None
-                texto = message.content[0].text.strip()
-
-                # Logging de uso y coste
-                u = message.usage
-                coste = _calcular_coste(model, u)
-                _coste_total += coste
-                _llamadas    += 1
-                inp = getattr(u, "input_tokens",                0) or 0
-                out = getattr(u, "output_tokens",               0) or 0
-                cw  = getattr(u, "cache_creation_input_tokens", 0) or 0
-                cr  = getattr(u, "cache_read_input_tokens",     0) or 0
-                cache_info = ""
-                if cw: cache_info += f" cache_write={cw}"
-                if cr: cache_info += f" cache_read={cr}"
-                print(f"    💰 {model.split('-')[1][:6]} in={inp} out={out}{cache_info} → ${coste:.4f} (total ${_coste_total:.4f})")
-
-                if raw_text:
-                    return texto
-
-                if texto.startswith("```"):
-                    texto = "\n".join(texto.splitlines()[1:-1]).strip()
-
-                return json.loads(texto)
-
-            except anthropic.RateLimitError:
-                if intento == _REINTENTOS_MAX:
-                    print(f"  ✗ Rate limit — reintentos agotados")
-                    return None
-                espera = _ESPERA_BASE_429 * (2 ** (intento - 1))
-                print(f"  ⏳ Rate limit — esperando {espera}s (intento {intento}/{_REINTENTOS_MAX})...")
-                time.sleep(espera)
-
-            except anthropic.APIStatusError as e:
-                if e.status_code >= 500:
-                    if intento == _REINTENTOS_MAX:
-                        print(f"  ✗ Error {e.status_code} — reintentos agotados")
-                        return None
-                    espera = _ESPERA_BASE_5XX * (2 ** (intento - 1))
-                    print(f"  ⏳ Error {e.status_code} — esperando {espera}s...")
-                    time.sleep(espera)
-                else:
-                    print(f"  ✗ Error API {e.status_code}: {str(e)[:200]}")
-                    return None
-
-            except json.JSONDecodeError as e:
-                if raw_text:
-                    return texto
-                print(f"  ✗ JSON inválido: {e}")
-                return None
-
-            except Exception as e:
-                print(f"  ✗ Error inesperado: {e}")
-                return None
-
-        return None
+        # Sin Gemini — usar Claude directamente
+        return _llamar_anthropic(user_content, system, model, max_tokens, temperature, cache_system, raw_text)
