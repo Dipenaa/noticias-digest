@@ -1,0 +1,10 @@
+[     345ms] Invalid regular expression: missing /
+[     352ms] [ERROR] A bad HTTP response code (404) was received when fetching the script. @ :0
+[     360ms] Failed to register a ServiceWorker for scope ('http://localhost:5001/') with script ('http://localhost:5001/sw.js'): A bad HTTP response code (404) was received when fetching the script.
+[     640ms] [ERROR] Failed to load resource: the server responded with a status of 404 (NOT FOUND) @ http://localhost:5001/manifest.json:0
+[     640ms] [ERROR] Manifest fetch from http://localhost:5001/manifest.json failed, code 404 @ http://localhost:5001/:0
+[15913971ms] Invalid regular expression: missing /
+[15913975ms] [ERROR] A bad HTTP response code (404) was received when fetching the script. @ :0
+[15913978ms] Failed to register a ServiceWorker for scope ('http://localhost:5001/') with script ('http://localhost:5001/sw.js'): A bad HTTP response code (404) was received when fetching the script.
+[15914286ms] [ERROR] Failed to load resource: the server responded with a status of 404 (NOT FOUND) @ http://localhost:5001/manifest.json:0
+[15914286ms] [ERROR] Manifest fetch from http://localhost:5001/manifest.json failed, code 404 @ http://localhost:5001/:0

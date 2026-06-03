@@ -166,7 +166,10 @@ main { max-width: 1360px; margin: 0 auto; padding: 2.25rem 2.5rem; }
   border-bottom: 1px solid var(--border-sub);
   position: sticky; top: 36px; z-index: 88; gap: 0;
   background: var(--bg);
+  overflow-x: auto;
+  scrollbar-width: none; /* Firefox */
 }
+.sort-bar::-webkit-scrollbar { display: none; } /* Chrome/Safari */
 .sort-label { display: none; }
 .sort-btn {
   font-size: 0.58rem; font-weight: 600; letter-spacing: 0.025em;
@@ -188,8 +191,6 @@ main { max-width: 1360px; margin: 0 auto; padding: 2.25rem 2.5rem; }
   color: var(--accent);
 }
 .sort-btn.active + .sort-btn { border-left-color: rgba(111,125,74,0.3); }
-.sort-btn:nth-child(n+6) { display: none; }
-.sort-btn:nth-child(5)   { border-radius: 0 5px 5px 0 !important; border-right: 1px solid rgba(111,125,74,0.08) !important; }
 
 /* ── Banner IA ───────────────────────────────────────────────── */
 #ia-banner {
@@ -276,6 +277,7 @@ body.sidebar-hidden footer  { margin-left: 0; }
     background: none; color: var(--accent);
   }
   header, #ia-banner, .search-bar, .sort-bar, nav, main, footer { margin-left: 0; }
+  .sort-bar { justify-content: flex-start; padding: 0.28rem 1rem; }
   main { padding-bottom: 4.5rem; padding-left: 1.25rem; padding-right: 1.25rem; }
   .search-bar { top: 0; }
   #cat-nav { top: 64px; }

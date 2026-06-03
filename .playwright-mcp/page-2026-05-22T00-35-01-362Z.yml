@@ -1,0 +1,500 @@
+- generic [active] [ref=e1]:
+  - paragraph [ref=e7]:
+    - text: 30% off your order when you spend $150+. Discount automatically applied at checkout. *
+    - link "Exclusions apply" [ref=e8] [cursor=pointer]:
+      - /url: https://www.allbirds.com/pages/community-offers?a_ajs_event=Global+Banner+Link+Clicked&a_ajs_prop_global_banner_name=Exclusions+apply&a_ajs_prop_global_header_source=https%3A%2F%2Fwww.allbirds.com%2F
+  - banner:
+    - generic:
+      - navigation:
+        - button "Skip to Content" [ref=e9]
+        - generic [ref=e10]:
+          - generic [ref=e11]:
+            - button "Open main menu" [ref=e13]:
+              - img [ref=e15]
+            - link "Allbirds" [ref=e17] [cursor=pointer]:
+              - /url: https://www.allbirds.com/?a_ajs_event=Navigation+Clicked&a_ajs_prop_navigation_level_1=allbirds&a_ajs_prop_navigation_source=www.allbirds.com%2F&a_ajs_prop_navigation_type=global
+              - img [ref=e18]
+            - generic [ref=e22]:
+              - link "Search" [ref=e23] [cursor=pointer]:
+                - /url: https://www.allbirds.com/search?a_ajs_event=Navigation+Clicked&a_ajs_prop_navigation_level_1=Search&a_ajs_prop_navigation_source=www.allbirds.com%2F&a_ajs_prop_navigation_type=global
+                - img [ref=e24]
+              - button "View Cart" [ref=e27] [cursor=pointer]:
+                - generic [ref=e28]:
+                  - img [ref=e29]
+                  - generic: "0"
+          - generic "Popular Category Navigation" [ref=e33]:
+            - link "Men's" [ref=e34] [cursor=pointer]:
+              - /url: https://www.allbirds.com/collections/mens?a_ajs_event=Mini+Navigation+Clicked&a_ajs_prop_link_CTA_name=Men%27s&a_ajs_prop_link_destination=%2Fcollections%2Fmens
+            - link "Women's" [ref=e35] [cursor=pointer]:
+              - /url: https://www.allbirds.com/collections/womens?a_ajs_event=Mini+Navigation+Clicked&a_ajs_prop_link_CTA_name=Women%27s&a_ajs_prop_link_destination=%2Fcollections%2Fwomens
+            - link "New Arrivals" [ref=e36] [cursor=pointer]:
+              - /url: https://www.allbirds.com/collections/mens-new-arrivals?a_ajs_event=Mini+Navigation+Clicked&a_ajs_prop_link_CTA_name=New+Arrivals&a_ajs_prop_link_destination=%2Fcollections%2Fmens-new-arrivals
+            - link "Bestsellers" [ref=e37] [cursor=pointer]:
+              - /url: https://www.allbirds.com/collections/womens-bestsellers?a_ajs_event=Mini+Navigation+Clicked&a_ajs_prop_link_CTA_name=Bestsellers&a_ajs_prop_link_destination=%2Fcollections%2Fwomens-bestsellers
+  - generic [ref=e38]:
+    - generic [ref=e40]:
+      - heading "Cart (0)" [level=2] [ref=e41]
+      - paragraph [ref=e42]: Spend $75 more to earn free shipping!
+      - button "Close cart" [ref=e43] [cursor=pointer]:
+        - img [ref=e44]
+    - generic [ref=e48]:
+      - paragraph [ref=e49]: Your cart is empty. Start shopping!
+      - list [ref=e50]:
+        - listitem [ref=e51]:
+          - button "Shop Womens" [ref=e52] [cursor=pointer]
+        - listitem [ref=e53]:
+          - button "Shop Mens" [ref=e54] [cursor=pointer]
+        - listitem [ref=e55]:
+          - button "Shop Socks" [ref=e56] [cursor=pointer]
+        - listitem [ref=e57]:
+          - button "Shop Women's Sale" [ref=e58] [cursor=pointer]
+        - listitem [ref=e59]:
+          - button "Shop Men's Sale" [ref=e60] [cursor=pointer]
+  - main [ref=e61]:
+    - generic [ref=e65]:
+      - paragraph [ref=e67]: Memorial Day Sale
+      - heading "30% Off Your Order When You Spend $150+" [level=2] [ref=e69]:
+        - strong [ref=e70]: 30% Off Your Order When You Spend $150+
+      - heading "Discount Automatically Applied at Checkout." [level=3] [ref=e72]
+    - generic [ref=e75]:
+      - list [ref=e76]:
+        - listitem [ref=e77]:
+          - generic:
+            - paragraph: All New Dasher NZ Collection
+            - heading "Wildly Comfortable. Super Natural." [level=1]
+            - generic [ref=e78]:
+              - link "Shop Men" [ref=e79] [cursor=pointer]:
+                - /url: https://www.allbirds.com/collections/mens-dasher-nz-cl?a_ajs_event=Homepage+Hero+Clicked&a_ajs_prop_image_name=files%2F26Q1_DasherNZ_Site_Homepage_Hero_Mobile_9x16_2.jpg&a_ajs_prop_link_CTA_name=Shop+Men&a_ajs_prop_link_destination=%2Fcollections%2Fmens-dasher-nz-cl
+              - link "Shop Women" [ref=e80] [cursor=pointer]:
+                - /url: https://www.allbirds.com/collections/womens-dasher-nz-cl?a_ajs_event=Homepage+Hero+Clicked&a_ajs_prop_image_name=files%2F26Q1_DasherNZ_Site_Homepage_Hero_Mobile_9x16_2.jpg&a_ajs_prop_link_CTA_name=Shop+Women&a_ajs_prop_link_destination=%2Fcollections%2Fwomens-dasher-nz-cl
+        - listitem:
+          - generic:
+            - paragraph: All New Dasher NZ Collection
+            - heading "Wildly Comfortable. Super Natural." [level=1]
+            - generic [ref=e81]:
+              - link "Shop Men" [ref=e82] [cursor=pointer]:
+                - /url: https://www.allbirds.com/collections/mens-dasher-nz-cl?a_ajs_event=Homepage+Hero+Clicked&a_ajs_prop_image_name=files%2F26Q1_DasherNZ_Site_Homepage_Hero_Mobile_9x16_f4f8cfd1-7bd6-4e2c-897a-2b73c737def5.jpg&a_ajs_prop_link_CTA_name=Shop+Men&a_ajs_prop_link_destination=%2Fcollections%2Fmens-dasher-nz-cl
+              - link "Shop Women" [ref=e83] [cursor=pointer]:
+                - /url: https://www.allbirds.com/collections/womens-dasher-nz-cl?a_ajs_event=Homepage+Hero+Clicked&a_ajs_prop_image_name=files%2F26Q1_DasherNZ_Site_Homepage_Hero_Mobile_9x16_f4f8cfd1-7bd6-4e2c-897a-2b73c737def5.jpg&a_ajs_prop_link_CTA_name=Shop+Women&a_ajs_prop_link_destination=%2Fcollections%2Fwomens-dasher-nz-cl
+      - button "Pause" [ref=e87]:
+        - generic [ref=e88]: Pause
+        - img [ref=e90]
+    - list [ref=e96]:
+      - listitem [ref=e97]:
+        - generic [ref=e99]:
+          - heading "New Arrivals" [level=2]
+          - generic [ref=e100]:
+            - link "Shop Men":
+              - /url: https://www.allbirds.com/collections/mens-new-arrivals?a_ajs_event=Homepage+Module+Clicked&a_ajs_prop_carousel_card_name=New+Arrivals&a_ajs_prop_carousel_card_position=0&a_ajs_prop_image_name=files%2F26Q2_CanvasCruiser_Site_Homepage_CategoryRow-01_Desktop-Mobile_2x3_01.jpg&a_ajs_prop_link_CTA_name=Shop+Men&a_ajs_prop_link_destination=%2Fcollections%2Fmens-new-arrivals&a_ajs_prop_module_name=category-row&a_ajs_prop_module_position=2
+            - link "Shop Women":
+              - /url: https://www.allbirds.com/collections/womens-new-arrivals?a_ajs_event=Homepage+Module+Clicked&a_ajs_prop_carousel_card_name=New+Arrivals&a_ajs_prop_carousel_card_position=1&a_ajs_prop_image_name=files%2F26Q2_CanvasCruiser_Site_Homepage_CategoryRow-01_Desktop-Mobile_2x3_01.jpg&a_ajs_prop_link_CTA_name=Shop+Women&a_ajs_prop_link_destination=%2Fcollections%2Fwomens-new-arrivals&a_ajs_prop_module_name=category-row&a_ajs_prop_module_position=2
+      - listitem [ref=e101]:
+        - generic [ref=e103]:
+          - heading "Mens" [level=2]
+          - generic [ref=e104]:
+            - link "Shop Men":
+              - /url: https://www.allbirds.com/collections/mens?a_ajs_event=Homepage+Module+Clicked&a_ajs_prop_carousel_card_name=Mens&a_ajs_prop_carousel_card_position=0&a_ajs_prop_image_name=files%2F26Q2_CanvasCruiser_Site_Homepage_CategoryRow-01_Desktop-Mobile_2x3_04.jpg&a_ajs_prop_link_CTA_name=Shop+Men&a_ajs_prop_link_destination=%2Fcollections%2Fmens&a_ajs_prop_module_name=category-row&a_ajs_prop_module_position=2
+      - listitem [ref=e105]:
+        - generic [ref=e107]:
+          - heading "Womens" [level=2]
+          - generic [ref=e108]:
+            - link "Shop Women":
+              - /url: https://www.allbirds.com/collections/womens?a_ajs_event=Homepage+Module+Clicked&a_ajs_prop_carousel_card_name=Womens&a_ajs_prop_carousel_card_position=0&a_ajs_prop_image_name=files%2F26Q2_CanvasCruiser_Site_Homepage_CategoryRow-01_Desktop-Mobile_2x3_03.jpg&a_ajs_prop_link_CTA_name=Shop+Women&a_ajs_prop_link_destination=%2Fcollections%2Fwomens&a_ajs_prop_module_name=category-row&a_ajs_prop_module_position=2
+      - listitem [ref=e109]:
+        - generic [ref=e111]:
+          - heading "Best Sellers" [level=2]
+          - generic [ref=e112]:
+            - link "Shop Men":
+              - /url: https://www.allbirds.com/collections/mens-bestsellers?a_ajs_event=Homepage+Module+Clicked&a_ajs_prop_carousel_card_name=Best+Sellers&a_ajs_prop_carousel_card_position=0&a_ajs_prop_image_name=files%2F26Q2_CanvasCruiser_Site_Homepage_CategoryRow-01_Desktop-Mobile_2x3_02.jpg&a_ajs_prop_link_CTA_name=Shop+Men&a_ajs_prop_link_destination=%2Fcollections%2Fmens-bestsellers&a_ajs_prop_module_name=category-row&a_ajs_prop_module_position=2
+            - link "Shop Women":
+              - /url: https://www.allbirds.com/collections/womens-bestsellers?a_ajs_event=Homepage+Module+Clicked&a_ajs_prop_carousel_card_name=Best+Sellers&a_ajs_prop_carousel_card_position=1&a_ajs_prop_image_name=files%2F26Q2_CanvasCruiser_Site_Homepage_CategoryRow-01_Desktop-Mobile_2x3_02.jpg&a_ajs_prop_link_CTA_name=Shop+Women&a_ajs_prop_link_destination=%2Fcollections%2Fwomens-bestsellers&a_ajs_prop_module_name=category-row&a_ajs_prop_module_position=2
+    - generic [ref=e114]:
+      - button "NEW ARRIVALS" [ref=e116] [cursor=pointer]
+      - generic:
+        - generic:
+          - button "Previous product":
+            - img
+          - button "Next product":
+            - img
+      - generic [ref=e117]:
+        - heading [level=3]
+        - generic [ref=e118]:
+          - paragraph
+          - generic [ref=e119]: "-"
+        - generic [ref=e120]:
+          - link "Shop Men" [ref=e121] [cursor=pointer]:
+            - /url: ""
+          - link "Shop Women" [ref=e122] [cursor=pointer]:
+            - /url: ""
+    - generic [ref=e124]:
+      - generic [ref=e125]:
+        - button "New Arrivals" [ref=e127] [cursor=pointer]
+        - generic [ref=e128]:
+          - button "Previous Product" [ref=e129] [cursor=pointer]:
+            - img [ref=e130]
+          - button "Next Product" [ref=e132] [cursor=pointer]:
+            - img [ref=e133]
+      - generic [ref=e137]:
+        - generic [ref=e139]:
+          - generic [ref=e142]: New Color
+          - link "Women's Varsity Strap - Burlwood (Natural White Sole) Women's Varsity Strap - Burlwood (Natural White Sole)" [ref=e144] [cursor=pointer]:
+            - /url: /products/womens-varsity-strap-burlwood
+            - img "Women's Varsity Strap - Burlwood (Natural White Sole)"
+            - img "Women's Varsity Strap - Burlwood (Natural White Sole)"
+          - generic [ref=e145]:
+            - link "Women's Varsity Strap Burlwood $115" [ref=e146] [cursor=pointer]:
+              - /url: /products/womens-varsity-strap-burlwood
+              - paragraph [ref=e147]: Women's Varsity Strap
+              - paragraph [ref=e148]: Burlwood
+              - paragraph [ref=e149]:
+                - generic [ref=e150]: $115
+            - generic [ref=e154]:
+              - radio "Women's Varsity Strap - Burlwood (Natural White Sole)" [checked]
+              - generic "Women's Varsity Strap - Burlwood (Natural White Sole)" [ref=e155] [cursor=pointer]
+        - generic [ref=e157]:
+          - generic [ref=e160]: NEW
+          - link "Men's Cruiser Slip On Terry - Ochre/Warm White (Ochre Sole) Men's Cruiser Slip On Terry - Ochre/Warm White (Ochre Sole)" [ref=e162] [cursor=pointer]:
+            - /url: /products/mens-cruiser-slip-on-terry-ochre-warm-white
+            - img "Men's Cruiser Slip On Terry - Ochre/Warm White (Ochre Sole)"
+            - img "Men's Cruiser Slip On Terry - Ochre/Warm White (Ochre Sole)"
+          - generic [ref=e163]:
+            - link "Men's Cruiser Slip On Terry Ochre/Warm White $110" [ref=e164] [cursor=pointer]:
+              - /url: /products/mens-cruiser-slip-on-terry-ochre-warm-white
+              - paragraph [ref=e165]: Men's Cruiser Slip On Terry
+              - paragraph [ref=e166]: Ochre/Warm White
+              - paragraph [ref=e167]:
+                - generic [ref=e168]: $110
+            - generic [ref=e172]:
+              - radio "Men's Cruiser Slip On Terry - Ochre/Warm White (Ochre Sole)" [checked]
+              - generic "Men's Cruiser Slip On Terry - Ochre/Warm White (Ochre Sole)" [ref=e173] [cursor=pointer]
+        - generic [ref=e175]:
+          - link "Women's Canvas Cruiser - Stormy Lilac (Natural White Sole) Women's Canvas Cruiser - Stormy Lilac (Natural White Sole)" [ref=e177] [cursor=pointer]:
+            - /url: /products/womens-cruiser-canvas-stormy-lilac
+            - img "Women's Canvas Cruiser - Stormy Lilac (Natural White Sole)"
+            - img "Women's Canvas Cruiser - Stormy Lilac (Natural White Sole)"
+          - generic [ref=e178]:
+            - link "Women's Canvas Cruiser Stormy Lilac $75" [ref=e179] [cursor=pointer]:
+              - /url: /products/womens-cruiser-canvas-stormy-lilac
+              - paragraph [ref=e180]: Women's Canvas Cruiser
+              - paragraph [ref=e181]: Stormy Lilac
+              - paragraph [ref=e182]:
+                - generic [ref=e183]: $75
+            - generic [ref=e187]:
+              - radio "Women's Canvas Cruiser - Stormy Lilac (Natural White Sole)" [checked]
+              - generic "Women's Canvas Cruiser - Stormy Lilac (Natural White Sole)" [ref=e188] [cursor=pointer]
+        - generic [ref=e190]:
+          - generic [ref=e193]: New Color
+          - link "Men's Canvas Runner NZ - Deep Navy Stripes (Blizzard Sole) Men's Canvas Runner NZ - Deep Navy Stripes (Blizzard Sole)" [ref=e195] [cursor=pointer]:
+            - /url: /products/mens-canvas-runner-nz
+            - img "Men's Canvas Runner NZ - Deep Navy Stripes (Blizzard Sole)"
+            - img "Men's Canvas Runner NZ - Deep Navy Stripes (Blizzard Sole)"
+          - generic [ref=e196]:
+            - link "Men's Canvas Runner NZ Deep Navy Stripes $100" [ref=e197] [cursor=pointer]:
+              - /url: /products/mens-canvas-runner-nz
+              - paragraph [ref=e198]: Men's Canvas Runner NZ
+              - paragraph [ref=e199]: Deep Navy Stripes
+              - paragraph [ref=e200]:
+                - generic [ref=e201]: $100
+            - generic [ref=e205]:
+              - radio "Men's Canvas Runner NZ - Deep Navy Stripes (Blizzard Sole)" [checked]
+              - generic "Men's Canvas Runner NZ - Deep Navy Stripes (Blizzard Sole)" [ref=e206] [cursor=pointer]
+        - generic [ref=e208]:
+          - generic [ref=e211]: New Color
+          - link "Women's Tree Glider - Burlwood (Burlwood Sole) Women's Tree Glider - Burlwood (Burlwood Sole)" [ref=e213] [cursor=pointer]:
+            - /url: /products/womens-tree-glider-burlwood
+            - img "Women's Tree Glider - Burlwood (Burlwood Sole)"
+            - img "Women's Tree Glider - Burlwood (Burlwood Sole)"
+          - generic [ref=e214]:
+            - link "Women's Tree Glider Burlwood $140" [ref=e215] [cursor=pointer]:
+              - /url: /products/womens-tree-glider-burlwood
+              - paragraph [ref=e216]: Women's Tree Glider
+              - paragraph [ref=e217]: Burlwood
+              - paragraph [ref=e218]:
+                - generic [ref=e219]: $140
+            - generic [ref=e223]:
+              - radio "Women's Tree Glider - Burlwood (Burlwood Sole)" [checked]
+              - generic "Women's Tree Glider - Burlwood (Burlwood Sole)" [ref=e224] [cursor=pointer]
+        - generic [ref=e226]:
+          - link "Men's Canvas Cruiser - Sea Spray (Natural White Sole) Men's Canvas Cruiser - Sea Spray (Natural White Sole)" [ref=e228] [cursor=pointer]:
+            - /url: /products/mens-cruiser-canvas-sea-spray
+            - img "Men's Canvas Cruiser - Sea Spray (Natural White Sole)"
+            - img "Men's Canvas Cruiser - Sea Spray (Natural White Sole)"
+          - generic [ref=e229]:
+            - link "Men's Canvas Cruiser Sea Spray $75" [ref=e230] [cursor=pointer]:
+              - /url: /products/mens-cruiser-canvas-sea-spray
+              - paragraph [ref=e231]: Men's Canvas Cruiser
+              - paragraph [ref=e232]: Sea Spray
+              - paragraph [ref=e233]:
+                - generic [ref=e234]: $75
+            - generic [ref=e238]:
+              - radio "Men's Canvas Cruiser - Sea Spray (Natural White Sole)" [checked]
+              - generic "Men's Canvas Cruiser - Sea Spray (Natural White Sole)" [ref=e239] [cursor=pointer]
+        - generic [ref=e241]:
+          - generic [ref=e244]: New Color
+          - link "Women's Breezer Mary Jane - Dusty Pink (Dusty Pink Sole) Women's Breezer Mary Jane - Dusty Pink (Dusty Pink Sole)" [ref=e246] [cursor=pointer]:
+            - /url: /products/womens-breezer-mary-jane-dusty-pink
+            - img "Women's Breezer Mary Jane - Dusty Pink (Dusty Pink Sole)"
+            - img "Women's Breezer Mary Jane - Dusty Pink (Dusty Pink Sole)"
+          - generic [ref=e247]:
+            - link "Women's Breezer Mary Jane Dusty Pink $115" [ref=e248] [cursor=pointer]:
+              - /url: /products/womens-breezer-mary-jane-dusty-pink
+              - paragraph [ref=e249]: Women's Breezer Mary Jane
+              - paragraph [ref=e250]: Dusty Pink
+              - paragraph [ref=e251]:
+                - generic [ref=e252]: $115
+            - generic [ref=e256]:
+              - radio "Women's Breezer Mary Jane - Dusty Pink (Dusty Pink Sole)" [checked]
+              - generic "Women's Breezer Mary Jane - Dusty Pink (Dusty Pink Sole)" [ref=e257] [cursor=pointer]
+        - generic [ref=e259]:
+          - generic [ref=e262]: New Color
+          - link "Men's Dasher NZ - Seagrass (Parchment Sole) Men's Dasher NZ - Seagrass (Parchment Sole)" [ref=e264] [cursor=pointer]:
+            - /url: /products/mens-dasher-nz-seagrass
+            - img "Men's Dasher NZ - Seagrass (Parchment Sole)"
+            - img "Men's Dasher NZ - Seagrass (Parchment Sole)"
+          - generic [ref=e265]:
+            - link "Men's Dasher NZ Seagrass $140" [ref=e266] [cursor=pointer]:
+              - /url: /products/mens-dasher-nz-seagrass
+              - paragraph [ref=e267]: Men's Dasher NZ
+              - paragraph [ref=e268]: Seagrass
+              - paragraph [ref=e269]:
+                - generic [ref=e270]: $140
+            - generic [ref=e274]:
+              - radio "Men's Dasher NZ - Seagrass (Parchment Sole)" [checked]
+              - generic "Men's Dasher NZ - Seagrass (Parchment Sole)" [ref=e275] [cursor=pointer]
+    - generic [ref=e277]:
+      - heading "Your Easy, Breezy MVP" [level=2] [ref=e278]
+      - generic [ref=e281]:
+        - generic [ref=e283]:
+          - button "Open quick view" [ref=e285] [cursor=pointer]:
+            - img [ref=e286]
+          - generic [ref=e288]: NATURALLY EASY
+          - generic [ref=e289]: Classic sport style, reimagined to feel lighter, cooler, and wildly comfortable. A total breeze from the first step.
+        - generic [ref=e291]:
+          - button "Open quick view" [ref=e293] [cursor=pointer]:
+            - img [ref=e294]
+          - generic [ref=e296]: LIGHT ON YOUR FEET
+          - generic [ref=e297]: Breathable tree-fiber uppers keep things cool and easy—because your new everyday MVP is made to move.
+    - generic [ref=e300]:
+      - generic [ref=e302]:
+        - heading "Spring Travel Essentials" [level=2] [ref=e304]
+        - generic [ref=e305]:
+          - link "Shop Men" [ref=e306] [cursor=pointer]:
+            - /url: https://www.allbirds.com/collections/best-for-traveling-mens?a_ajs_event=Homepage+Module+Clicked&a_ajs_prop_carousel_card_name=Spring+Travel+Essentials&a_ajs_prop_carousel_card_position=1&a_ajs_prop_image_name=files%2F26Q2_CanvasCruiser_Site_3xPromo-01_Desktop-Mobile_9x16_01.jpg&a_ajs_prop_link_CTA_name=Shop+Men&a_ajs_prop_link_destination=%2Fcollections%2Fbest-for-traveling-mens&a_ajs_prop_module_name=3x-promo-tiles&a_ajs_prop_module_position=7
+          - link "Shop Women" [ref=e307] [cursor=pointer]:
+            - /url: https://www.allbirds.com/collections/best-for-traveling-womens?a_ajs_event=Homepage+Module+Clicked&a_ajs_prop_carousel_card_name=Spring+Travel+Essentials&a_ajs_prop_carousel_card_position=1&a_ajs_prop_image_name=files%2F26Q2_CanvasCruiser_Site_3xPromo-01_Desktop-Mobile_9x16_01.jpg&a_ajs_prop_link_CTA_name=Shop+Women&a_ajs_prop_link_destination=%2Fcollections%2Fbest-for-traveling-womens&a_ajs_prop_module_name=3x-promo-tiles&a_ajs_prop_module_position=7
+      - generic [ref=e309]:
+        - heading "New Arrivals" [level=2] [ref=e311]
+        - generic [ref=e312]:
+          - link "Shop Men" [ref=e313] [cursor=pointer]:
+            - /url: https://www.allbirds.com/collections/mens-new-arrivals?a_ajs_event=Homepage+Module+Clicked&a_ajs_prop_carousel_card_name=New+Arrivals&a_ajs_prop_carousel_card_position=1&a_ajs_prop_image_name=files%2F26Q2_CanvasCruiser_Site_3xPromo-01_Desktop-Mobile_9x16_02.jpg&a_ajs_prop_link_CTA_name=Shop+Men&a_ajs_prop_link_destination=%2Fcollections%2Fmens-new-arrivals&a_ajs_prop_module_name=3x-promo-tiles&a_ajs_prop_module_position=7
+          - link "Shop Women" [ref=e314] [cursor=pointer]:
+            - /url: https://www.allbirds.com/collections/womens-new-arrivals?a_ajs_event=Homepage+Module+Clicked&a_ajs_prop_carousel_card_name=New+Arrivals&a_ajs_prop_carousel_card_position=1&a_ajs_prop_image_name=files%2F26Q2_CanvasCruiser_Site_3xPromo-01_Desktop-Mobile_9x16_02.jpg&a_ajs_prop_link_CTA_name=Shop+Women&a_ajs_prop_link_destination=%2Fcollections%2Fwomens-new-arrivals&a_ajs_prop_module_name=3x-promo-tiles&a_ajs_prop_module_position=7
+      - generic [ref=e316]:
+        - heading "Fresh Colors For Spring" [level=2] [ref=e318]
+        - generic [ref=e319]:
+          - link "Shop Men" [ref=e320] [cursor=pointer]:
+            - /url: https://www.allbirds.com/collections/mens-spring-colors?a_ajs_event=Homepage+Module+Clicked&a_ajs_prop_carousel_card_name=Fresh+Colors+For+Spring&a_ajs_prop_carousel_card_position=1&a_ajs_prop_image_name=files%2F26Q2_CanvasCruiser_Site_3xPromo-01_Desktop-Mobile_9x16_03.jpg&a_ajs_prop_link_CTA_name=Shop+Men&a_ajs_prop_link_destination=%2Fcollections%2Fmens-spring-colors&a_ajs_prop_module_name=3x-promo-tiles&a_ajs_prop_module_position=7
+          - link "Shop Women" [ref=e321] [cursor=pointer]:
+            - /url: https://www.allbirds.com/collections/womens-spring-colors?a_ajs_event=Homepage+Module+Clicked&a_ajs_prop_carousel_card_name=Fresh+Colors+For+Spring&a_ajs_prop_carousel_card_position=1&a_ajs_prop_image_name=files%2F26Q2_CanvasCruiser_Site_3xPromo-01_Desktop-Mobile_9x16_03.jpg&a_ajs_prop_link_CTA_name=Shop+Women&a_ajs_prop_link_destination=%2Fcollections%2Fwomens-spring-colors&a_ajs_prop_module_name=3x-promo-tiles&a_ajs_prop_module_position=7
+  - generic [ref=e323]:
+    - generic [ref=e324]:
+      - paragraph [ref=e325]: Wear All Day Comfort
+      - paragraph [ref=e327]: Lightweight, bouncy, and wildly comfortable, Allbirds shoes make any outing feel effortless. Slip in, lace up, or slide them on and enjoy the comfy support.
+    - generic [ref=e328]:
+      - paragraph [ref=e329]: Sustainability In Every Step
+      - paragraph [ref=e331]: From materials to transport, we’re working to reduce our carbon footprint to near zero. Holding ourselves accountable and striving for climate goals isn’t a 30-year goal—it’s now.
+    - generic [ref=e332]:
+      - paragraph [ref=e333]: Materials From The Earth
+      - paragraph [ref=e335]: We replace petroleum-based synthetics with natural alternatives wherever we can. Like using wool, tree fiber, and sugarcane. They’re soft, breathable, and better for the planet—win, win, win.
+  - contentinfo [ref=e337]:
+    - generic [ref=e338]:
+      - generic [ref=e339]:
+        - paragraph [ref=e340]: Subscribe to our emails
+        - generic [ref=e342]:
+          - button "Sign Up" [ref=e343] [cursor=pointer]
+          - textbox "Email Address" [ref=e344]
+      - generic [ref=e345]:
+        - generic [ref=e346]:
+          - paragraph [ref=e347]: Help
+          - list [ref=e350]:
+            - listitem [ref=e351]:
+              - link "Live Chat" [ref=e352] [cursor=pointer]:
+                - /url: open-chat
+            - listitem [ref=e353]:
+              - link "Call Us" [ref=e354] [cursor=pointer]:
+                - /url: tel:18889638944
+            - listitem [ref=e355]:
+              - link "Text Us" [ref=e356] [cursor=pointer]:
+                - /url: sms:18142519966
+            - listitem [ref=e357]:
+              - link "help@allbirds.com" [ref=e358] [cursor=pointer]:
+                - /url: mailto:help@allbirds.com
+            - listitem [ref=e359]:
+              - link "FAQ/Contact Us" [ref=e360] [cursor=pointer]:
+                - /url: https://www.allbirds.com/pages/help?a_ajs_event=Footer+Link+Clicked&a_ajs_prop_footer_link_category=Help&a_ajs_prop_footer_link_name=FAQ%2FContact+Us
+            - listitem [ref=e361]:
+              - link "Returns/Exchanges" [ref=e362] [cursor=pointer]:
+                - /url: https://www.allbirds.com/pages/returns-exchanges?a_ajs_event=Footer+Link+Clicked&a_ajs_prop_footer_link_category=Help&a_ajs_prop_footer_link_name=Returns%2FExchanges
+        - generic [ref=e363]:
+          - paragraph [ref=e364]: Shop
+          - list [ref=e367]:
+            - listitem [ref=e368]:
+              - link "Men's Shoes" [ref=e369] [cursor=pointer]:
+                - /url: https://www.allbirds.com/collections/mens?a_ajs_event=Footer+Link+Clicked&a_ajs_prop_footer_link_category=Shop&a_ajs_prop_footer_link_name=Men%27s+Shoes
+            - listitem [ref=e370]:
+              - link "Women's Shoes" [ref=e371] [cursor=pointer]:
+                - /url: https://www.allbirds.com/collections/womens?a_ajs_event=Footer+Link+Clicked&a_ajs_prop_footer_link_category=Shop&a_ajs_prop_footer_link_name=Women%27s+Shoes
+            - listitem [ref=e372]:
+              - link "Men's Apparel" [ref=e373] [cursor=pointer]:
+                - /url: https://www.allbirds.com/collections/mens-apparel?a_ajs_event=Footer+Link+Clicked&a_ajs_prop_footer_link_category=Shop&a_ajs_prop_footer_link_name=Men%27s+Apparel
+            - listitem [ref=e374]:
+              - link "Women's Apparel" [ref=e375] [cursor=pointer]:
+                - /url: https://www.allbirds.com/collections/womens-apparel?a_ajs_event=Footer+Link+Clicked&a_ajs_prop_footer_link_category=Shop&a_ajs_prop_footer_link_name=Women%27s+Apparel
+            - listitem [ref=e376]:
+              - link "Socks" [ref=e377] [cursor=pointer]:
+                - /url: https://www.allbirds.com/collections/socks?a_ajs_event=Footer+Link+Clicked&a_ajs_prop_footer_link_category=Shop&a_ajs_prop_footer_link_name=Socks
+            - listitem [ref=e378]:
+              - link "Refer a Friend" [ref=e379] [cursor=pointer]:
+                - /url: https://www.allbirds.com/pages/refer-a-friend?a_ajs_event=Footer+Link+Clicked&a_ajs_prop_footer_link_category=Shop&a_ajs_prop_footer_link_name=Refer+a+Friend
+        - generic [ref=e380]:
+          - paragraph [ref=e381]: Company
+          - generic [ref=e383]:
+            - list [ref=e384]:
+              - listitem [ref=e385]:
+                - link "Store Locator" [ref=e386] [cursor=pointer]:
+                  - /url: https://www.allbirds.com/pages/stores?a_ajs_event=Footer+Link+Clicked&a_ajs_prop_footer_link_category=Company&a_ajs_prop_footer_link_name=Store+Locator
+              - listitem [ref=e387]:
+                - link "Our Story" [ref=e388] [cursor=pointer]:
+                  - /url: https://www.allbirds.com/pages/our-story?a_ajs_event=Footer+Link+Clicked&a_ajs_prop_footer_link_category=Company&a_ajs_prop_footer_link_name=Our+Story
+              - listitem [ref=e389]:
+                - link "Our Materials" [ref=e390] [cursor=pointer]:
+                  - /url: https://www.allbirds.com/pages/materials?a_ajs_event=Footer+Link+Clicked&a_ajs_prop_footer_link_category=Company&a_ajs_prop_footer_link_name=Our+Materials
+              - listitem [ref=e391]:
+                - link "Sustainability" [ref=e392] [cursor=pointer]:
+                  - /url: https://www.allbirds.com/pages/sustainability?a_ajs_event=Footer+Link+Clicked&a_ajs_prop_footer_link_category=Company&a_ajs_prop_footer_link_name=Sustainability
+              - listitem [ref=e393]:
+                - link "Investors" [ref=e394] [cursor=pointer]:
+                  - /url: https://ir.allbirds.com/?a_ajs_event=Footer+Link+Clicked&a_ajs_prop_footer_link_category=Company&a_ajs_prop_footer_link_name=Investors
+              - listitem [ref=e395]:
+                - link "Shoe Care" [ref=e396] [cursor=pointer]:
+                  - /url: https://www.allbirds.com/pages/shoe-care?a_ajs_event=Footer+Link+Clicked&a_ajs_prop_footer_link_category=Company&a_ajs_prop_footer_link_name=Shoe+Care
+              - listitem [ref=e397]:
+                - link "Affiliates" [ref=e398] [cursor=pointer]:
+                  - /url: https://www.allbirds.com/pages/affiliates?a_ajs_event=Footer+Link+Clicked&a_ajs_prop_footer_link_category=Company&a_ajs_prop_footer_link_name=Affiliates
+              - listitem [ref=e399]:
+                - link "Bulk Orders" [ref=e400] [cursor=pointer]:
+                  - /url: https://www.allbirds.com/pages/bulk-ordering?a_ajs_event=Footer+Link+Clicked&a_ajs_prop_footer_link_category=Company&a_ajs_prop_footer_link_name=Bulk+Orders
+            - list [ref=e401]:
+              - listitem [ref=e402]:
+                - link "Press" [ref=e403] [cursor=pointer]:
+                  - /url: https://www.allbirds.com/blogs/news?a_ajs_event=Footer+Link+Clicked&a_ajs_prop_footer_link_category=Company&a_ajs_prop_footer_link_name=Press
+              - listitem [ref=e404]:
+                - link "Careers" [ref=e405] [cursor=pointer]:
+                  - /url: https://www.allbirds.com/pages/careers?a_ajs_event=Footer+Link+Clicked&a_ajs_prop_footer_link_category=Company&a_ajs_prop_footer_link_name=Careers
+              - listitem [ref=e406]:
+                - link "Allbirds Responsible Disclosure Program" [ref=e407] [cursor=pointer]:
+                  - /url: https://cdn.shopify.com/s/files/1/1104/4168/files/Security_Vulnerability_Disclosure_Policy_FINAL.pdf?v=1699405184&a_ajs_event=Footer+Link+Clicked&a_ajs_prop_footer_link_category=Company&a_ajs_prop_footer_link_name=Allbirds+Responsible+Disclosure+Program
+              - listitem [ref=e408]:
+                - link "California Transparency Act" [ref=e409] [cursor=pointer]:
+                  - /url: https://cdn.shopify.com/s/files/1/1104/4168/files/Allbirds_CATSA_Disclosure_FINAL.pdf?v=1606779259&a_ajs_event=Footer+Link+Clicked&a_ajs_prop_footer_link_category=Company&a_ajs_prop_footer_link_name=California+Transparency+Act
+              - listitem [ref=e410]:
+                - link "Community Offers" [ref=e411] [cursor=pointer]:
+                  - /url: https://www.allbirds.com/pages/community-offers?a_ajs_event=Footer+Link+Clicked&a_ajs_prop_footer_link_category=Company&a_ajs_prop_footer_link_name=Community+Offers
+              - listitem [ref=e412]:
+                - link "Our Blog" [ref=e413] [cursor=pointer]:
+                  - /url: https://www.allbirds.com/blogs/the-perch?a_ajs_event=Footer+Link+Clicked&a_ajs_prop_footer_link_category=Company&a_ajs_prop_footer_link_name=Our+Blog
+              - listitem [ref=e414]:
+                - link "Patents" [ref=e415] [cursor=pointer]:
+                  - /url: https://www.allbirds.com/pages/patents?a_ajs_event=Footer+Link+Clicked&a_ajs_prop_footer_link_category=Company&a_ajs_prop_footer_link_name=Patents
+              - listitem [ref=e416]:
+                - link "Terms of Use - Wholesale" [ref=e417] [cursor=pointer]:
+                  - /url: https://www.allbirds.com/pages/allbirds-terms-of-use-wholesale?a_ajs_event=Footer+Link+Clicked&a_ajs_prop_footer_link_category=Company&a_ajs_prop_footer_link_name=Terms+of+Use+-+Wholesale
+              - listitem [ref=e418]:
+                - link "Allbirds Global Entities" [ref=e419] [cursor=pointer]:
+                  - /url: https://www.allbirds.com/pages/allbirds-global-entities?a_ajs_event=Footer+Link+Clicked&a_ajs_prop_footer_link_category=Company&a_ajs_prop_footer_link_name=Allbirds+Global+Entities
+      - generic [ref=e420]:
+        - heading "Follow The Flock" [level=3] [ref=e421]
+        - generic [ref=e422]:
+          - link "Instagram" [ref=e423] [cursor=pointer]:
+            - /url: https://www.instagram.com/allbirds
+            - img [ref=e425]
+          - link "Pinterest" [ref=e427] [cursor=pointer]:
+            - /url: http://pinterest.com/weareallbirds
+            - img [ref=e429]
+          - link "Facebook" [ref=e431] [cursor=pointer]:
+            - /url: https://www.facebook.com/weareallbirds
+            - img [ref=e433]
+          - link "X/Twitter" [ref=e435] [cursor=pointer]:
+            - /url: https://twitter.com/allbirds
+            - img [ref=e437]
+          - link "TikTok" [ref=e439] [cursor=pointer]:
+            - /url: https://www.tiktok.com/@weareallbirds
+            - img [ref=e441]
+          - link "YouTube" [ref=e443] [cursor=pointer]:
+            - /url: https://www.youtube.com/channel/UCnGErLCau5qNJ0Xwe6uEyTw
+            - img [ref=e445]
+    - generic [ref=e447]:
+      - img "B Corporation Certified" [ref=e449]
+      - generic [ref=e450]:
+        - combobox "Select country" [ref=e451]:
+          - option "AE"
+          - option "AT"
+          - option "AU"
+          - option "BE"
+          - option "CA"
+          - option "CH"
+          - option "CN"
+          - option "CZ"
+          - option "DE"
+          - option "DK"
+          - option "EE"
+          - option "EU"
+          - option "FI"
+          - option "FR"
+          - option "IE"
+          - option "IS"
+          - option "IT"
+          - option "JP"
+          - option "KR"
+          - option "KW"
+          - option "LI"
+          - option "LT"
+          - option "LU"
+          - option "LV"
+          - option "MT"
+          - option "MY"
+          - option "NL"
+          - option "NO"
+          - option "NZ"
+          - option "PH"
+          - option "PL"
+          - option "SA"
+          - option "SE"
+          - option "SG"
+          - option "SM"
+          - option "UK"
+          - option "US" [selected]
+        - img
+    - generic [ref=e453]:
+      - generic [ref=e454]: © 2025 Allbirds, Inc. All Rights Reserved
+      - button "Refund policy" [ref=e455] [cursor=pointer]
+      - button "Privacy policy" [ref=e456] [cursor=pointer]
+      - button "Terms of service" [ref=e457] [cursor=pointer]
+      - button "Do Not Sell My Personal Information" [ref=e458]
+      - link "California Transparency Act" [ref=e459] [cursor=pointer]:
+        - /url: https://cdn.shopify.com/s/files/1/1104/4168/files/Allbirds_CATSA_Disclosure_FINAL.pdf?v=1606779259&a_ajs_event=Footer+Link+Clicked&a_ajs_prop_footer_link_category=Company&a_ajs_prop_footer_link_name=California+Transparency+Act
+  - generic [ref=e463]:
+    - button "Close" [ref=e464] [cursor=pointer]:
+      - generic [ref=e465]: Close
+      - img [ref=e466]
+    - generic [ref=e469]:
+      - heading "Where are we shipping to?" [level=3] [ref=e470]
+      - generic [ref=e471]:
+        - button "United States US" [ref=e472]:
+          - img "United States" [ref=e473]
+          - text: US
+        - button "ES ES ES" [ref=e474]:
+          - generic [ref=e475]: ES
+          - img "ES" [ref=e476]
+          - text: ES
+      - paragraph [ref=e478]: Purchasing from your country's website is the best way to connect your feet to the world's most comfortable shoe.

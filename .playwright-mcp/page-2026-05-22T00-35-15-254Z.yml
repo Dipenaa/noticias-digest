@@ -1,0 +1,377 @@
+- generic [active] [ref=e1]:
+  - button "Omitir y pasar al contenido principal" [ref=e2] [cursor=pointer]
+  - main [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e7]:
+        - button "Gastos de envío gratis desde 100 € | Información de envío | Devoluciones" [ref=e10] [cursor=pointer]:
+          - generic [ref=e11]:
+            - generic [ref=e12]: Gastos de envío gratis desde 100 €
+            - img [ref=e13]
+          - generic [ref=e15]:
+            - generic [ref=e16]: Información de envío
+            - img [ref=e17]
+          - generic [ref=e19]:
+            - generic [ref=e20]: Devoluciones
+            - img [ref=e21]
+        - generic [ref=e24]:
+          - generic [ref=e25]:
+            - link "Página de inicio de Patagonia" [ref=e27] [cursor=pointer]:
+              - /url: https://eu.patagonia.com/es/es/home/
+              - img "Patagonia España" [ref=e28]
+            - generic [ref=e30]:
+              - button "Buscar" [ref=e31] [cursor=pointer]:
+                - figure [ref=e32]:
+                  - img [ref=e33]
+              - link "Cesta" [ref=e35] [cursor=pointer]:
+                - /url: https://eu.patagonia.com/es/es/cart/
+                - figure [ref=e36]:
+                  - img [ref=e37]
+              - button "Hamburger" [ref=e39] [cursor=pointer]:
+                - figure [ref=e40]:
+                  - img [ref=e41]
+          - img "Capilene® Cool Sun" [ref=e45]
+          - img "Capilene® Cool Sun" [ref=e48]
+      - generic [ref=e50]:
+        - generic [ref=e54]:
+          - figure [ref=e55]
+          - generic [ref=e59]:
+            - heading "Las mochilas Black Hole®, diseñadas para viajar" [level=1] [ref=e61]
+            - generic [ref=e62]:
+              - paragraph
+              - paragraph [ref=e63]: Las mochilas Black Hole® son resistentes, impermeables y están diseñadas para viajar. Disponibles en una amplia gama de tamaños y estilos, y diseñadas para una organización inteligente y eficiente. Nada se le escapa a una Black Hole. Llévala a lomos de una mula o súbela a un tren. Encuentra la mochila que más te convenga y empieza a planificar tu próximo gran viaje.
+              - link "Explora la colección" [ref=e66] [cursor=pointer]:
+                - /url: https://eu.patagonia.com/es/es/shop/gear/bags/black-hole
+                - generic [ref=e67]: Explora la colección
+        - navigation [ref=e74]:
+          - generic [ref=e75]:
+            - list [ref=e76]:
+              - listitem [ref=e77]:
+                - link "Novedades" [ref=e78] [cursor=pointer]:
+                  - /url: https://eu.patagonia.com/es/es/shop/collections/new-arrivals
+              - listitem [ref=e79]:
+                - link "Camisetas técnicas Capilene® Cool" [ref=e80] [cursor=pointer]:
+                  - /url: https://eu.patagonia.com/es/es/shop/favorites/capilene-cool-tech-tees
+              - listitem [ref=e81]:
+                - link "Pantalones cortos Baggies™" [ref=e82] [cursor=pointer]:
+                  - /url: https://eu.patagonia.com/es/es/shop/favorites/baggies-shorts
+              - listitem [ref=e83]:
+                - link "Protección solar" [ref=e84] [cursor=pointer]:
+                  - /url: https://eu.patagonia.com/es/es/shop/collections/sun-protection-clothing
+              - listitem [ref=e85]:
+                - link "Bolsas Black Hole®" [ref=e86] [cursor=pointer]:
+                  - /url: https://eu.patagonia.com/es/es/shop/gear/bags/black-hole
+              - listitem [ref=e87]:
+                - link "Exclusivo online" [ref=e88] [cursor=pointer]:
+                  - /url: https://eu.patagonia.com/es/es/shop/collections/exclusives
+            - button "Anterior":
+              - figure:
+                - img
+            - button "Siguiente" [ref=e89] [cursor=pointer]:
+              - figure [ref=e90]:
+                - img [ref=e91]
+        - generic [ref=e99]:
+          - generic [ref=e100]:
+            - generic "Mujer" [ref=e103]:
+              - generic [ref=e105]:
+                - link "Comprar" [ref=e107] [cursor=pointer]:
+                  - /url: /es/es/shop/womens
+                - generic [ref=e108]:
+                  - paragraph
+                  - paragraph [ref=e109]: Mujer
+                  - paragraph
+                  - paragraph
+                - link "Comprar" [ref=e113] [cursor=pointer]:
+                  - /url: https://eu.patagonia.com/es/es/shop/womens
+                  - generic [ref=e114]: Comprar
+            - generic "Hombre" [ref=e117]:
+              - generic [ref=e119]:
+                - link "Comprar" [ref=e121] [cursor=pointer]:
+                  - /url: /es/es/shop/mens
+                - generic [ref=e122]:
+                  - paragraph
+                  - paragraph [ref=e123]: Hombre
+                  - paragraph
+                  - paragraph
+                - link "Comprar" [ref=e127] [cursor=pointer]:
+                  - /url: https://eu.patagonia.com/es/es/shop/mens
+                  - generic [ref=e128]: Comprar
+            - generic "Infantil" [ref=e131]:
+              - generic [ref=e133]:
+                - link "Comprar" [ref=e135] [cursor=pointer]:
+                  - /url: /es/es/shop/kids-baby
+                - generic [ref=e136]:
+                  - paragraph
+                  - paragraph [ref=e137]: Infantil
+                  - paragraph
+                  - paragraph
+                - link "Comprar" [ref=e141] [cursor=pointer]:
+                  - /url: https://eu.patagonia.com/es/es/shop/kids-baby
+                  - generic [ref=e142]: Comprar
+            - generic "Mochilas y equipamiento" [ref=e145]:
+              - generic [ref=e147]:
+                - link "Comprar" [ref=e149] [cursor=pointer]:
+                  - /url: /es/es/shop/gear/bags
+                - generic [ref=e150]:
+                  - paragraph
+                  - paragraph [ref=e151]: Mochilas y equipamiento
+                  - paragraph
+                  - paragraph
+                - link "Comprar" [ref=e155] [cursor=pointer]:
+                  - /url: https://eu.patagonia.com/es/es/shop/gear/bags
+                  - generic [ref=e156]: Comprar
+            - generic "Workwear" [ref=e159]:
+              - generic [ref=e161]:
+                - link "Comprar" [ref=e163] [cursor=pointer]:
+                  - /url: /es/es/shop/sport/workwear
+                - generic [ref=e164]:
+                  - paragraph
+                  - paragraph [ref=e165]: Workwear
+                  - paragraph
+                  - paragraph
+                - link "Comprar" [ref=e169] [cursor=pointer]:
+                  - /url: https://eu.patagonia.com/es/es/shop/sport/workwear
+                  - generic [ref=e170]: Comprar
+            - generic "Libros" [ref=e173]:
+              - generic [ref=e175]:
+                - link "Comprar" [ref=e177] [cursor=pointer]:
+                  - /url: /es/es/shop/books
+                - generic [ref=e178]:
+                  - paragraph
+                  - paragraph [ref=e179]: Libros
+                  - paragraph
+                  - paragraph
+                - link "Comprar" [ref=e183] [cursor=pointer]:
+                  - /url: https://eu.patagonia.com/es/es/shop/books
+                  - generic [ref=e184]: Comprar
+          - button "Anterior":
+            - figure:
+              - img
+          - button "Siguiente" [ref=e185] [cursor=pointer]:
+            - figure [ref=e186]:
+              - img [ref=e187]
+        - generic [ref=e196]:
+          - figure [ref=e197]
+          - generic [ref=e201]:
+            - heading "La nueva chaqueta Houdini Rock" [level=1] [ref=e203]
+            - generic [ref=e204]:
+              - paragraph
+              - paragraph [ref=e205]: Hemos transformado nuestra legendaria chaqueta Houdini, resistente al viento y a la intemperie, en la chaqueta de escalada definitiva para rutas de varios largos exigentes.
+              - generic [ref=e206]:
+                - link "Hombre" [ref=e208] [cursor=pointer]:
+                  - /url: https://eu.patagonia.com/es/es/shop/sport/climbing/mens/free-wall-kit
+                  - generic [ref=e209]: Hombre
+                - link "Mujer" [ref=e211] [cursor=pointer]:
+                  - /url: https://eu.patagonia.com/es/es/shop/sport/climbing/womens/free-wall-kit
+                  - generic [ref=e212]: Mujer
+        - generic [ref=e219]:
+          - generic [ref=e220]:
+            - generic "Escalada" [ref=e222]:
+              - generic [ref=e224]:
+                - link "Explorar" [ref=e226] [cursor=pointer]:
+                  - /url: https://eu.patagonia.com/es/es/climbing/
+                - generic [ref=e227]:
+                  - paragraph
+                  - paragraph [ref=e228]: Escalada
+                  - paragraph
+                  - paragraph
+                - generic [ref=e229]:
+                  - link "Explorar" [ref=e231] [cursor=pointer]:
+                    - /url: https://eu.patagonia.com/es/es/climbing/
+                    - generic [ref=e232]: Explorar
+                  - link "Hombre" [ref=e234] [cursor=pointer]:
+                    - /url: https://eu.patagonia.com/es/es/shop/sport/climbing/mens
+                    - generic [ref=e235]: Hombre
+                  - link "Mujer" [ref=e237] [cursor=pointer]:
+                    - /url: https://eu.patagonia.com/es/es/shop/sport/climbing/womens
+                    - generic [ref=e238]: Mujer
+            - generic "Senderismo" [ref=e240]:
+              - generic [ref=e242]:
+                - link "Explorar" [ref=e244] [cursor=pointer]:
+                  - /url: https://eu.patagonia.com/es/es/hiking/
+                - generic [ref=e245]:
+                  - paragraph
+                  - paragraph [ref=e246]: Senderismo
+                  - paragraph
+                  - paragraph
+                - generic [ref=e247]:
+                  - link "Explorar" [ref=e249] [cursor=pointer]:
+                    - /url: https://eu.patagonia.com/es/es/hiking/
+                    - generic [ref=e250]: Explorar
+                  - link "Hombre" [ref=e252] [cursor=pointer]:
+                    - /url: https://eu.patagonia.com/es/es/shop/sport/hiking/mens
+                    - generic [ref=e253]: Hombre
+                  - link "Mujer" [ref=e255] [cursor=pointer]:
+                    - /url: https://eu.patagonia.com/es/es/shop/sport/hiking/womens
+                    - generic [ref=e256]: Mujer
+            - generic "Trail running" [ref=e258]:
+              - generic [ref=e260]:
+                - link "Explorar" [ref=e262] [cursor=pointer]:
+                  - /url: https://eu.patagonia.com/es/es/trail-running/
+                - generic [ref=e263]:
+                  - paragraph
+                  - paragraph [ref=e264]: Trail running
+                  - paragraph
+                  - paragraph
+                - generic [ref=e265]:
+                  - link "Explorar" [ref=e267] [cursor=pointer]:
+                    - /url: https://eu.patagonia.com/es/es/trail-running/
+                    - generic [ref=e268]: Explorar
+                  - link "Hombre" [ref=e270] [cursor=pointer]:
+                    - /url: https://eu.patagonia.com/es/es/shop/sport/trail-running/mens
+                    - generic [ref=e271]: Hombre
+                  - link "Mujer" [ref=e273] [cursor=pointer]:
+                    - /url: https://eu.patagonia.com/es/es/shop/sport/trail-running/womens
+                    - generic [ref=e274]: Mujer
+          - button "Anterior":
+            - figure:
+              - img
+          - button "Siguiente":
+            - figure:
+              - img
+        - generic [ref=e282]:
+          - figure [ref=e283]
+          - generic [ref=e287]:
+            - heading "Pasa a la acción" [level=1] [ref=e289]
+            - generic [ref=e290]:
+              - paragraph [ref=e291]: La cría de salmones en jaulas marinas está llevando al salmón salvaje a la extinción, contaminando las costas vírgenes de Islandia y maltratando los peces de cultivo. Pedimos al gobierno islandés que lidere en Europa y prohíba las piscifactorías de salmón en el mar.
+              - generic [ref=e292]:
+                - link "Enviar" [ref=e294] [cursor=pointer]:
+                  - /url: https://eu.patagonia.com/gb/en/actionworks/take-action/iceland-still-needs-you/
+                  - generic [ref=e295]: Enviar
+                - link "Más información" [ref=e297] [cursor=pointer]:
+                  - /url: https://eu.patagonia.com/es/es/iceland/
+                  - generic [ref=e298]: Más información
+        - heading "Historias recientes" [level=2] [ref=e309]
+      - generic [ref=e327]:
+        - generic [ref=e328]:
+          - img "Patagonia Ironclad Guarantee Icon" [ref=e329]
+          - paragraph [ref=e330]: Garantizamos todos los productos que fabricamos.
+          - link "Ver Garantía Blindada" [ref=e331] [cursor=pointer]:
+            - /url: https://eu.patagonia.com/es/es/ironclad-guarantee.html
+            - strong [ref=e332]: Ver Garantía Blindada
+        - generic [ref=e333]:
+          - img "Patagonia Ironclad Guarantee Icon" [ref=e334]
+          - paragraph [ref=e335]: Asumimos la responsabilidad de nuestro impacto.
+          - link "Descubre nuestra contribución" [ref=e336] [cursor=pointer]:
+            - /url: https://eu.patagonia.com/es/es/our-footprint/
+            - strong [ref=e337]: Descubre nuestra contribución
+        - generic [ref=e338]:
+          - img "Patagonia Ironclad Guarantee Icon" [ref=e339]
+          - paragraph [ref=e340]: Apoyamos el activismo de base.
+          - link "Visita Patagonia Action Works" [ref=e341] [cursor=pointer]:
+            - /url: https://eu.patagonia.com/gb/en/actionworks/home/choose-location/
+            - strong [ref=e342]: Visita Patagonia Action Works
+        - generic [ref=e343]:
+          - img "Patagonia Ironclad Guarantee Icon" [ref=e344]
+          - paragraph [ref=e345]: Mantenemos en marcha tu equipamiento.
+          - link "Visita Worn Wear" [ref=e346] [cursor=pointer]:
+            - /url: https://eu.patagonia.com/es/es/worn-wear/
+            - strong [ref=e347]: Visita Worn Wear
+        - generic [ref=e348]:
+          - img "Patagonia Ironclad Guarantee Icon" [ref=e349]
+          - paragraph [ref=e350]: Destinamos nuestras ganancias al planeta.
+          - link "Lee nuestro compromiso" [ref=e351] [cursor=pointer]:
+            - /url: https://eu.patagonia.com/es/es/ownership/
+            - strong [ref=e352]: Lee nuestro compromiso
+      - generic [ref=e353]:
+        - list [ref=e355]:
+          - listitem [ref=e356]:
+            - generic [ref=e357]:
+              - heading "Suscripción al boletín" [level=2] [ref=e358]
+              - paragraph [ref=e359]: Suscríbete para recibir ofertas exclusivas, historias originales, información sobre activismo, eventos y más.
+              - generic [ref=e361]:
+                - generic [ref=e363]:
+                  - textbox "Email Address" [ref=e364]
+                  - generic: Correo electrónico *
+                - generic [ref=e366] [cursor=pointer]:
+                  - text: Al hacer clic en el botón «Suscribirme», doy mi consentimiento a Patagonia para el tratamiento de mi dirección de correo electrónico y para que me envíe mensajes de correo electrónico acerca de productos destacados, historias originales, información sobre activismo, noticias de eventos y más de acuerdo con la
+                  - link "política de privacidad" [ref=e367]:
+                    - /url: /es/es/privacy-policy.html
+                  - text: de Patagonia.
+                - button "Suscribirme" [ref=e368] [cursor=pointer]
+          - listitem [ref=e369]:
+            - generic [ref=e371]:
+              - text: Ayuda
+              - generic [ref=e372]:
+                - link "Servicio de atención al cliente" [ref=e373] [cursor=pointer]:
+                  - /url: https://eu.patagonia.com/es/es/eu-customer-service.html
+                - link "Envío" [ref=e374] [cursor=pointer]:
+                  - /url: https://eu.patagonia.com/es/es/delivery.html
+                - link "Preguntas más frecuentes" [ref=e375] [cursor=pointer]:
+                  - /url: https://eu.patagonia.com/es/es/eu-customer-service-faqs.html
+                - link "Reparaciones" [ref=e376] [cursor=pointer]:
+                  - /url: https://eu.patagonia.com/es/es/repairs/
+                - link "Devoluciones" [ref=e377] [cursor=pointer]:
+                  - /url: https://eu.patagonia.com/es/es/eu-returns.html
+                - link "Guía de tallas" [ref=e378] [cursor=pointer]:
+                  - /url: https://eu.patagonia.com/es/es/guides/size-fit/
+                - link "Mantenimiento de productos" [ref=e379] [cursor=pointer]:
+                  - /url: https://eu.patagonia.com/es/es/product-care/
+                - link "Iniciar sesión" [ref=e380] [cursor=pointer]:
+                  - /url: https://eu.patagonia.com/es/es/account/login/
+                - link "Formulario de contacto" [ref=e381] [cursor=pointer]:
+                  - /url: https://eu.patagonia.com/es/es/contact/
+          - listitem [ref=e382]:
+            - generic [ref=e383]:
+              - heading "Información" [level=6] [ref=e384]
+              - generic [ref=e385]:
+                - list [ref=e386]:
+                  - listitem [ref=e387]:
+                    - link "Patagonia Action Works" [ref=e388] [cursor=pointer]:
+                      - /url: https://eu.patagonia.com/actionworks/
+                  - listitem [ref=e389]:
+                    - link "Worn Wear" [ref=e390] [cursor=pointer]:
+                      - /url: https://eu.patagonia.com/es/es/worn-wear/
+                  - listitem [ref=e391]:
+                    - link "Nuestra toma de conciencia" [ref=e392] [cursor=pointer]:
+                      - /url: https://eu.patagonia.com/es/es/stories/planeta/activism/nuestra-toma-de-conciencia/story-91580.html
+                  - listitem [ref=e393]:
+                    - link "Informe de progreso" [ref=e394] [cursor=pointer]:
+                      - /url: https://eu.patagonia.com/es/es/progress-report/
+                  - listitem [ref=e395]:
+                    - link "Business Unusual" [ref=e396] [cursor=pointer]:
+                      - /url: https://eu.patagonia.com/es/es/business-unusual/
+                  - listitem [ref=e397]:
+                    - link "Objetivos climáticos" [ref=e398] [cursor=pointer]:
+                      - /url: https://eu.patagonia.com/es/es/climate-goals/
+                  - listitem [ref=e399]:
+                    - link "1% for the Planet" [ref=e400] [cursor=pointer]:
+                      - /url: https://eu.patagonia.com/es/es/one-percent-for-the-planet.html
+                  - listitem [ref=e401]:
+                    - link "Cómo financiamos" [ref=e402] [cursor=pointer]:
+                      - /url: https://eu.patagonia.com/es/es/how-we-fund/
+                  - listitem [ref=e403]:
+                    - link "Tarjetas regalo" [ref=e404] [cursor=pointer]:
+                      - /url: https://eu.patagonia.com/es/es/giftcards/
+                  - listitem [ref=e405]:
+                    - link "Encuentra una tienda" [ref=e406] [cursor=pointer]:
+                      - /url: https://eu.patagonia.com/es/es/store-locator/
+                - list [ref=e407]:
+                  - listitem [ref=e408]:
+                    - link "Comunidad Pro" [ref=e409] [cursor=pointer]:
+                      - /url: https://eu.patagonia.com/es/es/pro-landing.html
+                  - listitem [ref=e410]:
+                    - link "Política de privacidad" [ref=e411] [cursor=pointer]:
+                      - /url: https://eu.patagonia.com/es/es/privacy-notice.html
+                  - listitem [ref=e412]:
+                    - link "Términos y condiciones de venta" [ref=e413] [cursor=pointer]:
+                      - /url: https://eu.patagonia.com/es/es/term-conditions.html
+                  - listitem [ref=e414]: Preferencias de cookies
+                  - listitem [ref=e415]:
+                    - link "Empleo" [ref=e416] [cursor=pointer]:
+                      - /url: https://eu.patagonia.com/es/es/business-unusual-careers-folder/
+                  - listitem [ref=e417]:
+                    - link "Prensa" [ref=e418] [cursor=pointer]:
+                      - /url: https://eu.patagonia.com/es/es/eu-public-relations.html
+                  - listitem [ref=e419]:
+                    - link "Programa para profesionales del sector" [ref=e420] [cursor=pointer]:
+                      - /url: https://eu.patagonia.com/es/es/europe-industry-program.html
+                  - listitem [ref=e421]:
+                    - link "Mapa del sitio Patagonia España" [ref=e422] [cursor=pointer]:
+                      - /url: https://eu.patagonia.com/es/es/sitemap/
+        - generic [ref=e423]:
+          - generic [ref=e424]: © 2026 Patagonia, Inc. Todos los derechos reservados.
+          - button "español España" [ref=e426] [cursor=pointer]:
+            - paragraph [ref=e427]: español
+            - figure [ref=e428]:
+              - img "español España" [ref=e429]

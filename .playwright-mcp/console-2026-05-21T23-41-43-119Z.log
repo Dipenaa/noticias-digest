@@ -1,0 +1,3 @@
+[    1538ms] [WARNING] "setAttributes" is deprecated, please use "setAttributeForElements" instead. @ https://www.apple.com/newsroom/scripts/pinned-hero-landing.built.js:0
+[    1652ms] [WARNING] "setAttributes" is deprecated, please use "setAttributeForElements" instead. @ https://www.apple.com/newsroom/scripts/everyday-feed.bundle.js:0
+[    3804ms] [WARNING] "setAttributes" is deprecated, please use "setAttributeForElements" instead. @ https://www.apple.com/_apps/artisan/_next/static/chunks/8681.c0c493e72a8744bf.js:0

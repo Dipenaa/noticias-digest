@@ -1,0 +1,185 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]: 📰
+      - heading "Digest de Noticias" [level=1] [ref=e5]
+    - generic [ref=e6]:
+      - text: 22/05/2026 — 01:10
+      - text: 54 principales · 18 alternativas · Claude
+  - generic [ref=e7]:
+    - generic [ref=e8]:
+      - text: ⚠
+      - strong [ref=e9]: 49 artículos
+      - text: sin análisis IA — resumen, sesgo y síntesis pueden estar incompletos
+    - button "Regenerar análisis IA" [ref=e10] [cursor=pointer]
+    - button "×" [ref=e11] [cursor=pointer]
+  - generic [ref=e12]:
+    - text: 📰 Digest
+    - button "★ Destacadas" [ref=e13] [cursor=pointer]
+    - button "🌎 Actualidad5" [ref=e14] [cursor=pointer]
+    - button "✨ Asombro5" [ref=e15] [cursor=pointer]
+    - button "🔗 Síntesis" [ref=e16] [cursor=pointer]
+    - button "Todas las noticias" [ref=e17] [cursor=pointer]
+    - button "⚡ Prensa Libertaria" [ref=e18] [cursor=pointer]
+    - button "★ Para leer" [ref=e19] [cursor=pointer]
+    - button "📈 Estadísticas" [ref=e20] [cursor=pointer]
+  - main [ref=e21]:
+    - generic [ref=e22]:
+      - generic [ref=e23]:
+        - heading "Actualidad Absoluta" [level=2] [ref=e24]
+        - paragraph [ref=e25]: 5 proceso(s) en curso — situaciones con impacto global sostenido.
+        - generic [ref=e26]:
+          - generic [ref=e27]: "Historial:"
+          - button "5 días" [ref=e28] [cursor=pointer]
+          - button "10 días" [ref=e29] [cursor=pointer]
+          - button "15 días" [ref=e30] [cursor=pointer]
+          - generic [ref=e31]: "|"
+          - button "↑ Escalada" [ref=e32] [cursor=pointer]
+          - button "= Estable" [ref=e33] [cursor=pointer]
+          - button "↓ Resuelve" [ref=e34] [cursor=pointer]
+          - button "Todos" [ref=e35] [cursor=pointer]
+          - generic [ref=e36]: "|"
+          - button "📄 Briefing" [ref=e37] [cursor=pointer]
+      - generic [ref=e38]:
+        - generic [ref=e39]:
+          - generic [ref=e40]: ↑
+          - generic [ref=e41]: ESCALADA
+          - generic [ref=e42]: ·
+          - generic [ref=e43]: MESES
+          - generic [ref=e44]: 3 art. hoy
+        - generic [ref=e45]:
+          - generic: "9"
+          - generic [ref=e46]: Negociaciones y tensión Irán-EEUU
+          - generic [ref=e47]: Diálogo diplomático en curso entre Irán y EEUU con fluctuaciones en sanciones, control nuclear y estabilidad del Golfo Pérsico que afecta mercados globales de energía.
+          - generic [ref=e51]: 9/10
+          - paragraph [ref=e52]: Signos de progreso en negociaciones Irán-EEUU generan optimismo en mercados (petróleo sube, bolsas asiáticas repuntan). Irán hace declaraciones sobre uranio y Estrecho de Ormuz. Sondeos muestran 60% de estadounidenses se oponen a guerra con Irán.
+          - list [ref=e53]:
+            - listitem [ref=e54]:
+              - 'link "Iran war live: Signs of progress amid efforts to reach US-Iran peace deal" [ref=e55] [cursor=pointer]':
+                - /url: https://www.aljazeera.com/news/liveblog/2026/5/22/iran-war-live-signs-of-progress-amid-efforts-to-reach-us-iran-peace-deal?traffic_source=rss
+              - text: — Al Jazeera
+            - listitem [ref=e56]:
+              - link "Oil Rises After Three-Day Drop With Iran-US Talks in Focus" [ref=e57] [cursor=pointer]:
+                - /url: https://www.bloomberg.com/news/articles/2026-05-21/latest-oil-market-news-and-analysis-for-may-22
+              - text: — Bloomberg (EN)
+            - listitem [ref=e58]:
+              - 'link "Asian Stocks Edge Up on Optimism Over Iran Talks: Markets Wrap" [ref=e59] [cursor=pointer]':
+                - /url: https://www.bloomberg.com/news/articles/2026-05-21/asian-stocks-to-rise-on-optimism-over-iran-talks-markets-wrap
+              - text: — Bloomberg (EN)
+        - generic [ref=e63]: Cobertura
+      - generic [ref=e65]:
+        - generic [ref=e66]:
+          - generic [ref=e67]:
+            - generic [ref=e68]: ↑
+            - generic [ref=e69]: ESCALADA
+            - generic [ref=e70]: ·
+            - generic [ref=e71]: MESES
+            - generic [ref=e72]: 2 art. hoy
+          - generic [ref=e73]:
+            - generic: "8"
+            - generic [ref=e74]: Escalada militar en Báltico y OTAN
+            - generic [ref=e75]: Aumento de tensión en región del Báltico por incidentes con drones ucranianos en espacio aéreo de la OTAN, mientras EEUU despliega tropas en Polonia en contexto de guerra ruso-ucraniana.
+            - generic [ref=e79]: 8/10
+            - paragraph [ref=e80]: Incidentes de drones ucranianos en espacio aéreo de países OTAN elevan alerta en Báltico. Trump anuncia envío de 5.000 militares estadounidenses a Polonia como refuerzo defensivo.
+            - list [ref=e81]:
+              - listitem [ref=e82]:
+                - link "Alerta en el Báltico por incursiones de drones ucranianos en espacio aéreo de países de la OTAN" [ref=e83] [cursor=pointer]:
+                  - /url: https://www.france24.com/es/video/20260521-alerta-en-el-b%C3%A1ltico-por-incursiones-de-drones-ucranianos-en-espacio-a%C3%A9reo-de-pa%C3%ADses-de-la-otan
+                - text: — France 24
+              - listitem [ref=e84]:
+                - link "Trump anuncia envío de 5.000 militares de EE.UU. a Polonia" [ref=e85] [cursor=pointer]:
+                  - /url: https://www.dw.com/es/trump-anuncia-envío-de-5-000-militares-de-ee-uu-a-polonia/a-77255314?maca=spa-rss-sp-all-1122-rdf
+                - text: — DW Español
+          - generic [ref=e89]: Cobertura
+        - generic [ref=e91]:
+          - generic [ref=e92]:
+            - generic [ref=e93]: =
+            - generic [ref=e94]: ESTABLE
+            - generic [ref=e95]: ·
+            - generic [ref=e96]: AÑOS
+            - generic [ref=e97]: 1 art. hoy
+          - generic [ref=e98]:
+            - generic: "7"
+            - generic [ref=e99]: Crisis estructural de refinerías en México
+            - generic [ref=e100]: México, mayor productor de petróleo latinoamericano, importa 50% de su gasolina por obsolescencia de infraestructura refinera, generando dependencia energética y vulnerabilidad económica.
+            - generic [ref=e104]: 7/10
+            - paragraph [ref=e105]: México lucha desde años con refinerías obsoletas que obligan importación de 50% del combustible consumido, a pesar de ser uno de mayores productores de petróleo de América Latina.
+            - list [ref=e106]:
+              - listitem [ref=e107]:
+                - link "Por qué México importa más del 50% de la gasolina que consume, pese a ser uno de los mayores productores de petróleo de América Latina" [ref=e108] [cursor=pointer]:
+                  - /url: https://www.bbc.com/mundo/articles/cdxdldjenpvo?at_medium=RSS&at_campaign=rss
+                - text: — BBC Mundo
+          - generic [ref=e112]: Cobertura
+        - generic [ref=e114]:
+          - generic [ref=e115]:
+            - generic [ref=e116]: ↑
+            - generic [ref=e117]: ESCALADA
+            - generic [ref=e118]: ·
+            - generic [ref=e119]: MESES
+            - generic [ref=e120]: 1 art. hoy
+          - generic [ref=e121]:
+            - generic: "7"
+            - generic [ref=e122]: Represión política y control judicial en Turquía
+            - generic [ref=e123]: Justicia turca declara nulidad absoluta del congreso 2023 del CHP (principal oposición), evidenciando uso del sistema judicial como herramienta de control político contra la disidencia.
+            - generic [ref=e127]: 7/10
+            - paragraph [ref=e128]: Corte turca declara nulidad absoluta del congreso 2023 del Partido Republicano del Pueblo (CHP), debilitando institucionalmente a la principal fuerza opositora.
+            - list [ref=e129]:
+              - listitem [ref=e130]:
+                - link "Un fallo declara la nulidad absoluta para el CHP, principal fuerza opositora turca" [ref=e131] [cursor=pointer]:
+                  - /url: http://es.euronews.com/2026/05/21/un-fallo-declara-la-nulidad-absoluta-para-el-chp-principal-fuerza-opositora-turca
+                - text: — Euronews
+          - generic [ref=e135]: Cobertura
+        - generic [ref=e137]:
+          - generic [ref=e138]:
+            - generic [ref=e139]: ↑
+            - generic [ref=e140]: ESCALADA
+            - generic [ref=e141]: ·
+            - generic [ref=e142]: AÑOS
+            - generic [ref=e143]: 2 art. hoy
+          - generic [ref=e144]:
+            - generic: "6"
+            - generic [ref=e145]: Intensificación de temperaturas extremas
+            - generic [ref=e146]: Ascenso térmico acelerado genera noches tropicales sin precedentes y alertas por altas temperaturas, evidenciando impacto del cambio climático en patrones meteorológicos europeos.
+            - generic [ref=e150]: 6/10
+            - paragraph [ref=e151]: Meteorólogos advierten sobre noches tropicales que no bajan de 20 grados y primeras alertas por altas temperaturas de temporada en varias zonas europeas.
+            - list [ref=e152]:
+              - listitem [ref=e153]:
+                - 'link "Roberto Brasero, meteorólogo, avisa: \"Ya vamos a ver noches tropicales que no bajan de 20 grados\"" [ref=e154] [cursor=pointer]':
+                  - /url: https://www.elconfidencial.com/espana/2026-05-21/roberto-braseo-avisa-noches-tropicales-no-bajan-20-grados-1qrt_4359326/
+                - text: — El Confidencial
+              - listitem [ref=e155]:
+                - link "How do hurricanes and typhoons form and is climate change making them stronger?" [ref=e156] [cursor=pointer]:
+                  - /url: https://www.bbc.com/news/articles/cz913gxlw3jo?at_medium=RSS&at_campaign=rss
+                - text: — BBC Science
+          - generic [ref=e160]: Cobertura
+      - generic [ref=e162]:
+        - generic [ref=e163]: 🔘 Conexiones entre procesos
+        - generic [ref=e164]:
+          - generic [ref=e165]: Negociaciones y tensión Irán-EEUU → Crisis estructural de refinerías en México
+          - generic [ref=e166]: La volatilidad en negociaciones Irán-EEUU y fluctuaciones en sanciones petroleras generan incertidumbre en precios globales de crudo, agravando la vulnerabilidad energética de México que ya importa 50% de gasolina y depende de mercados internacionales inestables.
+        - generic [ref=e167]:
+          - generic [ref=e168]: Escalada militar en Báltico y OTAN → Negociaciones y tensión Irán-EEUU
+          - generic [ref=e169]: La escalada militar en el Báltico y despliegue de tropas estadounidenses en Europa reduce capacidad diplomática y recursos de EEUU para negociaciones con Irán, endureciendo posiciones y limitando espacios de diálogo en ambos frentes simultáneamente.
+        - generic [ref=e170]:
+          - generic [ref=e171]: Intensificación de temperaturas extremas → Crisis estructural de refinerías en México
+          - generic [ref=e172]: Las temperaturas extremas incrementan demanda de energía para refrigeración y enfriamiento, presionando sistemas eléctricos y de refinación ya debilitados en México, exacerbando su dependencia de importaciones energéticas en contexto de crisis climática.
+        - generic [ref=e173]:
+          - generic [ref=e174]: Represión política y control judicial en Turquía → Escalada militar en Báltico y OTAN
+          - generic [ref=e175]: La represión política en Turquía debilita cohesión interna y legitimidad democrática de un miembro clave de la OTAN, comprometiendo su confiabilidad estratégica en contexto de escalada militar en el Báltico donde se requiere unidad aliada.
+  - contentinfo [ref=e176]: Sin publicidad · Sin algoritmos · Generado localmente · Análisis por Claude (Anthropic)
+  - dialog [ref=e177]:
+    - generic [ref=e178]:
+      - generic [ref=e179]:
+        - generic [ref=e181]: ⏱
+        - generic [ref=e182]:
+          - generic [ref=e183]: "Fuente:"
+          - generic [ref=e185]: "IA:"
+      - button "✕" [ref=e187] [cursor=pointer]
+    - generic [ref=e188]:
+      - paragraph
+    - generic [ref=e189]:
+      - link "Leer artículo ↗" [ref=e190] [cursor=pointer]:
+        - /url: "#"
+      - link "🌐 Traducir" [ref=e191] [cursor=pointer]:
+        - /url: "#"
+      - button "Copiar enlace" [ref=e192] [cursor=pointer]

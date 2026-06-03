@@ -161,7 +161,7 @@
 .badges .badge::before {
   content: ''; position: absolute; left: 0; right: 0;
   top: 50%; transform: translateY(-50%); height: 2px;
-  background: linear-gradient(to right, #4f8ef7, #7baff7, #6b7280, #f07040, #ef4444);
+  background: linear-gradient(to right, #ef4444, #f07040, #6b7280, #7baff7, #4f8ef7);
   border-radius: 2px; opacity: 0.28;
 }
 .badges .badge::after {
@@ -170,11 +170,11 @@
   background: var(--dot-color, #6b7280); left: var(--dot-left, 22px);
   border: 1.5px solid var(--surface); box-shadow: 0 1px 4px rgba(0,0,0,0.6);
 }
-.badges .badge[title="izquierda"]        { --dot-left: 1px;  --dot-color: #4f8ef7; }
-.badges .badge[title="centro-izquierda"] { --dot-left: 11px; --dot-color: #7baff7; }
+.badges .badge[title="izquierda"]        { --dot-left: 1px;  --dot-color: #ef4444; }
+.badges .badge[title="centro-izquierda"] { --dot-left: 11px; --dot-color: #f07040; }
 .badges .badge[title="centro"]           { --dot-left: 22px; --dot-color: #7a7a8a; }
-.badges .badge[title="centro-derecha"]   { --dot-left: 33px; --dot-color: #f07040; }
-.badges .badge[title="derecha"]          { --dot-left: 43px; --dot-color: #ef4444; }
+.badges .badge[title="centro-derecha"]   { --dot-left: 33px; --dot-color: #7baff7; }
+.badges .badge[title="derecha"]          { --dot-left: 43px; --dot-color: #4f8ef7; }
 .badges .badge[title="desconocido"]::before { opacity: 0.06; }
 .badges .badge[title="desconocido"]::after  { display: none; }
 
@@ -187,7 +187,7 @@
 .drawer-badges .badge::before {
   content: ''; position: absolute; left: 0; right: 0;
   top: 50%; transform: translateY(-50%); height: 2px;
-  background: linear-gradient(to right, #4f8ef7, #7baff7, #6b7280, #f07040, #ef4444);
+  background: linear-gradient(to right, #ef4444, #f07040, #6b7280, #7baff7, #4f8ef7);
   border-radius: 2px; opacity: 0.32;
 }
 .drawer-badges .badge::after {
@@ -196,11 +196,11 @@
   background: var(--dot-color, #6b7280); left: var(--dot-left, 27px);
   border: 2px solid #0d0b08; box-shadow: 0 1px 6px rgba(0,0,0,0.7);
 }
-.drawer-badges .badge[title="izquierda"]        { --dot-left: 1px;  --dot-color: #4f8ef7; }
-.drawer-badges .badge[title="centro-izquierda"] { --dot-left: 14px; --dot-color: #7baff7; }
+.drawer-badges .badge[title="izquierda"]        { --dot-left: 1px;  --dot-color: #ef4444; }
+.drawer-badges .badge[title="centro-izquierda"] { --dot-left: 14px; --dot-color: #f07040; }
 .drawer-badges .badge[title="centro"]           { --dot-left: 27px; --dot-color: #7a7a8a; }
-.drawer-badges .badge[title="centro-derecha"]   { --dot-left: 40px; --dot-color: #f07040; }
-.drawer-badges .badge[title="derecha"]          { --dot-left: 53px; --dot-color: #ef4444; }
+.drawer-badges .badge[title="centro-derecha"]   { --dot-left: 40px; --dot-color: #7baff7; }
+.drawer-badges .badge[title="derecha"]          { --dot-left: 53px; --dot-color: #4f8ef7; }
 .drawer-badges .badge[title="desconocido"]::before { opacity: 0.08; }
 .drawer-badges .badge[title="desconocido"]::after  { display: none; }
 
@@ -756,3 +756,114 @@
 
 /* ── Spark bars (estadísticas) ───────────────────────────────── */
 .spark-bar { display: inline-block; width: 4px; border-radius: 2px; vertical-align: bottom; margin: 0 1px; }
+
+/* ── Selector de idiomas en sidebar ──────────────────────────── */
+.lang-toggle-group {
+  display: flex; align-items: center; gap: 0.4rem;
+  padding: 0.8rem 1.5rem; border-top: 1px solid var(--border-sub);
+  margin-top: auto;
+}
+.lang-label {
+  font-size: 0.52rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.12em; color: var(--txt-3);
+  font-family: ui-monospace, monospace;
+}
+.lang-btn {
+  background: none; border: 1px solid var(--border-sub); color: var(--txt-3);
+  border-radius: 4px; padding: 0.15rem 0.45rem; font-size: 0.58rem; cursor: pointer;
+  font-family: inherit; font-weight: 600; transition: background .12s, border-color .12s, color .12s;
+}
+.lang-btn:hover { background: var(--surface-2); color: var(--txt-1); border-color: var(--border); }
+.lang-btn.active {
+  background: var(--accent); color: #000; border-color: var(--accent); font-weight: 700;
+}
+
+@media (max-width: 768px) {
+  .lang-toggle-group {
+    border-top: none;
+    border-left: 1px solid var(--border-sub);
+    margin-top: 0;
+    padding: 0.5rem 1rem;
+    height: 100%;
+    display: none !important; /* Ocultar selector en la barra móvil simplificada para conservar espacio */
+  }
+}
+
+/* ── Ficha de Análisis Editorial IA ───────────────────────────── */
+.drawer-analisis-ia {
+  background: rgba(240, 230, 208, 0.015);
+  border: 1px solid var(--border-sub);
+  border-radius: 8px;
+  padding: 1.25rem;
+  margin-top: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+.drawer-analisis-seccion {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.drawer-analisis-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(240, 230, 208, 0.05);
+  padding-bottom: 0.35rem;
+}
+.drawer-analisis-titulo {
+  font-family: ui-monospace, monospace;
+  font-size: 0.52rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--txt-3);
+}
+.drawer-analisis-valor {
+  font-family: var(--font-serif);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+.drawer-analisis-desc {
+  font-size: 0.72rem;
+  line-height: 1.5;
+  color: var(--txt-2);
+  margin: 0;
+}
+.drawer-sesgo-escala {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 3px;
+  margin: 0.25rem 0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.escala-item {
+  font-size: 0.5rem;
+  font-weight: 700;
+  text-align: center;
+  padding: 0.22rem 0;
+  background: var(--surface-2);
+  color: var(--txt-3);
+  opacity: 0.4;
+  transition: opacity 0.2s, background 0.2s, color 0.2s;
+  font-family: ui-monospace, monospace;
+}
+.escala-item.selected {
+  opacity: 1;
+  background: var(--color-sesgo);
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+}
+.drawer-analisis-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+@media (max-width: 480px) {
+  .drawer-analisis-grid {
+    grid-template-columns: 1fr;
+  }
+}

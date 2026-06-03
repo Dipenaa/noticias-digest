@@ -9,10 +9,6 @@ function abrirArticulo(el) {
   var critica = d.critica   || '';
   var sesgoF  = d.sesgoFuente || 'desconocido';
   var sesgoIA = d.sesgoIa    || 'desconocido';
-  var asombro = parseInt(d.asombro || 0);
-  var asombroRazon = d.asombroRazon || '';
-  var novedad = parseInt(d.novedad || 2);
-  var sentimiento = d.sentimiento || 'neutral';
 
   var secEl = el.closest('.seccion');
   var cat   = secEl ? (secEl.querySelector('.seccion-titulo') || {}).textContent || '' : (d.categoria || '');
@@ -23,7 +19,7 @@ function abrirArticulo(el) {
   document.getElementById('d-categoria').textContent = cat;
   document.getElementById('d-fuente').textContent    = fuente;
   document.getElementById('d-fecha').textContent     = fecha;
-  document.getElementById('d-reading').textContent   = minutos + ' min';
+  document.getElementById('d-reading').textContent   = minutos;
   document.getElementById('d-titulo').textContent    = titulo;
   document.getElementById('d-resumen').textContent   = resumen;
 
@@ -38,57 +34,8 @@ function abrirArticulo(el) {
     badgeIA.style.background = (window.DIGEST_CONFIG.sesgoColores[sesgoIA] || '#9ca3af');
   }
 
-  // Sentimiento / Tono editorial
   var sentEl = document.getElementById('d-sent');
-  if (sentEl) {
-    sentEl.className = 'badge';
-    if (sentimiento === 'alarmista') {
-      sentEl.textContent = '⚠ ALARMISTA';
-      sentEl.style.background = 'rgba(239,68,68,0.14)';
-      sentEl.style.color = '#f87171';
-      sentEl.style.border = '1px solid rgba(239,68,68,0.25)';
-    } else if (sentimiento === 'optimista') {
-      sentEl.textContent = '✦ OPTIMISTA';
-      sentEl.style.background = 'rgba(45,212,160,0.12)';
-      sentEl.style.color = '#4ade80';
-      sentEl.style.border = '1px solid rgba(45,212,160,0.22)';
-    } else {
-      sentEl.textContent = '◉ NEUTRAL';
-      sentEl.style.background = 'rgba(240,230,208,0.06)';
-      sentEl.style.color = 'var(--txt-3)';
-      sentEl.style.border = '1px solid var(--border-sub)';
-    }
-  }
-
-  // Asombro / Valor de revelación
-  var asombroEl = document.getElementById('d-asombro');
-  if (asombroEl) {
-    if (asombro >= 2 && asombroRazon) {
-      var estrellas = '✦'.repeat(asombro) + '✧'.repeat(3 - asombro);
-      var nivelTxt = asombro === 3 ? 'Excepcional' : 'Fascinante';
-      asombroEl.innerHTML = '<span class="asombro-label">⭐ ' + estrellas + ' (' + nivelTxt + ')</span>' +
-                            '<p class="asombro-desc">' + asombroRazon + '</p>';
-      asombroEl.style.display = 'block';
-    } else {
-      asombroEl.style.display = 'none';
-    }
-  }
-
-  // Novedad / Repetitividad
-  var novedadEl = document.getElementById('d-novedad');
-  if (novedadEl) {
-    if (novedad === 3) {
-      novedadEl.innerHTML = '⚡ <strong>SEÑAL:</strong> Aporta información o ángulos nuevos.';
-      novedadEl.className = 'drawer-novedad novedad-senal';
-      novedadEl.style.display = 'block';
-    } else if (novedad <= 1) {
-      novedadEl.innerHTML = '⇄ <strong>REPETICIÓN:</strong> Reitera hechos ya reportados en otras fuentes.';
-      novedadEl.className = 'drawer-novedad novedad-ruido';
-      novedadEl.style.display = 'block';
-    } else {
-      novedadEl.style.display = 'none';
-    }
-  }
+  if (sentEl) sentEl.textContent = d.sentimiento ? d.sentimiento.toUpperCase() : '';
 
   var criticaEl = document.getElementById('d-critica');
   if (critica) {
@@ -96,6 +43,95 @@ function abrirArticulo(el) {
     criticaEl.style.display = '';
   } else {
     criticaEl.style.display = 'none';
+  }
+
+  // Ficha de Análisis Editorial IA
+  var descripcionesSesgo = {
+    'izquierda': 'Enfoque progresista centrado en desigualdad, derechos sociales y crítica al conservadurismo o al libre mercado.',
+    'centro-izquierda': 'Perspectiva reformista moderada, favorable a políticas de progreso gradual y defensa de instituciones.',
+    'centro': 'Enfoque principalmente descriptivo, neutral u objetivo. Presenta múltiples puntos de vista sin jerarquías valorativas.',
+    'centro-derecha': 'Perspectiva de centro-derecha que enfatiza el orden social, la libre iniciativa y eficiencia económica.',
+    'derecha': 'Enfoque conservador centrado en soberanía, valores tradicionales, orden y crítica al intervencionismo o progresismo.',
+    'desconocido': 'Sesgo no detectable o neutro por falta de marcadores ideológicos claros en la redacción.'
+  };
+
+  var nombresSesgo = {
+    'izquierda': 'Izquierda',
+    'centro-izquierda': 'Centro-Izquierda',
+    'centro': 'Centro (Neutral)',
+    'centro-derecha': 'Centro-Derecha',
+    'derecha': 'Derecha',
+    'desconocido': 'Desconocido'
+  };
+
+  var descripcionesSentimiento = {
+    'alarmista': 'Redacción con tintes catastrofistas, exageración de riesgos o lenguaje de urgencia constante.',
+    'neutral': 'Tono descriptivo e institucional, centrado en hechos contrastables y sin carga emocional perceptible.',
+    'optimista': 'Énfasis constructivo en avances, soluciones viables, logros sociales o económicos.',
+    '': 'Tono descriptivo e institucional, centrado en hechos contrastables y sin carga emocional perceptible.'
+  };
+
+  var nombresSentimiento = {
+    'alarmista': '⚠ Alarmista',
+    'neutral': '◉ Neutral',
+    'optimista': '✦ Optimista',
+    '': '◉ Neutral'
+  };
+
+  var descripcionesNovedad = {
+    '3': 'Aporta información inédita, datos primarios o revelaciones que añaden valor sustancial al debate.',
+    '2': 'Cobertura informativa regular de hechos en desarrollo, sin revelaciones mayores pero relevante.',
+    '1': 'Reitera marcos o datos ya publicados previamente. Contribuye al ruido informativo del día.',
+    '0': 'Reitera marcos o datos ya publicados previamente. Contribuye al ruido informativo del día.'
+  };
+
+  var nombresNovedad = {
+    '3': '◆ Señal (Información Nueva)',
+    '2': '● Estándar (Seguimiento)',
+    '1': '⇅ Repetición (Ruido)',
+    '0': '⇅ Repetición (Ruido)'
+  };
+
+  var panelIA = document.getElementById('d-analisis-ia');
+  if (panelIA) {
+    var sesgoIa = (sesgoIA || 'desconocido').toLowerCase();
+    var sent = (d.sentimiento || '').toLowerCase();
+    var nov = d.novedad || '2';
+
+    if (sesgoIa !== 'desconocido' || sent || nov !== '2' || critica) {
+      panelIA.style.display = 'flex';
+
+      var valSesgo = document.getElementById('d-val-sesgo');
+      if (valSesgo) valSesgo.textContent = nombresSesgo[sesgoIa] || sesgoIa.toUpperCase();
+
+      var descSesgo = document.getElementById('d-desc-sesgo');
+      if (descSesgo) descSesgo.textContent = descripcionesSesgo[sesgoIa] || '';
+
+      document.querySelectorAll('#d-escala-sesgo .escala-item').forEach(function(item) {
+        var sesgoKey = item.getAttribute('data-sesgo');
+        var color = window.DIGEST_CONFIG.sesgoColores[sesgoKey] || '#9ca3af';
+        item.style.setProperty('--color-sesgo', color);
+        if (sesgoKey === sesgoIa) {
+          item.classList.add('selected');
+        } else {
+          item.classList.remove('selected');
+        }
+      });
+
+      var valSent = document.getElementById('d-val-sentimiento');
+      if (valSent) valSent.textContent = nombresSentimiento[sent] || nombresSentimiento[''];
+
+      var descSent = document.getElementById('d-desc-sentimiento');
+      if (descSent) descSent.textContent = descripcionesSentimiento[sent] || descripcionesSentimiento[''];
+
+      var valNov = document.getElementById('d-val-novedad');
+      if (valNov) valNov.textContent = nombresNovedad[nov] || nombresNovedad['2'];
+
+      var descNov = document.getElementById('d-desc-novedad');
+      if (descNov) descNov.textContent = descripcionesNovedad[nov] || descripcionesNovedad['2'];
+    } else {
+      panelIA.style.display = 'none';
+    }
   }
 
   document.getElementById('d-btn-leer').href     = enlace;

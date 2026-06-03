@@ -244,7 +244,7 @@ def debug_macro():
         "redis_backend":       stats["backend"],
         "redis_macro_hoy":     cache_val[:300] if cache_val else None,
         "procesos_en_html":    n_procesos,
-        "ia_ok":               estado["anthropic_key_ok"],
+        "ia_ok":               estado["ia_ok"],
         "categorias_filtro":   sorted(_CATEGORIAS_PROCESO),
         "max_articulos":       _MAX_ARTICULOS_MACRO,
         "articulos_disponibles": n_arts,
@@ -267,10 +267,10 @@ def estado():
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    from config import ANTHROPIC_API_KEY as _key
-    if _key in ("", None):
+    from config import ANTHROPIC_API_KEY as _key, GEMINI_API_KEY as _gkey
+    if _key in ("", None) and _gkey in ("", None):
         print(
-            f"[{datetime.now():%H:%M:%S}] ⚠  ANTHROPIC_API_KEY no configurada — "
+            f"[{datetime.now():%H:%M:%S}] ⚠  Ni ANTHROPIC_API_KEY ni GEMINI_API_KEY configuradas — "
             "el análisis IA estará desactivado. Usa SIN_IA=1 para silenciar este aviso."
         )
 

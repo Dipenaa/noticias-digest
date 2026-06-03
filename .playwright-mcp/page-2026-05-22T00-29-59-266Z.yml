@@ -1,0 +1,105 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]: 📰
+      - heading "Digest de Noticias" [level=1] [ref=e5]
+    - generic [ref=e6]:
+      - text: 22/05/2026 — 02:29
+      - text: 6 principales · 0 alternativas · Claude
+  - generic [ref=e7]:
+    - generic [ref=e8]:
+      - text: ⚠
+      - strong [ref=e9]: 10 artículos
+      - text: sin análisis IA — resumen, sesgo y síntesis pueden estar incompletos
+    - button "Regenerar análisis IA" [ref=e10] [cursor=pointer]
+    - button "×" [ref=e11] [cursor=pointer]
+  - generic [ref=e12]:
+    - text: 📰 Digest
+    - button "★ Destacadas" [ref=e13] [cursor=pointer]
+    - button "🌎 Actualidad" [ref=e14] [cursor=pointer]
+    - button "✨ Asombro1" [ref=e15] [cursor=pointer]
+    - button "🔗 Síntesis 1" [ref=e16] [cursor=pointer]
+    - button "Todas las noticias" [ref=e17] [cursor=pointer]
+    - button "⚡ Prensa Libertaria" [ref=e18] [cursor=pointer]
+    - button "★ Para leer" [ref=e19] [cursor=pointer]
+    - button "📈 Estadísticas" [ref=e20] [cursor=pointer]
+  - generic [ref=e21]:
+    - searchbox "Buscar en noticias..." [ref=e22]
+    - generic [ref=e23]: "|"
+    - textbox "Resaltar palabras clave..." [ref=e24]
+  - generic [ref=e25]:
+    - generic [ref=e26]: "Ordenar:"
+    - button "Por defecto" [ref=e27] [cursor=pointer]
+    - button "Más recientes" [ref=e28] [cursor=pointer]
+    - button "Más antiguos" [ref=e29] [cursor=pointer]
+    - button "Destacados primero" [ref=e30] [cursor=pointer]
+    - button "Sesgo ← izquierda" [ref=e31] [cursor=pointer]
+    - button "Sesgo → derecha" [ref=e32] [cursor=pointer]
+    - button "Más alarmistas" [ref=e33] [cursor=pointer]
+  - main [ref=e34]:
+    - generic [ref=e35]:
+      - generic [ref=e36]:
+        - heading "Noticias destacadas" [level=2] [ref=e37]
+        - paragraph [ref=e38]: 3 artículo(s) · primera noticia de cada sección (ejecuta con análisis IA para selección automática)
+      - generic [ref=e39]:
+        - generic [ref=e40] [cursor=pointer]:
+          - generic [ref=e41]:
+            - generic [ref=e42]:
+              - generic [ref=e43]: Política
+              - generic [ref=e44]: El País
+              - generic [ref=e45]: 2026-05-21
+            - generic [ref=e46]:
+              - generic [ref=e47]: "Fuente:"
+              - generic [ref=e48]: CENTRO-IZQUIERDA
+              - generic [ref=e49]: "IA:"
+              - generic [ref=e50]: DESCONOCIDO
+              - generic [ref=e51]: ✓ Multi-fuente
+              - button "★" [ref=e52]
+          - link "El gobierno aprueba los nuevos presupuestos generales del Estado" [ref=e54]:
+            - /url: https://example.com/1
+        - generic [ref=e55] [cursor=pointer]:
+          - generic [ref=e56]:
+            - generic [ref=e57]:
+              - generic [ref=e58]: Economía
+              - generic [ref=e59]: Cinco Días
+              - generic [ref=e60]: 2026-05-21
+            - generic [ref=e61]:
+              - generic [ref=e62]: "Fuente:"
+              - generic [ref=e63]: CENTRO
+              - generic [ref=e64]: "IA:"
+              - generic [ref=e65]: DESCONOCIDO
+              - button "★" [ref=e66]
+          - link "El Ibex 35 sube un 1,2% impulsado por la banca y el sector energético" [ref=e68]:
+            - /url: https://example.com/4
+        - generic [ref=e69] [cursor=pointer]:
+          - generic [ref=e70]:
+            - generic [ref=e71]:
+              - generic [ref=e72]: Tecnología
+              - generic [ref=e73]: El País Tecnología
+              - generic [ref=e74]: 2026-05-21
+            - generic [ref=e75]:
+              - generic [ref=e76]: "Fuente:"
+              - generic [ref=e77]: CENTRO-IZQUIERDA
+              - generic [ref=e78]: "IA:"
+              - generic [ref=e79]: DESCONOCIDO
+              - button "★" [ref=e80]
+          - link "La IA generativa transforma el mercado laboral europeo más rápido de lo previsto" [ref=e82]:
+            - /url: https://example.com/6
+  - contentinfo [ref=e83]: Sin publicidad · Sin algoritmos · Generado localmente · Análisis por Claude (Anthropic)
+  - dialog [ref=e84]:
+    - generic [ref=e85]:
+      - generic [ref=e86]:
+        - generic [ref=e88]: ⏱
+        - generic [ref=e89]:
+          - generic [ref=e90]: "Fuente:"
+          - generic [ref=e92]: "IA:"
+      - button "✕" [ref=e94] [cursor=pointer]
+    - generic [ref=e95]:
+      - paragraph
+    - generic [ref=e96]:
+      - link "Leer artículo ↗" [ref=e97] [cursor=pointer]:
+        - /url: "#"
+      - link "🌐 Traducir" [ref=e98] [cursor=pointer]:
+        - /url: "#"
+      - button "Copiar enlace" [ref=e99] [cursor=pointer]
+  - button "🔄 Regenerar" [ref=e102] [cursor=pointer]

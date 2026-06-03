@@ -69,22 +69,28 @@ def _tab_bar(tabs: list, n_asombro: int, n_procesos: int, n_sintesis: int) -> st
         tid   = tab.TAB_ID
 
         # Badges de conteo por pestaña
+        badge_html = ""
         if tid == 'asombro' and n_asombro:
-            label += f'<span class="tab-count">{n_asombro}</span>'
+            badge_html = f'<span class="tab-count">{n_asombro}</span>'
         elif tid == 'actualidad' and n_procesos:
-            label += f'<span class="tab-count">{n_procesos}</span>'
+            badge_html = f'<span class="tab-count">{n_procesos}</span>'
         elif tid == 'sintesis' and n_sintesis:
-            label += f'<span style="font-size:.6rem;opacity:.7;margin-left:.3rem">{n_sintesis}</span>'
+            badge_html = f'<span style="font-size:.6rem;opacity:.7;margin-left:.3rem">{n_sintesis}</span>'
         elif tid == 'para-leer':
-            label += '<span class="tab-count" id="bookmark-count" style="display:none"></span>'
+            badge_html = '<span class="tab-count" id="bookmark-count" style="display:none"></span>'
 
         active = ' active' if tid == 'destacadas' else ''
-        return f'<button class="tab-btn{active}" data-tab="{tid}" onclick="switchTab(\'{tid}\')">{label}</button>'
+        return f'<button class="tab-btn{active}" data-tab="{tid}" onclick="switchTab(\'{tid}\')"><span data-translate="tab_{tid}">{label}</span>{badge_html}</button>'
 
     btns = "\n  ".join(_btn(t) for t in tabs)
     return f"""<div class="tab-bar">
   {btns}
-  <button class="dark-toggle" id="dark-toggle" onclick="toggleDark()">&#9790; Modo oscuro</button>
+  <button class="dark-toggle" id="dark-toggle" onclick="toggleDark()" data-translate="dark_mode">🌙 Modo oscuro</button>
+  <div class="lang-toggle-group">
+    <span class="lang-label" data-translate="lang_label">Idioma:</span>
+    <button class="lang-btn active" data-lang="es" onclick="changeLanguage('es')">ES</button>
+    <button class="lang-btn" data-lang="en" onclick="changeLanguage('en')">EN</button>
+  </div>
 </div>"""
 
 
@@ -153,7 +159,10 @@ def construir(
   </div>
   <div class="meta">
     <span class="meta-fecha">{ahora}</span>
-    <span class="meta-count">{total} noticias · {total_alt} alternativas</span>
+    <span class="meta-count">
+      <span id="meta-total">{total}</span> <span data-translate="meta_news">noticias</span> · 
+      <span id="meta-alts">{total_alt}</span> <span data-translate="meta_alts">alternativas</span>
+    </span>
     {tension_html}
   </div>
 </header>
@@ -166,6 +175,7 @@ def construir(
 <div class="search-bar">
   <input class="search-input" id="buscador" type="search"
          placeholder="Buscar en noticias..." autocomplete="off"
+         data-translate="search_placeholder"
          oninput="clearTimeout(_buscarTimer);_buscarTimer=setTimeout(function(){{buscar(document.getElementById('buscador').value)}},200)">
   <span class="kw-sep">|</span>
   <input class="keywords-input" id="kw-input" type="text"
@@ -175,14 +185,13 @@ def construir(
 </div>
 
 <div class="sort-bar" id="sort-bar">
-  <span class="sort-label">Ordenar:</span>
-  <button class="sort-btn active" onclick="sortCards('defecto',this)">Por defecto</button>
-  <button class="sort-btn" onclick="sortCards('fecha-desc',this)">Más recientes</button>
-  <button class="sort-btn" onclick="sortCards('fecha-asc',this)">Más antiguos</button>
-  <button class="sort-btn" onclick="sortCards('importante',this)">Destacados primero</button>
-  <button class="sort-btn" onclick="sortCards('sesgo-izq',this)">Sesgo ← izquierda</button>
-  <button class="sort-btn" onclick="sortCards('sesgo-der',this)">Sesgo → derecha</button>
-  <button class="sort-btn" onclick="sortCards('alarmista',this)">Más alarmistas</button>
+  <span class="sort-label" data-translate="sort_label">Ordenar:</span>
+  <button class="sort-btn active" onclick="sortCards('defecto',this)" data-translate="sort_defecto">Por defecto</button>
+  <button class="sort-btn" onclick="sortCards('fecha-desc',this)" data-translate="sort_recientes">Más recientes</button>
+  <button class="sort-btn" onclick="sortCards('relevancia',this)" data-translate="sort_relevancia">Por relevancia</button>
+  <button class="sort-btn" onclick="sortCards('novedad',this)" data-translate="sort_novedad">Por novedad</button>
+  <button class="sort-btn" onclick="sortCards('sesgo-izq',this)" data-translate="sort_sesgo_izq">Sesgo ← izquierda</button>
+  <button class="sort-btn" onclick="sortCards('sesgo-der',this)" data-translate="sort_sesgo_der">Sesgo → derecha</button>
 </div>
 
 {nav_html}
@@ -191,9 +200,9 @@ def construir(
 {tabs_html}
 </main>
 
-<footer>
+<footer data-translate="footer_text">
   Sin publicidad · Sin algoritmos · Generado localmente ·
-  Análisis por Claude (Anthropic)
+  Análisis por IA (Gemini)
 </footer>
 
 <!-- ── Splash de portada ────────────────────────────────────────────── -->
@@ -214,12 +223,12 @@ def construir(
       <div class="drawer-fuente-row">
         <span class="fuente-nombre" id="d-fuente"></span>
         <span class="fecha" id="d-fecha"></span>
-        <span class="drawer-reading">&#9201; <span id="d-reading"></span></span>
+        <span class="drawer-reading">&#9201; <span id="d-reading"></span> <span data-translate="drawer_reading">min</span></span>
       </div>
       <div class="drawer-badges" style="margin-top:.4rem">
-        <span class="badge-etiqueta">Fuente:</span>
+        <span class="badge-etiqueta" data-translate="drawer_source">Fuente:</span>
         <span class="badge" id="d-sesgo-f"></span>
-        <span class="badge-etiqueta" style="margin-left:.25rem">IA:</span>
+        <span class="badge-etiqueta" style="margin-left:.25rem" data-translate="drawer_ia">IA:</span>
         <span class="badge" id="d-sesgo-ia"></span>
         <span id="d-sent" style="margin-left:.25rem"></span>
       </div>
@@ -228,19 +237,53 @@ def construir(
   </div>
   <div class="drawer-body">
     <div class="drawer-titulo" id="d-titulo"></div>
-    <div class="drawer-asombro" id="d-asombro" style="display:none"></div>
-    <div class="drawer-novedad" id="d-novedad" style="display:none"></div>
     <p class="drawer-resumen" id="d-resumen"></p>
     <div class="drawer-critica" id="d-critica" style="display:none"></div>
+
+    <!-- Ficha de Análisis Editorial IA -->
+    <div class="drawer-analisis-ia" id="d-analisis-ia" style="display:none">
+      <div class="drawer-analisis-seccion">
+        <div class="drawer-analisis-header">
+          <span class="drawer-analisis-titulo" data-translate="ia_title_sesgo">Sesgo Político IA</span>
+          <span class="drawer-analisis-valor" id="d-val-sesgo"></span>
+        </div>
+        <div class="drawer-sesgo-escala" id="d-escala-sesgo">
+          <div class="escala-item" data-sesgo="izquierda" style="--color-sesgo: #ef4444">IZQ</div>
+          <div class="escala-item" data-sesgo="centro-izquierda" style="--color-sesgo: #f07040">C·IZQ</div>
+          <div class="escala-item" data-sesgo="centro" style="--color-sesgo: #7a7a8a">CTR</div>
+          <div class="escala-item" data-sesgo="centro-derecha" style="--color-sesgo: #7baff7">C·DER</div>
+          <div class="escala-item" data-sesgo="derecha" style="--color-sesgo: #4f8ef7">DER</div>
+        </div>
+        <p class="drawer-analisis-desc" id="d-desc-sesgo"></p>
+      </div>
+
+      <div class="drawer-analisis-grid">
+        <div class="drawer-analisis-seccion">
+          <div class="drawer-analisis-header">
+            <span class="drawer-analisis-titulo" data-translate="ia_title_tono">Tono Emocional</span>
+            <span class="drawer-analisis-valor" id="d-val-sentimiento"></span>
+          </div>
+          <p class="drawer-analisis-desc" id="d-desc-sentimiento"></p>
+        </div>
+
+        <div class="drawer-analisis-seccion">
+          <div class="drawer-analisis-header">
+            <span class="drawer-analisis-titulo" data-translate="ia_title_novedad">Índice de Novedad</span>
+            <span class="drawer-analisis-valor" id="d-val-novedad"></span>
+          </div>
+          <p class="drawer-analisis-desc" id="d-desc-novedad"></p>
+        </div>
+      </div>
+    </div>
   </div>
   <div class="drawer-footer" style="flex-wrap:wrap">
     <a class="drawer-btn drawer-btn-primary" id="d-btn-leer" href="#"
-       target="_blank" rel="noopener noreferrer">
-      Leer art&#237;culo &#8599;
+       target="_blank" rel="noopener noreferrer" data-translate="drawer_btn_read">
+      Leer artículo ↗
     </a>
     <a class="drawer-btn drawer-btn-translate" id="d-btn-traducir" href="#"
-       target="_blank" rel="noopener noreferrer">
-      &#127760; Traducir
+       target="_blank" rel="noopener noreferrer" data-translate="drawer_btn_translate">
+      🌐 Traducir
     </a>
     <button class="drawer-btn drawer-btn-secondary" id="d-btn-compartir"
             onclick="compartirArticulo()">

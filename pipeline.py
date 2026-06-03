@@ -50,7 +50,7 @@ def is_generando() -> bool:
 
 
 def get_estado() -> dict:
-    from config import ANTHROPIC_API_KEY
+    from config import ANTHROPIC_API_KEY, GEMINI_API_KEY
     from article_cache import shared as _cache
     from claude_client import resumen_coste
     stats = _cache.stats()
@@ -60,7 +60,7 @@ def get_estado() -> dict:
             "tiene_cache":             _html_cache is not None,
             "ultimo_update":           _ultimo_update.isoformat() if _ultimo_update else None,
             "ultimo_error":            _ultimo_error,
-            "anthropic_key_ok":        ANTHROPIC_API_KEY not in ("", None),
+            "ia_ok":                   (GEMINI_API_KEY not in ("", None)) or (ANTHROPIC_API_KEY not in ("", None)),
             "cache_articulos":         stats["articulos_cacheados"],
             "cache_sintesis":          stats["sintesis_cacheadas"],
             "coste_ultima_generacion": resumen_coste(),
@@ -72,8 +72,10 @@ def get_estado() -> dict:
 # ---------------------------------------------------------------------------
 
 def _ia_disponible() -> bool:
-    from config import ANTHROPIC_API_KEY
-    return (not _sin_ia) and ANTHROPIC_API_KEY not in ("TU_API_KEY_AQUÍ", "", None)
+    from config import ANTHROPIC_API_KEY, GEMINI_API_KEY
+    gemini_ok = GEMINI_API_KEY not in ("TU_API_KEY_AQUÍ", "", None)
+    anthropic_ok = ANTHROPIC_API_KEY not in ("TU_API_KEY_AQUÍ", "", None)
+    return (not _sin_ia) and (gemini_ok or anthropic_ok)
 
 
 def _pipeline_ia(noticias: dict, alternativas: dict):
@@ -104,7 +106,7 @@ def _pipeline_ia(noticias: dict, alternativas: dict):
         for cat, arts in noticias.items():
             _cache.update_pool(cat, arts)
     else:
-        print(f"[{datetime.now():%H:%M:%S}] Modo sin IA (SIN_IA=1 o ANTHROPIC_API_KEY ausente)")
+        print(f"[{datetime.now():%H:%M:%S}] Modo sin IA (SIN_IA=1 o API_KEY ausente)")
 
     from macro_tracker import obtener_macro_data as _macro
     from noise_filter import detectar_ruido as _ruido

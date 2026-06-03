@@ -5,6 +5,7 @@ var _buscarTimer = null;
 
 function switchTab(name) {
   _tabActual = name;
+  window.scrollTo({ top: 0, behavior: 'instant' });
   document.querySelectorAll('.tab-content').forEach(function(el) {
     el.style.display = 'none';
   });

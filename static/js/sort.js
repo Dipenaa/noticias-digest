@@ -1,9 +1,12 @@
 /* ── Ordenación de artículos ─────────────────────────────────────────── */
-var _SESGO_ORD = {
+var _SESGO_IZQ_ORD = {
   'izquierda': 0, 'centro-izquierda': 1, 'centro': 2,
   'centro-derecha': 3, 'derecha': 4, 'desconocido': 5
 };
-var _SENT_ORD = {'alarmista': 0, 'neutral': 1, 'optimista': 2};
+var _SESGO_DER_ORD = {
+  'derecha': 0, 'centro-derecha': 1, 'centro': 2,
+  'centro-izquierda': 3, 'izquierda': 4, 'desconocido': 5
+};
 
 function _parseFecha(s) {
   if (!s || s === 'Fecha desconocida') return 0;
@@ -19,46 +22,37 @@ function sortCards(criterio, btn) {
   if (!tab) return;
 
   tab.querySelectorAll('.grid, .grid-destacadas').forEach(function(grid) {
-    var cards = Array.from(grid.querySelectorAll(':scope > .tarjeta, :scope > .tarjeta-destacada'));
+    var cards = Array.from(grid.querySelectorAll(':scope > .tarjeta, :scope > .tarjeta-destacada, :scope > .asombro-card'));
     if (cards.length < 2) return;
 
-    // Schwartzian transform: pre-calcular valores para optimizar la ordenación
+    // Schwartzian transform: pre-calcular valores para optimizar y asegurar rapidez
     var mapped = cards.map(function(c) {
       var ds = c.dataset || {};
-      var fechaVal = 0;
-      if (criterio === 'fecha-desc' || criterio === 'fecha-asc') {
-        fechaVal = _parseFecha(ds.fecha);
-      }
       
-      var importanteVal = 0;
-      if (criterio === 'importante') {
-        importanteVal = ds.importante === 'true' ? 1 : 0;
-      }
+      // Fecha
+      var fechaVal = _parseFecha(ds.fecha);
       
-      var sesgoVal = 5;
-      if (criterio === 'sesgo-izq' || criterio === 'sesgo-der') {
-        var sIA = ds.sesgoIa;
-        sesgoVal = _SESGO_ORD[sIA] !== undefined ? _SESGO_ORD[sIA] : 5;
-      }
+      // Relevancia
+      var importanteVal = ds.importante === 'true' ? 10 : 0;
+      var asombroVal = parseInt(ds.asombro || 0);
+      var novedadVal = parseInt(ds.novedad || 2);
+      var relevanciaVal = importanteVal + (asombroVal * 3) + (novedadVal === 3 ? 2 : 0);
       
-      var sentimientoVal = 1;
-      if (criterio === 'alarmista') {
-        var sent = ds.sentimiento;
-        sentimientoVal = _SENT_ORD[sent] !== undefined ? _SENT_ORD[sent] : 1;
-      }
+      // Sesgo Izquierda
+      var sIA = (ds.sesgoIa || 'desconocido').toLowerCase();
+      var sesgoIzqVal = _SESGO_IZQ_ORD[sIA] !== undefined ? _SESGO_IZQ_ORD[sIA] : 5;
       
-      var orderVal = 0;
-      if (criterio === 'defecto') {
-        orderVal = parseInt(ds.order || 0);
-      }
+      // Sesgo Derecha
+      var sesgoDerVal = _SESGO_DER_ORD[sIA] !== undefined ? _SESGO_DER_ORD[sIA] : 5;
 
       return {
         el: c,
         fecha: fechaVal,
-        importante: importanteVal,
-        sesgo: sesgoVal,
-        sentimiento: sentimientoVal,
-        order: orderVal
+        relevancia: relevanciaVal,
+        novedad: novedadVal,
+        sesgoIzq: sesgoIzqVal,
+        sesgoDer: sesgoDerVal,
+        order: parseInt(ds.order || 0)
       };
     });
 
@@ -66,16 +60,26 @@ function sortCards(criterio, btn) {
       switch (criterio) {
         case 'fecha-desc':
           return b.fecha - a.fecha;
-        case 'fecha-asc':
-          return a.fecha - b.fecha;
-        case 'importante':
-          return b.importante - a.importante;
+        case 'relevancia':
+          if (b.relevancia !== a.relevancia) {
+            return b.relevancia - a.relevancia;
+          }
+          return b.fecha - a.fecha;
+        case 'novedad':
+          if (b.novedad !== a.novedad) {
+            return b.novedad - a.novedad;
+          }
+          return b.fecha - a.fecha;
         case 'sesgo-izq':
-          return a.sesgo - b.sesgo;
+          if (a.sesgoIzq !== b.sesgoIzq) {
+            return a.sesgoIzq - b.sesgoIzq;
+          }
+          return b.fecha - a.fecha;
         case 'sesgo-der':
-          return b.sesgo - a.sesgo;
-        case 'alarmista':
-          return a.sentimiento - b.sentimiento;
+          if (a.sesgoDer !== b.sesgoDer) {
+            return a.sesgoDer - b.sesgoDer;
+          }
+          return b.fecha - a.fecha;
         default:
           return a.order - b.order;
       }

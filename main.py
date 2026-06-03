@@ -11,7 +11,7 @@ import sys
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 import time
 
-from config import ANTHROPIC_API_KEY, CLAUDE_MODEL, CLAUDE_MODEL_ANALISIS
+from config import ANTHROPIC_API_KEY, GEMINI_API_KEY, GEMINI_MODEL, GEMINI_MODEL_ANALISIS
 from fetcher import obtener_todas_las_noticias, obtener_noticias_alternativas
 from analyzer import analizar_todas_las_noticias
 from synthesizer import sintetizar_noticias
@@ -23,10 +23,10 @@ from renderer import renderizar_html, guardar_y_abrir
 # ---------------------------------------------------------------------------
 
 def _verificar_configuracion() -> None:
-    if ANTHROPIC_API_KEY in ("", None):
+    if ANTHROPIC_API_KEY in ("", None) and GEMINI_API_KEY in ("", None):
         print()
-        print("  ⚠  ANTHROPIC_API_KEY no configurada.")
-        print("  Define la variable de entorno ANTHROPIC_API_KEY.")
+        print("  ⚠  Ni ANTHROPIC_API_KEY ni GEMINI_API_KEY están configuradas.")
+        print("  Define la variable de entorno GEMINI_API_KEY.")
         print("  También puedes usar: python main.py --sin-ia")
         print()
         sys.exit(1)
@@ -53,9 +53,15 @@ def main() -> None:
     print("  📰  Sistema de Noticias — Digest Personal")
     print("=" * 60)
 
+    usando_gemini = bool(GEMINI_API_KEY and GEMINI_API_KEY != "TU_API_KEY_AQUÍ")
+
     if not sin_ia:
         _verificar_configuracion()
-        print(f"\n  Modelos IA : análisis={CLAUDE_MODEL_ANALISIS}, síntesis={CLAUDE_MODEL}")
+        if usando_gemini:
+            print(f"\n  Modelos IA : análisis={GEMINI_MODEL_ANALISIS}, síntesis={GEMINI_MODEL} (vía Gemini)")
+        else:
+            from config import CLAUDE_MODEL_ANALISIS, CLAUDE_MODEL
+            print(f"\n  Modelos IA : análisis={CLAUDE_MODEL_ANALISIS}, síntesis={CLAUDE_MODEL} (vía Claude)")
     else:
         print("\n  Modo: solo RSS (sin análisis de IA)")
 
@@ -75,7 +81,7 @@ def main() -> None:
 
     print(f"\n📊 Total descargado: {total + total_alt} artículo(s)")
 
-    # ── 3. Análisis con Claude ───────────────────────────────────────────
+    # ── 3. Análisis con IA ───────────────────────────────────────────────
     analisis:     dict[str, str] = {}
     analisis_alt: dict[str, str] = {}
     grupos_sintesis: list[dict]  = []
@@ -83,10 +89,11 @@ def main() -> None:
     if sin_ia:
         print("\n⏭  Saltando análisis de IA (--sin-ia activado)")
     else:
-        print("\n🤖 Analizando noticias principales con Claude...")
+        proveedor = "Gemini" if usando_gemini else "Claude"
+        print(f"\n🤖 Analizando noticias principales con {proveedor}...")
         noticias, analisis = analizar_todas_las_noticias(noticias)
 
-        print("\n🤖 Analizando prensa libertaria con Claude...")
+        print(f"\n🤖 Analizando prensa libertaria con {proveedor}...")
         alternativas, analisis_alt = analizar_todas_las_noticias(alternativas)
 
         print("\n🔗 Detectando historias comunes y generando síntesis...")

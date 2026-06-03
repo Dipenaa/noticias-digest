@@ -7,17 +7,16 @@ Modifica este archivo para personalizar fuentes, temas y comportamiento.
 import os
 
 # ---------------------------------------------------------------------------
-# API de Anthropic (Claude) — análisis de sesgo y síntesis
+# API de Gemini — análisis de sesgo, síntesis y descubrimiento
 # ---------------------------------------------------------------------------
-ANTHROPIC_API_KEY     = os.getenv("ANTHROPIC_API_KEY", "")
-CLAUDE_MODEL          = "claude-sonnet-4-6"           # síntesis cruzada
-CLAUDE_MODEL_ANALISIS = "claude-haiku-4-5-20251001"   # análisis masivo (20× más barato)
+GEMINI_API_KEY        = os.getenv("GEMINI_API_KEY", "")
+GEMINI_MODEL          = "gemini-2.0-flash"           # modelo principal para síntesis
+GEMINI_MODEL_ANALISIS = "gemini-2.0-flash"           # modelo principal para análisis
 
-# ---------------------------------------------------------------------------
-# API de Gemini — descubrimiento de fuentes (discoverer.py)
-# ---------------------------------------------------------------------------
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-GEMINI_MODEL   = "gemini-2.0-flash"
+# API de Anthropic (Claude) — fallback de compatibilidad
+ANTHROPIC_API_KEY     = os.getenv("ANTHROPIC_API_KEY", "")
+CLAUDE_MODEL          = "claude-sonnet-4-6"           # fallback
+CLAUDE_MODEL_ANALISIS = "claude-haiku-4-5-20251001"   # fallback
 
 # ---------------------------------------------------------------------------
 # Parámetros generales

@@ -18,11 +18,11 @@ from claude_client import llamar_claude
 
 
 COLORES_SESGO: dict[str, str] = {
-    "izquierda":        "#3b82f6",
-    "centro-izquierda": "#60a5fa",
-    "centro":           "#6b7280",
-    "centro-derecha":   "#f97316",
-    "derecha":          "#ef4444",
+    "izquierda":        "#ef4444",
+    "centro-izquierda": "#f07040",
+    "centro":           "#7a7a8a",
+    "centro-derecha":   "#7baff7",
+    "derecha":          "#4f8ef7",
     "desconocido":      "#9ca3af",
 }
 
