@@ -139,10 +139,10 @@ def construir(
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/css/reset.css">
-  <link rel="stylesheet" href="/static/css/layout.css">
-  <link rel="stylesheet" href="/static/css/components.css">
-  <link rel="stylesheet" href="/static/css/animations.css">
+  <link rel="stylesheet" href="static/css/reset.css">
+  <link rel="stylesheet" href="static/css/layout.css">
+  <link rel="stylesheet" href="static/css/components.css">
+  <link rel="stylesheet" href="static/css/animations.css">
 </head>
 <body class="light">
 
@@ -228,6 +228,8 @@ def construir(
   </div>
   <div class="drawer-body">
     <div class="drawer-titulo" id="d-titulo"></div>
+    <div class="drawer-asombro" id="d-asombro" style="display:none"></div>
+    <div class="drawer-novedad" id="d-novedad" style="display:none"></div>
     <p class="drawer-resumen" id="d-resumen"></p>
     <div class="drawer-critica" id="d-critica" style="display:none"></div>
   </div>

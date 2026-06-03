@@ -9,6 +9,10 @@ function abrirArticulo(el) {
   var critica = d.critica   || '';
   var sesgoF  = d.sesgoFuente || 'desconocido';
   var sesgoIA = d.sesgoIa    || 'desconocido';
+  var asombro = parseInt(d.asombro || 0);
+  var asombroRazon = d.asombroRazon || '';
+  var novedad = parseInt(d.novedad || 2);
+  var sentimiento = d.sentimiento || 'neutral';
 
   var secEl = el.closest('.seccion');
   var cat   = secEl ? (secEl.querySelector('.seccion-titulo') || {}).textContent || '' : (d.categoria || '');
@@ -34,8 +38,57 @@ function abrirArticulo(el) {
     badgeIA.style.background = (window.DIGEST_CONFIG.sesgoColores[sesgoIA] || '#9ca3af');
   }
 
+  // Sentimiento / Tono editorial
   var sentEl = document.getElementById('d-sent');
-  if (sentEl) sentEl.textContent = d.sentimiento ? d.sentimiento.toUpperCase() : '';
+  if (sentEl) {
+    sentEl.className = 'badge';
+    if (sentimiento === 'alarmista') {
+      sentEl.textContent = '⚠ ALARMISTA';
+      sentEl.style.background = 'rgba(239,68,68,0.14)';
+      sentEl.style.color = '#f87171';
+      sentEl.style.border = '1px solid rgba(239,68,68,0.25)';
+    } else if (sentimiento === 'optimista') {
+      sentEl.textContent = '✦ OPTIMISTA';
+      sentEl.style.background = 'rgba(45,212,160,0.12)';
+      sentEl.style.color = '#4ade80';
+      sentEl.style.border = '1px solid rgba(45,212,160,0.22)';
+    } else {
+      sentEl.textContent = '◉ NEUTRAL';
+      sentEl.style.background = 'rgba(240,230,208,0.06)';
+      sentEl.style.color = 'var(--txt-3)';
+      sentEl.style.border = '1px solid var(--border-sub)';
+    }
+  }
+
+  // Asombro / Valor de revelación
+  var asombroEl = document.getElementById('d-asombro');
+  if (asombroEl) {
+    if (asombro >= 2 && asombroRazon) {
+      var estrellas = '✦'.repeat(asombro) + '✧'.repeat(3 - asombro);
+      var nivelTxt = asombro === 3 ? 'Excepcional' : 'Fascinante';
+      asombroEl.innerHTML = '<span class="asombro-label">⭐ ' + estrellas + ' (' + nivelTxt + ')</span>' +
+                            '<p class="asombro-desc">' + asombroRazon + '</p>';
+      asombroEl.style.display = 'block';
+    } else {
+      asombroEl.style.display = 'none';
+    }
+  }
+
+  // Novedad / Repetitividad
+  var novedadEl = document.getElementById('d-novedad');
+  if (novedadEl) {
+    if (novedad === 3) {
+      novedadEl.innerHTML = '⚡ <strong>SEÑAL:</strong> Aporta información o ángulos nuevos.';
+      novedadEl.className = 'drawer-novedad novedad-senal';
+      novedadEl.style.display = 'block';
+    } else if (novedad <= 1) {
+      novedadEl.innerHTML = '⇄ <strong>REPETICIÓN:</strong> Reitera hechos ya reportados en otras fuentes.';
+      novedadEl.className = 'drawer-novedad novedad-ruido';
+      novedadEl.style.display = 'block';
+    } else {
+      novedadEl.style.display = 'none';
+    }
+  }
 
   var criticaEl = document.getElementById('d-critica');
   if (critica) {

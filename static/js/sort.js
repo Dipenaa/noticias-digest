@@ -22,28 +22,65 @@ function sortCards(criterio, btn) {
     var cards = Array.from(grid.querySelectorAll(':scope > .tarjeta, :scope > .tarjeta-destacada'));
     if (cards.length < 2) return;
 
-    cards.sort(function(a, b) {
+    // Schwartzian transform: pre-calcular valores para optimizar la ordenación
+    var mapped = cards.map(function(c) {
+      var ds = c.dataset || {};
+      var fechaVal = 0;
+      if (criterio === 'fecha-desc' || criterio === 'fecha-asc') {
+        fechaVal = _parseFecha(ds.fecha);
+      }
+      
+      var importanteVal = 0;
+      if (criterio === 'importante') {
+        importanteVal = ds.importante === 'true' ? 1 : 0;
+      }
+      
+      var sesgoVal = 5;
+      if (criterio === 'sesgo-izq' || criterio === 'sesgo-der') {
+        var sIA = ds.sesgoIa;
+        sesgoVal = _SESGO_ORD[sIA] !== undefined ? _SESGO_ORD[sIA] : 5;
+      }
+      
+      var sentimientoVal = 1;
+      if (criterio === 'alarmista') {
+        var sent = ds.sentimiento;
+        sentimientoVal = _SENT_ORD[sent] !== undefined ? _SENT_ORD[sent] : 1;
+      }
+      
+      var orderVal = 0;
+      if (criterio === 'defecto') {
+        orderVal = parseInt(ds.order || 0);
+      }
+
+      return {
+        el: c,
+        fecha: fechaVal,
+        importante: importanteVal,
+        sesgo: sesgoVal,
+        sentimiento: sentimientoVal,
+        order: orderVal
+      };
+    });
+
+    mapped.sort(function(a, b) {
       switch (criterio) {
         case 'fecha-desc':
-          return _parseFecha(b.dataset.fecha) - _parseFecha(a.dataset.fecha);
+          return b.fecha - a.fecha;
         case 'fecha-asc':
-          return _parseFecha(a.dataset.fecha) - _parseFecha(b.dataset.fecha);
+          return a.fecha - b.fecha;
         case 'importante':
-          return (b.dataset.importante === 'true' ? 1 : 0) - (a.dataset.importante === 'true' ? 1 : 0);
+          return b.importante - a.importante;
         case 'sesgo-izq':
-          return (_SESGO_ORD[a.dataset.sesgoIa] !== undefined ? _SESGO_ORD[a.dataset.sesgoIa] : 5)
-               - (_SESGO_ORD[b.dataset.sesgoIa] !== undefined ? _SESGO_ORD[b.dataset.sesgoIa] : 5);
+          return a.sesgo - b.sesgo;
         case 'sesgo-der':
-          return (_SESGO_ORD[b.dataset.sesgoIa] !== undefined ? _SESGO_ORD[b.dataset.sesgoIa] : 5)
-               - (_SESGO_ORD[a.dataset.sesgoIa] !== undefined ? _SESGO_ORD[a.dataset.sesgoIa] : 5);
+          return b.sesgo - a.sesgo;
         case 'alarmista':
-          return (_SENT_ORD[a.dataset.sentimiento] !== undefined ? _SENT_ORD[a.dataset.sentimiento] : 1)
-               - (_SENT_ORD[b.dataset.sentimiento] !== undefined ? _SENT_ORD[b.dataset.sentimiento] : 1);
+          return a.sentimiento - b.sentimiento;
         default:
-          return parseInt(a.dataset.order || 0) - parseInt(b.dataset.order || 0);
+          return a.order - b.order;
       }
     });
 
-    cards.forEach(function(c) { grid.appendChild(c); });
+    mapped.forEach(function(item) { grid.appendChild(item.el); });
   });
 }

@@ -14,10 +14,6 @@ function switchTab(name) {
   var tabEl = document.getElementById('tab-' + name);
   if (tabEl) {
     tabEl.style.display = 'block';
-    tabEl.classList.remove('tab-anim');
-    void tabEl.offsetWidth;
-    tabEl.classList.add('tab-anim');
-    setTimeout(function() { _animarTarjetas(tabEl); }, 30);
   }
   var btnEl = document.querySelector('[data-tab="' + name + '"]');
   if (btnEl) btnEl.classList.add('active');
@@ -59,16 +55,3 @@ function switchTab(name) {
   try { localStorage.setItem('digestTab', name); } catch(e) {}
 }
 
-/* ── Staggered animation al cambiar pestaña ──────────────────────────── */
-function _animarTarjetas(tabEl) {
-  if (!tabEl) return;
-  var cards = tabEl.querySelectorAll(
-    '.tarjeta, .tarjeta-destacada, .sintesis-card, .asombro-card, .proceso-card, .proceso-card-hero'
-  );
-  cards.forEach(function(c, i) {
-    c.classList.remove('card-animate');
-    c.style.setProperty('--card-delay', Math.min(i * 42, 600) + 'ms');
-    void c.offsetWidth;
-    c.classList.add('card-animate');
-  });
-}

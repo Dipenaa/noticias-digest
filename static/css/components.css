@@ -73,18 +73,46 @@
   gap: 0;
 }
 
+@media (min-width: 1024px) {
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    column-gap: 5rem;
+    row-gap: 0;
+    align-items: start;
+  }
+  /* Primer artículo de la sección ocupa las 2 columnas */
+  .grid .tarjeta:first-child {
+    grid-column: span 2;
+    border-bottom: 1px solid var(--border-sub);
+    padding-bottom: 2rem;
+    margin-bottom: 1.5rem;
+  }
+  /* Filete divisor vertical para artículos en columna derecha */
+  .grid .tarjeta:nth-child(2n+3) {
+    border-left: 1px solid var(--border-sub);
+    padding-left: 2.5rem;
+    margin-left: -2.5rem;
+  }
+}
+
 /* ── Entrada de artículo ─────────────────────────────────────── */
 .tarjeta {
   background: none;
   border: none;
   border-top: 1px solid var(--border-sub);
   border-radius: 0;
-  padding: 1.3rem 0;
+  padding: 1.3rem 1rem;
+  margin-left: -1rem;
+  margin-right: -1rem;
   display: flex; flex-direction: column; gap: 0.4rem;
   cursor: pointer; position: relative;
-  transition: opacity 0.3s ease;
+  transition: background 0.22s ease, border-color 0.22s ease;
 }
 .tarjeta:first-child { border-top: none; padding-top: 0.25rem; }
+.tarjeta:hover {
+  background: rgba(154,165,106,0.04);
+}
 .tarjeta:active { opacity: 0.8; }
 
 /* Historia principal (lead) — algo mayor, sin exagerar */
@@ -191,36 +219,46 @@
 }
 .tarjeta:hover .titulo a { color: var(--txt-1); background-size: 100% 1px; }
 
-/* ── Resumen (se revela al pasar el ratón) ───────────────────── */
+/* ── Resumen (Maquetación estática, sin saltos de página) ────── */
 .resumen {
-  font-size: 0.92rem; color: var(--txt-2); line-height: 1.72;
-  overflow: hidden; max-height: 0; opacity: 0; margin: 0;
-  transition:
-    max-height 0.5s cubic-bezier(0.16,1,0.3,1),
-    opacity 0.4s ease,
-    margin 0.4s ease;
-}
-.tarjeta:hover .resumen,
-.tarjeta-destacada:hover .resumen { max-height: 14rem; opacity: 1; margin-top: 0.15rem; }
-/* La historia principal muestra entradilla siempre */
-.grid .tarjeta:first-child .resumen,
-.grid-destacadas .tarjeta-destacada:first-child .resumen {
-  max-height: 14rem; opacity: 1; margin-top: 0.2rem;
+  font-size: 0.90rem;
+  color: var(--txt-2);
+  line-height: 1.65;
+  margin-top: 0.35rem;
+  opacity: 0.88;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* ── Crítica IA ──────────────────────────────────────────────── */
-.critica {
-  border: none; padding: 0; font-size: 0.71rem;
-  color: var(--txt-3); line-height: 1.65;
-  max-height: 0; overflow: hidden; opacity: 0;
-  transition:
-    max-height 0.45s cubic-bezier(0.4, 0, 0.2, 1),
-    opacity 0.3s ease 0.05s, padding 0.3s ease, border-color 0.3s ease;
-  border-top: 1px solid transparent;
+/* El artículo destacado principal muestra el resumen completo */
+.grid .tarjeta:first-child .resumen,
+.grid-destacadas .tarjeta-destacada:first-child .resumen {
+  display: block;
+  -webkit-line-clamp: unset;
+  font-size: 0.94rem;
+  opacity: 0.95;
+  margin-top: 0.5rem;
 }
-.tarjeta:hover .critica {
-  max-height: 10rem; opacity: 1;
-  padding-top: 0.875rem; border-top-color: var(--border-sub);
+
+/* Capitular (Drop Cap) para el artículo principal */
+.grid .tarjeta:first-child .resumen::first-letter,
+.grid-destacadas .tarjeta-destacada:first-child .resumen::first-letter {
+  font-family: var(--font-serif);
+  font-size: 3.25rem;
+  float: left;
+  line-height: 0.82;
+  margin-top: 0.15rem;
+  margin-right: 0.55rem;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* ── Crítica IA (Oculta en la lista para evitar ruido, se lee en el popup) ── */
+.critica {
+  display: none;
 }
 .critica::before {
   content: 'ANÁLISIS IA';
@@ -238,12 +276,16 @@
 .tarjeta-destacada {
   background: none;
   border: none; border-top: 1px solid var(--border-sub); border-radius: 0;
-  padding: 1.3rem 0; display: flex; flex-direction: column; gap: 0.4rem;
+  padding: 1.3rem 1rem; display: flex; flex-direction: column; gap: 0.4rem;
+  margin-left: -1rem; margin-right: -1rem;
   cursor: pointer; position: relative;
-  transition: opacity 0.3s ease;
+  transition: background 0.22s ease, border-color 0.22s ease;
 }
 .tarjeta-destacada:first-child { border-top: none; padding-top: 0.25rem; }
 .tarjeta-destacada:first-child .titulo { font-size: clamp(1.4rem, 2.2vw, 1.85rem); line-height: 1.18; }
+.tarjeta-destacada:hover {
+  background: rgba(154,165,106,0.04);
+}
 .tarjeta-destacada:active { opacity: 0.8; }
 .tarjeta-destacada .categoria-label {
   font-size: 0.56rem; font-weight: 600; text-transform: uppercase;
@@ -306,6 +348,43 @@
 .drawer-titulo {
   font-family: var(--font-serif); font-size: 1.6rem; font-weight: 700;
   line-height: 1.22; letter-spacing: -0.03em; color: var(--txt-1);
+}
+.drawer-asombro {
+  background: rgba(209,143,114,0.04);
+  border-left: 2px solid var(--accent-warm);
+  padding: 0.75rem 1rem;
+  font-size: 0.78rem;
+  color: var(--txt-2);
+}
+.drawer-asombro .asombro-label {
+  display: block;
+  font-size: 0.5rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent-warm);
+  margin-bottom: 0.25rem;
+  font-family: ui-monospace, monospace;
+}
+.drawer-asombro .asombro-desc {
+  font-style: italic;
+  line-height: 1.5;
+}
+.drawer-novedad {
+  padding: 0.6rem 0.875rem;
+  font-size: 0.73rem;
+  line-height: 1.45;
+  border-radius: var(--r-sm);
+}
+.novedad-senal {
+  background: rgba(138,168,144,0.06);
+  border-left: 2px solid var(--accent-cyan);
+  color: var(--txt-2);
+}
+.novedad-ruido {
+  background: rgba(135,127,100,0.04);
+  border-left: 2px solid var(--txt-3);
+  color: var(--txt-3);
 }
 .drawer-resumen { font-size: 0.9rem; color: var(--txt-2); line-height: 1.9; }
 .drawer-critica {

@@ -34,6 +34,9 @@ def tarjeta(articulo: dict, verificados: frozenset = frozenset(), orden: int = 0
         if articulo.get("resumen") else ""
     )
 
+    asombro = int(articulo.get("asombro") or 0)
+    asombro_razon = _html.escape(articulo.get("asombro_razon") or "", quote=True)
+    novedad = int(articulo.get("novedad") or 2)
     return f"""
 <div class="tarjeta"
      data-search="{_html.escape(search_data, quote=True)}"
@@ -42,6 +45,8 @@ def tarjeta(articulo: dict, verificados: frozenset = frozenset(), orden: int = 0
      data-fecha="{da['fecha']}"   data-enlace="{da['enlace']}"
      data-resumen="{da['resumen']}" data-critica="{da['critica']}"
      data-sentimiento="{da['sentimiento']}"
+     data-asombro="{asombro}" data-asombro-razon="{asombro_razon}"
+     data-novedad="{novedad}"
      data-importante="{importante}" data-order="{orden}"
      onclick="if(!event.target.closest('a,.bookmark-btn'))abrirArticulo(this)">
   <div class="tarjeta-meta">
@@ -99,6 +104,9 @@ def tarjeta_destacada(articulo: dict, categoria: str,
         if articulo.get("resumen") else ""
     )
 
+    asombro = int(articulo.get("asombro") or 0)
+    asombro_razon = _html.escape(articulo.get("asombro_razon") or "", quote=True)
+    novedad = int(articulo.get("novedad") or 2)
     return f"""
 <div class="tarjeta-destacada"
      data-search="{_html.escape(search_data, quote=True)}"
@@ -107,6 +115,8 @@ def tarjeta_destacada(articulo: dict, categoria: str,
      data-fecha="{da['fecha']}"     data-enlace="{da['enlace']}"
      data-resumen="{da['resumen']}" data-critica="{da['critica']}"
      data-categoria="{da['categoria']}" data-sentimiento="{da['sentimiento']}"
+     data-asombro="{asombro}" data-asombro-razon="{asombro_razon}"
+     data-novedad="{novedad}"
      onclick="if(!event.target.closest('a,.bookmark-btn'))abrirArticulo(this)">
   <div class="tarjeta-meta">
     <div class="fuente-bloque">
