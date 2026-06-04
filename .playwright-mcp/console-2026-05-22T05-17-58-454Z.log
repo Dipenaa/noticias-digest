@@ -1,4 +1,0 @@
-[    7848ms] Invalid regular expression: missing /
-[   13340ms] Invalid regular expression: missing /
-[   14777ms] ReferenceError: setHistorialDias is not defined
-    at HTMLButtonElement.onclick (https://noticias-digest.onrender.com/:4114:88)

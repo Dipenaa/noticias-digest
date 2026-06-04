@@ -11,3 +11,6 @@ sandbox_destacadas.html
 sandbox_asombro.html
 sandbox_stats.html
 sandbox_revision.html
+.playwright-mcp/
+.claude/settings.local.json
+noticias_backup*/
