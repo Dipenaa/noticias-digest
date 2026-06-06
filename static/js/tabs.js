@@ -25,9 +25,9 @@ function switchTab(name) {
   var noSearch = name === 'estadisticas' || name === 'para-leer' || name === 'actualidad';
   var barra    = document.querySelector('.search-bar');
   if (barra) barra.style.display = noSearch ? 'none' : 'flex';
-  var sortBar  = document.getElementById('sort-bar');
-  var noSort   = noSearch || name === 'sintesis' || name === 'asombro';
-  if (sortBar) sortBar.style.display = noSort ? 'none' : 'flex';
+  var filterBar = document.getElementById('filter-bar');
+  var noFilter  = noSearch || name === 'sintesis' || name === 'asombro';
+  if (filterBar) filterBar.style.display = noFilter ? 'none' : 'flex';
 
   if (name === 'actualidad') {
     // Re-render canvas sparklines at correct size now that the tab is visible
@@ -41,6 +41,8 @@ function switchTab(name) {
   try {
     if (name === 'estadisticas') {
       if (!_statsReady) { renderEstadisticas(); _statsReady = true; }
+      if (typeof renderizarCartografia2D === 'function') renderizarCartografia2D();
+      if (typeof inicializarCalibrador === 'function') inicializarCalibrador();
     } else if (name === 'para-leer') {
       _renderizarParaLeer();
     } else {

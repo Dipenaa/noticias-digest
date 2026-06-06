@@ -22,7 +22,9 @@ _JS_FILES = [
     'tabs.js',
     'search.js',
     'bookmarks.js',
+    'audio.js',
     'drawer.js',
+    'charts.js',
     'stats.js',
     'sort.js',
     'actualidad.js',
@@ -153,7 +155,6 @@ def construir(
 <body class="light">
 
 <header>
-  <button class="sidebar-toggle-btn" id="sidebar-toggle" onclick="toggleSidebar()" title="Menú">&#9776;</button>
   <div class="header-logo">
     <h1>EnPapel</h1>
   </div>
@@ -174,24 +175,36 @@ def construir(
 
 <div class="search-bar">
   <input class="search-input" id="buscador" type="search"
-         placeholder="Buscar en noticias..." autocomplete="off"
-         data-translate="search_placeholder"
+         placeholder="Buscar noticias..." autocomplete="off"
          oninput="clearTimeout(_buscarTimer);_buscarTimer=setTimeout(function(){{buscar(document.getElementById('buscador').value)}},200)">
-  <span class="kw-sep">|</span>
-  <input class="keywords-input" id="kw-input" type="text"
-         placeholder="Resaltar palabras clave..." autocomplete="off"
-         oninput="aplicarKeywords(this.value)">
   <span class="search-count" id="search-count"></span>
 </div>
 
-<div class="sort-bar" id="sort-bar">
-  <span class="sort-label" data-translate="sort_label">Ordenar:</span>
-  <button class="sort-btn active" onclick="sortCards('defecto',this)" data-translate="sort_defecto">Por defecto</button>
-  <button class="sort-btn" onclick="sortCards('fecha-desc',this)" data-translate="sort_recientes">Más recientes</button>
-  <button class="sort-btn" onclick="sortCards('relevancia',this)" data-translate="sort_relevancia">Por relevancia</button>
-  <button class="sort-btn" onclick="sortCards('novedad',this)" data-translate="sort_novedad">Por novedad</button>
-  <button class="sort-btn" onclick="sortCards('sesgo-izq',this)" data-translate="sort_sesgo_izq">Sesgo ← izquierda</button>
-  <button class="sort-btn" onclick="sortCards('sesgo-der',this)" data-translate="sort_sesgo_der">Sesgo → derecha</button>
+<div class="filter-bar" id="filter-bar">
+  <div class="filter-pills">
+    <button class="filter-pill timeline-btn active" data-dias="todos" onclick="filtrarDias(null,this)">Todos</button>
+    <button class="filter-pill timeline-btn" data-dias="0" onclick="filtrarDias(0,this)">Hoy</button>
+    <button class="filter-pill timeline-btn" data-dias="1" onclick="filtrarDias(1,this)">Ayer</button>
+    <button class="filter-pill timeline-btn" data-dias="2" onclick="filtrarDias(2,this)">3 días</button>
+    <button class="filter-pill timeline-btn" data-dias="4" onclick="filtrarDias(4,this)">5 días</button>
+  </div>
+  <div class="filter-sep"></div>
+  <select class="filter-select" id="filter-sesgo" onchange="filtrarSesgoSelect(this.value)">
+    <option value="">Sesgo: todos</option>
+    <option value="izquierda">Izquierda</option>
+    <option value="centro-izquierda">Centro-izq</option>
+    <option value="centro">Centro</option>
+    <option value="centro-derecha">Centro-der</option>
+    <option value="derecha">Derecha</option>
+  </select>
+  <select class="filter-select" id="filter-orden" onchange="sortCards(this.value,null)">
+    <option value="defecto">Orden: defecto</option>
+    <option value="fecha-desc">Más recientes</option>
+    <option value="fecha-asc">Más antiguos</option>
+    <option value="novedad">Por novedad</option>
+    <option value="sesgo-izq">Sesgo → izq</option>
+    <option value="sesgo-der">Sesgo → der</option>
+  </select>
 </div>
 
 {nav_html}
@@ -202,7 +215,7 @@ def construir(
 
 <footer data-translate="footer_text">
   Sin publicidad · Sin algoritmos · Generado localmente ·
-  Análisis por IA (Gemini)
+  Análisis por Claude (Anthropic)
 </footer>
 
 <!-- ── Splash de portada ────────────────────────────────────────────── -->
@@ -242,21 +255,6 @@ def construir(
 
     <!-- Ficha de Análisis Editorial IA -->
     <div class="drawer-analisis-ia" id="d-analisis-ia" style="display:none">
-      <div class="drawer-analisis-seccion">
-        <div class="drawer-analisis-header">
-          <span class="drawer-analisis-titulo" data-translate="ia_title_sesgo">Sesgo Político IA</span>
-          <span class="drawer-analisis-valor" id="d-val-sesgo"></span>
-        </div>
-        <div class="drawer-sesgo-escala" id="d-escala-sesgo">
-          <div class="escala-item" data-sesgo="izquierda" style="--color-sesgo: #ef4444">IZQ</div>
-          <div class="escala-item" data-sesgo="centro-izquierda" style="--color-sesgo: #f07040">C·IZQ</div>
-          <div class="escala-item" data-sesgo="centro" style="--color-sesgo: #7a7a8a">CTR</div>
-          <div class="escala-item" data-sesgo="centro-derecha" style="--color-sesgo: #7baff7">C·DER</div>
-          <div class="escala-item" data-sesgo="derecha" style="--color-sesgo: #4f8ef7">DER</div>
-        </div>
-        <p class="drawer-analisis-desc" id="d-desc-sesgo"></p>
-      </div>
-
       <div class="drawer-analisis-grid">
         <div class="drawer-analisis-seccion">
           <div class="drawer-analisis-header">
@@ -275,6 +273,13 @@ def construir(
         </div>
       </div>
     </div>
+
+    <!-- Contrapeso Editorial (Perspectiva Inversa) -->
+    <div class="drawer-contrapeso" id="d-contrapeso" style="display:none">
+      <div class="contrapeso-header" data-translate="contrapeso_title">Contrapeso Editorial</div>
+      <p class="contrapeso-desc" data-translate="contrapeso_desc">Lee una perspectiva diferente sobre esta misma historia en medios del espectro opuesto:</p>
+      <a class="contrapeso-link" id="d-contrapeso-link" href="#" target="_blank" rel="noopener noreferrer">-</a>
+    </div>
   </div>
   <div class="drawer-footer" style="flex-wrap:wrap">
     <a class="drawer-btn drawer-btn-primary" id="d-btn-leer" href="#"
@@ -285,12 +290,17 @@ def construir(
        target="_blank" rel="noopener noreferrer" data-translate="drawer_btn_translate">
       🌐 Traducir
     </a>
+    <button class="drawer-btn drawer-btn-voice" id="d-btn-voz"
+            onclick="toggleVozDrawer(event)" data-translate="drawer_btn_voice">
+      🔊 Escuchar
+    </button>
     <button class="drawer-btn drawer-btn-secondary" id="d-btn-compartir"
             onclick="compartirArticulo()">
       Copiar enlace
     </button>
   </div>
 </div>
+
 
 <script>
 {config_js}
