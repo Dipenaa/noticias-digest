@@ -925,6 +925,27 @@
 .para-leer-empty { text-align: center; padding: 4rem 0; color: var(--txt-3); font-size: .875rem; line-height: 1.7; }
 .tab-count { font-size: .5rem; background: var(--accent); color: #000; border-radius: 3px; padding: .08rem .36rem; margin-left: .3rem; vertical-align: middle; font-weight: 700; }
 
+/* ── Tags de artículo ───────────────────────────────────────── */
+.article-tags { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.4rem; }
+.article-tag {
+  background: none; border: 1px solid var(--border-sub);
+  color: var(--txt-3); border-radius: 3px;
+  font-size: 0.46rem; font-weight: 700; letter-spacing: 0.07em;
+  padding: 0.1rem 0.45rem; cursor: pointer; font-family: ui-monospace, monospace;
+  text-transform: uppercase; transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+.article-tag:hover { background: var(--surface-2); color: var(--txt-2); border-color: var(--border); }
+.article-tag.active { background: rgba(154,165,106,0.12); color: var(--accent); border-color: var(--accent); }
+
+/* ── Pregunta en drawer ──────────────────────────────────────── */
+.drawer-pregunta {
+  border-left: 2px solid var(--accent);
+  padding: 0.55rem 0 0.55rem 1rem;
+  margin: 0.75rem 0 0.5rem;
+  color: var(--txt-2); font-size: 0.81rem; line-height: 1.65;
+  font-style: italic;
+}
+
 /* .angulo-* defined in Síntesis section above */
 
 /* ── Splash (oculto permanentemente) ────────────────────────── */

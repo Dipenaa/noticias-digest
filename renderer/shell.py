@@ -251,6 +251,7 @@ def construir(
   <div class="drawer-body">
     <div class="drawer-titulo" id="d-titulo"></div>
     <p class="drawer-resumen" id="d-resumen"></p>
+    <div class="drawer-pregunta" id="d-pregunta" style="display:none"></div>
     <div class="drawer-critica" id="d-critica" style="display:none"></div>
 
     <!-- Ficha de Análisis Editorial IA -->

@@ -202,7 +202,7 @@ def sintetizar_noticias(
 
     if len(todos) > _MAX_ARTICULOS_SINTESIS:
         # Priorizar artículos con más novedad antes de truncar
-        todos.sort(key=lambda a: a.get("novedad", 2), reverse=True)
+        todos.sort(key=lambda a: a.get("asombro", 2), reverse=True)
         print(f"  ℹ Limitando a {_MAX_ARTICULOS_SINTESIS} artículos para síntesis "
               f"(de {len(todos)} totales, ya sin ruido)")
         todos = todos[:_MAX_ARTICULOS_SINTESIS]
@@ -223,7 +223,7 @@ def sintetizar_noticias(
             "id":      i,
             "fuente":  a["fuente"],
             "titulo":  a["titulo"],
-            "resumen": (a.get("resumen") or "")[:120],
+            "resumen": (a.get("resumen") or "")[:250],
         }
         for i, a in enumerate(todos)
     ]

@@ -52,6 +52,13 @@ function abrirArticulo(el) {
     sentEl.className = 'badge-sent ' + (sent === 'alarmista' ? 'badge-sent-alarmista' : sent === 'optimista' ? 'badge-sent-optimista' : 'badge-sent-neutral');
   }
 
+  var preguntaEl = document.getElementById('d-pregunta');
+  if (preguntaEl) {
+    var preg = d.pregunta || '';
+    if (preg) { preguntaEl.textContent = '↳ ' + preg; preguntaEl.style.display = ''; }
+    else { preguntaEl.style.display = 'none'; }
+  }
+
   var criticaEl = document.getElementById('d-critica');
   if (critica) {
     criticaEl.textContent  = '💡 ' + critica;

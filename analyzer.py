@@ -95,6 +95,18 @@ CAMPOS QUE DEBES DEVOLVER POR ARTÍCULO
   Traduce solo si está en otro idioma (inglés, francés, alemán, árabe, etc.).
   Mantén la longitud y el tono periodístico del original.
 
+▸ "tags"
+  Lista de 2-3 etiquetas temáticas en español. Sustantivos concretos (máximo 3 palabras cada uno).
+  Prioriza entidades específicas: personas relevantes, instituciones, lugares, leyes o conceptos clave.
+  Ejemplos: ["pensiones", "PP", "reforma laboral"] · ["OTAN", "defensa"] · ["Sánchez", "presupuestos"]
+  Evita etiquetas genéricas como "política", "economía", "sociedad".
+
+▸ "pregunta"
+  La pregunta de segundo orden más relevante que plantea el artículo: ¿qué implica? ¿a quién beneficia? ¿qué queda sin responder?
+  NO reformules el titular como pregunta. Busca la implicación no dicha.
+  Ejemplo bueno: "¿Qué pasará con las comunidades autónomas si el Gobierno no alcanza el acuerdo antes de septiembre?"
+  Ejemplo malo: "¿Aprobó el Gobierno la nueva ley de financiación autonómica?"
+
 ════════════════════════════════════════
 CAMPO DEL CONJUNTO: analisis_general
 ════════════════════════════════════════
@@ -160,7 +172,7 @@ _USER_TMPL = """Artículos:
 {articulos_json}
 
 Responde con este JSON exacto:
-{{"articulos":[{{"sesgo_ia":"...","critica":"...","importante":false,"sentimiento":"neutral","asombro":0,"asombro_razon":null,"titulo_es":"..."}}],"analisis_general":"..."}}"""
+{{"articulos":[{{"sesgo_ia":"...","critica":"...","importante":false,"sentimiento":"neutral","asombro":0,"asombro_razon":null,"titulo_es":"...","tags":[],"pregunta":""}}],"analisis_general":"..."}}"""
 
 _MAX_WORKERS_ANALYSIS = 5
 
@@ -184,6 +196,8 @@ def _analizar_categoria(categoria: str, articulos: list[dict]) -> tuple[list[dic
             a["asombro_razon"] = cached.get("asombro_razon")
             a["titulo_es"]     = cached.get("titulo_es", "")
             a["importante"]    = bool(cached.get("importante", False))
+            a["tags"]          = cached.get("tags", [])
+            a["pregunta"]      = cached.get("pregunta", "")
         else:
             nuevos_idx.append(i)
 
@@ -196,13 +210,13 @@ def _analizar_categoria(categoria: str, articulos: list[dict]) -> tuple[list[dic
     print(f"  → {categoria}: {len(nuevos)} nuevos / {len(articulos)} totales")
 
     payload = [
-        {"id": j, "titulo": a["titulo"], "fuente": a["fuente"], "resumen": (a.get("resumen") or "")[:150]}
+        {"id": j, "titulo": a["titulo"], "fuente": a["fuente"], "resumen": (a.get("resumen") or "")[:300]}
         for j, a in enumerate(nuevos)
     ]
 
     system  = _SYSTEM.format(idioma=IDIOMA_ANALISIS)
     user    = _USER_TMPL.format(articulos_json=json.dumps(payload, ensure_ascii=False))
-    resultado = llamar_claude(user, system=system, max_tokens=700, cache_system=True)
+    resultado = llamar_claude(user, system=system, max_tokens=900, cache_system=True)
 
     if resultado is None:
         for i in nuevos_idx:
@@ -220,11 +234,13 @@ def _analizar_categoria(categoria: str, articulos: list[dict]) -> tuple[list[dic
         a["asombro"]       = int(datos.get("asombro") or 0)
         a["asombro_razon"] = datos.get("asombro_razon") or None
         a["titulo_es"]     = datos.get("titulo_es") or a["titulo"]
+        a["tags"]          = datos.get("tags") or []
+        a["pregunta"]      = datos.get("pregunta") or ""
         _cache.set_articulo(a["enlace"], {
             "sesgo_ia": a["sesgo_ia"], "critica": a["critica"],
             "sentimiento": a["sentimiento"], "asombro": a["asombro"],
             "asombro_razon": a["asombro_razon"], "importante": a["importante"],
-            "titulo_es": a["titulo_es"],
+            "titulo_es": a["titulo_es"], "tags": a["tags"], "pregunta": a["pregunta"],
         })
 
     analisis_general = resultado.get("analisis_general", "")

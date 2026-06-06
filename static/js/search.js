@@ -109,6 +109,16 @@ function _limpiarContador() {
   if (cnt) cnt.textContent = '';
 }
 
+/* ── Filtro por tag clickable ── */
+function filtrarTag(btn) {
+  var tag = btn.textContent.trim();
+  var buscador = document.getElementById('buscador');
+  if (buscador) { buscador.value = tag; buscar(tag); }
+  document.querySelectorAll('.article-tag').forEach(function(b) {
+    b.classList.toggle('active', b.textContent.trim() === tag);
+  });
+}
+
 /* ── Filtro de sesgo desde dropdown ── */
 function filtrarSesgoSelect(val) {
   _filtroSesgo = val || null;

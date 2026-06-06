@@ -1,6 +1,7 @@
 """Tarjetas de artículo: normal, destacada, asombro y síntesis."""
 
 import html as _html
+import json as _json
 
 from renderer.components.badges import badge, badge_sentimiento, badge_novedad
 
@@ -36,7 +37,17 @@ def tarjeta(articulo: dict, verificados: frozenset = frozenset(), orden: int = 0
 
     asombro = int(articulo.get("asombro") or 0)
     asombro_razon = _html.escape(articulo.get("asombro_razon") or "", quote=True)
-    novedad = int(articulo.get("novedad") or 2)
+    novedad = int(articulo.get("novedad") or articulo.get("asombro") or 2)
+    tags = articulo.get("tags") or []
+    tags_json = _html.escape(_json.dumps(tags, ensure_ascii=False), quote=True)
+    pregunta = _html.escape(str(articulo.get("pregunta") or ""), quote=True)
+    tags_html = ""
+    if tags:
+        chips = "".join(
+            f'<button class="article-tag" onclick="event.stopPropagation();filtrarTag(this)">{_html.escape(t)}</button>'
+            for t in tags
+        )
+        tags_html = f'<div class="article-tags">{chips}</div>'
     return f"""
 <div class="tarjeta"
      data-search="{_html.escape(search_data, quote=True)}"
@@ -46,9 +57,9 @@ def tarjeta(articulo: dict, verificados: frozenset = frozenset(), orden: int = 0
      data-resumen="{da['resumen']}" data-critica="{da['critica']}"
      data-sentimiento="{da['sentimiento']}"
      data-asombro="{asombro}" data-asombro-razon="{asombro_razon}"
-     data-novedad="{novedad}"
+     data-novedad="{novedad}" data-tags="{tags_json}" data-pregunta="{pregunta}"
      data-importante="{importante}" data-order="{orden}"
-     onclick="if(!event.target.closest('a,.bookmark-btn,.leer-btn'))abrirArticulo(this)">
+     onclick="if(!event.target.closest('a,.bookmark-btn,.leer-btn,.article-tag'))abrirArticulo(this)">
   <div class="tarjeta-meta">
     <div class="fuente-bloque">
       <span class="fuente-nombre">{articulo["fuente"]}</span>
@@ -74,6 +85,7 @@ def tarjeta(articulo: dict, verificados: frozenset = frozenset(), orden: int = 0
   </div>
   {resumen_html}
   {critica_html}
+  {tags_html}
 </div>"""
 
 
@@ -105,7 +117,17 @@ def tarjeta_destacada(articulo: dict, categoria: str,
 
     asombro = int(articulo.get("asombro") or 0)
     asombro_razon = _html.escape(articulo.get("asombro_razon") or "", quote=True)
-    novedad = int(articulo.get("novedad") or 2)
+    novedad = int(articulo.get("novedad") or articulo.get("asombro") or 2)
+    tags = articulo.get("tags") or []
+    tags_json = _html.escape(_json.dumps(tags, ensure_ascii=False), quote=True)
+    pregunta = _html.escape(str(articulo.get("pregunta") or ""), quote=True)
+    tags_html = ""
+    if tags:
+        chips = "".join(
+            f'<button class="article-tag" onclick="event.stopPropagation();filtrarTag(this)">{_html.escape(t)}</button>'
+            for t in tags
+        )
+        tags_html = f'<div class="article-tags">{chips}</div>'
     return f"""
 <div class="tarjeta-destacada"
      data-search="{_html.escape(search_data, quote=True)}"
@@ -115,8 +137,8 @@ def tarjeta_destacada(articulo: dict, categoria: str,
      data-resumen="{da['resumen']}" data-critica="{da['critica']}"
      data-categoria="{da['categoria']}" data-sentimiento="{da['sentimiento']}"
      data-asombro="{asombro}" data-asombro-razon="{asombro_razon}"
-     data-novedad="{novedad}"
-     onclick="if(!event.target.closest('a,.bookmark-btn,.leer-btn'))abrirArticulo(this)">
+     data-novedad="{novedad}" data-tags="{tags_json}" data-pregunta="{pregunta}"
+     onclick="if(!event.target.closest('a,.bookmark-btn,.leer-btn,.article-tag'))abrirArticulo(this)">
   <div class="tarjeta-meta">
     <div class="fuente-bloque">
       <span class="categoria-label">{categoria}</span>
@@ -143,6 +165,7 @@ def tarjeta_destacada(articulo: dict, categoria: str,
   </div>
   {resumen_html}
   {critica_html}
+  {tags_html}
 </div>"""
 
 
@@ -182,10 +205,7 @@ def tarjeta_asombro(articulo: dict) -> str:
   <div class="asombro-fuente">{_html.escape(articulo['fuente'])} · {_html.escape(articulo['fecha'])}</div>
   {razon_html}
   <p class="asombro-resumen">{resumen_corto}</p>
-  <button class="audio-queue-btn" title="Añadir al boletín de voz"
-          data-enlace="{da['enlace']}" data-titulo="{da['titulo']}"
-          data-fuente="{da['fuente']}" data-resumen="{da['resumen']}" data-fecha="{da['fecha']}"
-          onclick="toggleAudioQueue(event,this)">[🔊]</button>
+  <button class="leer-btn" title="Escuchar" onclick="leerArticuloTarjeta(event,this)">🔊</button>
   <button class="bookmark-btn" title="Guardar para leer"
           data-enlace="{da['enlace']}" data-titulo="{da['titulo']}"
           data-fuente="{da['fuente']}" data-fecha="{da['fecha']}"
