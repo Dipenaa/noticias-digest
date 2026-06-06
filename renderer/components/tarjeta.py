@@ -294,7 +294,7 @@ def tarjeta_sintesis(grupo: dict) -> str:
                 f'</div>'
                 for a in arts
             )
-            columnas += f'<div class="angulo-col"><div class="angulo-label">{nombre}</div>{items}</div>'
+            columnas += f'<div class="angulo-col" data-col="{nombre.lower()}"><div class="angulo-label">{nombre}</div>{items}</div>'
         angulos_html = f'<div class="angulos-grid">{columnas}</div>'
 
     comparador_badge = (

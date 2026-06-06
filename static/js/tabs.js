@@ -38,6 +38,12 @@ function switchTab(name) {
     }, 0);
   }
 
+  if (name === 'asombro') {
+    setTimeout(function() {
+      if (typeof inicializarAsombro === 'function') inicializarAsombro();
+    }, 0);
+  }
+
   try {
     if (name === 'estadisticas') {
       if (!_statsReady) { renderEstadisticas(); _statsReady = true; }

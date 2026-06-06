@@ -37,12 +37,18 @@ def render(noticias: dict[str, list[dict]],
 </div>""", 0)
 
     cards = "\n".join(tarjeta_asombro(a) for a in candidatos)
+    n = len(candidatos)
     return (f"""
 <div class="asombro-header">
   <h2>✨ Asombro</h2>
   <p>No las noticias más importantes del día — las que más te hacen pensar.<br>
      Artículos que revelan algo genuinamente fascinante sobre el mundo.</p>
+  <div class="asombro-nav">
+    <button class="asombro-nav-btn" onclick="asombroNav(-1)" title="Anterior (←)">&#8592;</button>
+    <span class="asombro-counter" id="asombro-counter">1 / {n}</span>
+    <button class="asombro-nav-btn" onclick="asombroNav(1)" title="Siguiente (→)">&#8594;</button>
+  </div>
 </div>
-<div class="asombro-grid">
+<div class="asombro-capsula" id="asombro-capsula">
 {cards}
-</div>""", len(candidatos))
+</div>""", n)

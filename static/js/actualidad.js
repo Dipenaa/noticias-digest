@@ -1,3 +1,36 @@
+/* ── Asombro — navegación cápsula ────────────────────────────────────── */
+var _asombroIdx = 0;
+
+function inicializarAsombro() {
+  var cards = document.querySelectorAll('#tab-asombro .asombro-card');
+  if (!cards.length) return;
+  _asombroIdx = 0;
+  cards.forEach(function(c, i) { c.style.display = i === 0 ? '' : 'none'; });
+  _actualizarContadorAsombro(cards.length);
+}
+
+function asombroNav(dir) {
+  var cards = document.querySelectorAll('#tab-asombro .asombro-card');
+  if (!cards.length) return;
+  cards[_asombroIdx].style.display = 'none';
+  _asombroIdx = (_asombroIdx + dir + cards.length) % cards.length;
+  cards[_asombroIdx].style.display = '';
+  var top = document.getElementById('tab-asombro');
+  if (top) window.scrollTo({ top: top.getBoundingClientRect().top + window.scrollY - 80, behavior: 'smooth' });
+  _actualizarContadorAsombro(cards.length);
+}
+
+function _actualizarContadorAsombro(total) {
+  var c = document.getElementById('asombro-counter');
+  if (c) c.textContent = (_asombroIdx + 1) + ' / ' + total;
+}
+
+document.addEventListener('keydown', function(e) {
+  if (typeof _tabActual === 'undefined' || _tabActual !== 'asombro') return;
+  if (e.key === 'ArrowLeft')  asombroNav(-1);
+  if (e.key === 'ArrowRight') asombroNav(1);
+});
+
 /* ── Actualidad Absoluta — procesos globales y briefing ──────────────── */
 var _historialDias       = 15;
 var _procesoEstadoFiltro = 'todos';
