@@ -19,7 +19,7 @@ from article_cache import shared as _cache
 from claude_client import llamar_claude
 
 # Tope de artículos candidatos que se mandan a Claude (tras el pre-filtro).
-_MAX_ARTICULOS_SINTESIS = 80
+_MAX_ARTICULOS_SINTESIS = 100
 
 # Palabras vacías en español (no sirven para detectar similitud temática).
 _STOPWORDS = frozenset("""
