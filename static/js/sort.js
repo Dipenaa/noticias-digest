@@ -60,11 +60,8 @@ function sortCards(criterio, btn) {
       switch (criterio) {
         case 'fecha-desc':
           return b.fecha - a.fecha;
-        case 'relevancia':
-          if (b.relevancia !== a.relevancia) {
-            return b.relevancia - a.relevancia;
-          }
-          return b.fecha - a.fecha;
+        case 'fecha-asc':
+          return a.fecha - b.fecha;
         case 'novedad':
           if (b.novedad !== a.novedad) {
             return b.novedad - a.novedad;

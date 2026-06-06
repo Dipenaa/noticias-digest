@@ -62,9 +62,12 @@ _BOTON_PREVIEW = ""
 
 
 def _generar_html():
-    # Recarga renderer en cada llamada para pillar los cambios del CSS
-    import renderer
-    importlib.reload(renderer)
+    import renderer, renderer.shell, renderer.components.tarjeta, renderer.components.badges
+    import renderer.tabs.destacadas, renderer.tabs.todas, renderer.tabs.sintesis
+    for mod in [renderer.shell, renderer.components.tarjeta, renderer.components.badges,
+                renderer.tabs.destacadas, renderer.tabs.todas, renderer.tabs.sintesis,
+                renderer]:
+        importlib.reload(mod)
     html = renderer.renderizar_html(_NOTICIAS, _ANALISIS, {}, {}, _GRUPOS)
     # Inyecta el botón justo antes de </body>
     return html.replace("</body>", _BOTON_PREVIEW + "\n</body>")

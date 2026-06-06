@@ -48,7 +48,7 @@ def tarjeta(articulo: dict, verificados: frozenset = frozenset(), orden: int = 0
      data-asombro="{asombro}" data-asombro-razon="{asombro_razon}"
      data-novedad="{novedad}"
      data-importante="{importante}" data-order="{orden}"
-     onclick="if(!event.target.closest('a,.bookmark-btn'))abrirArticulo(this)">
+     onclick="if(!event.target.closest('a,.bookmark-btn,.leer-btn'))abrirArticulo(this)">
   <div class="tarjeta-meta">
     <div class="fuente-bloque">
       <span class="fuente-nombre">{articulo["fuente"]}</span>
@@ -57,11 +57,10 @@ def tarjeta(articulo: dict, verificados: frozenset = frozenset(), orden: int = 0
     <div class="badges">
       <span class="badge-etiqueta">Fuente:</span>
       {badge(sesgo_fuente)}
-      <span class="badge-etiqueta">IA:</span>
-      {badge(sesgo_ia)}
       {badge_sentimiento(sentimiento)}
       {verified_html}
       {novedad_html}
+      <button class="leer-btn" title="Escuchar" onclick="leerArticuloTarjeta(event,this)">🔊</button>
       <button class="bookmark-btn" title="Guardar para leer"
               data-enlace="{da['enlace']}" data-titulo="{da['titulo']}"
               data-fuente="{da['fuente']}" data-fecha="{da['fecha']}"
@@ -117,7 +116,7 @@ def tarjeta_destacada(articulo: dict, categoria: str,
      data-categoria="{da['categoria']}" data-sentimiento="{da['sentimiento']}"
      data-asombro="{asombro}" data-asombro-razon="{asombro_razon}"
      data-novedad="{novedad}"
-     onclick="if(!event.target.closest('a,.bookmark-btn'))abrirArticulo(this)">
+     onclick="if(!event.target.closest('a,.bookmark-btn,.leer-btn'))abrirArticulo(this)">
   <div class="tarjeta-meta">
     <div class="fuente-bloque">
       <span class="categoria-label">{categoria}</span>
@@ -127,11 +126,10 @@ def tarjeta_destacada(articulo: dict, categoria: str,
     <div class="badges">
       <span class="badge-etiqueta">Fuente:</span>
       {badge(sesgo_fuente)}
-      <span class="badge-etiqueta">IA:</span>
-      {badge(sesgo_ia)}
       {badge_sentimiento(sentimiento)}
       {verified_html}
       {novedad_html}
+      <button class="leer-btn" title="Escuchar" onclick="leerArticuloTarjeta(event,this)">🔊</button>
       <button class="bookmark-btn" title="Guardar para leer"
               data-enlace="{da['enlace']}" data-titulo="{da['titulo']}"
               data-fuente="{da['fuente']}" data-fecha="{da['fecha']}"
@@ -174,7 +172,7 @@ def tarjeta_asombro(articulo: dict) -> str:
      data-resumen="{da['resumen']}" data-critica="{da['critica']}"
      data-sentimiento="{da['sentimiento']}"
      data-importante="{importante}" data-order="0"
-     onclick="if(!event.target.closest('a,.bookmark-btn'))abrirArticulo(this)">
+     onclick="if(!event.target.closest('a,.bookmark-btn,.leer-btn'))abrirArticulo(this)">
   <div class="asombro-score">{estrellas}</div>
   <span class="asombro-cat">{_html.escape(categoria)}</span>
   <h3 class="asombro-titulo">
@@ -184,6 +182,10 @@ def tarjeta_asombro(articulo: dict) -> str:
   <div class="asombro-fuente">{_html.escape(articulo['fuente'])} · {_html.escape(articulo['fecha'])}</div>
   {razon_html}
   <p class="asombro-resumen">{resumen_corto}</p>
+  <button class="audio-queue-btn" title="Añadir al boletín de voz"
+          data-enlace="{da['enlace']}" data-titulo="{da['titulo']}"
+          data-fuente="{da['fuente']}" data-resumen="{da['resumen']}" data-fecha="{da['fecha']}"
+          onclick="toggleAudioQueue(event,this)">[🔊]</button>
   <button class="bookmark-btn" title="Guardar para leer"
           data-enlace="{da['enlace']}" data-titulo="{da['titulo']}"
           data-fuente="{da['fuente']}" data-fecha="{da['fecha']}"

@@ -1,5 +1,12 @@
-/* ── Vista inmersiva (drawer de artículo) ────────────────────────────── */
+/* ── Vista inmersiva (drawer de artículo y Contrapeso Editorial) ── */
+var _isPlayingVoz = false;
+var _utterance = null;
+var _synth = window.speechSynthesis;
+
 function abrirArticulo(el) {
+  cancelVoz();
+  if (typeof detenerAudio === 'function') detenerAudio(); // Detener reproductor global
+  
   var d       = el.dataset;
   var titulo  = d.titulo    || '';
   var fuente  = d.fuente    || '';
@@ -8,7 +15,7 @@ function abrirArticulo(el) {
   var resumen = d.resumen   || '';
   var critica = d.critica   || '';
   var sesgoF  = d.sesgoFuente || 'desconocido';
-  var sesgoIA = d.sesgoIa    || 'desconocido';
+  var sesgoIA = d.sesgoIa   || 'desconocido';
 
   var secEl = el.closest('.seccion');
   var cat   = secEl ? (secEl.querySelector('.seccion-titulo') || {}).textContent || '' : (d.categoria || '');
@@ -27,15 +34,23 @@ function abrirArticulo(el) {
   if (badgeF) {
     badgeF.textContent = sesgoF.toUpperCase();
     badgeF.style.background = (window.DIGEST_CONFIG.sesgoColores[sesgoF] || '#9ca3af');
+    badgeF.setAttribute('title', sesgoF);
   }
+
   var badgeIA = document.getElementById('d-sesgo-ia');
-  if (badgeIA) {
+  if (badgeIA && window.DIGEST_CONFIG.sesgoColores) {
     badgeIA.textContent = sesgoIA.toUpperCase();
     badgeIA.style.background = (window.DIGEST_CONFIG.sesgoColores[sesgoIA] || '#9ca3af');
+    badgeIA.setAttribute('title', sesgoIA);
   }
 
   var sentEl = document.getElementById('d-sent');
-  if (sentEl) sentEl.textContent = d.sentimiento ? d.sentimiento.toUpperCase() : '';
+  if (sentEl) {
+    var sent = (d.sentimiento || '').toLowerCase();
+    var sentIconos = {'alarmista': '⚠ ALARMISTA', 'optimista': '✦ OPTIMISTA', 'neutral': '◉ NEUTRAL'};
+    sentEl.textContent = sentIconos[sent] || '';
+    sentEl.className = 'badge-sent ' + (sent === 'alarmista' ? 'badge-sent-alarmista' : sent === 'optimista' ? 'badge-sent-optimista' : 'badge-sent-neutral');
+  }
 
   var criticaEl = document.getElementById('d-critica');
   if (critica) {
@@ -45,25 +60,7 @@ function abrirArticulo(el) {
     criticaEl.style.display = 'none';
   }
 
-  // Ficha de Análisis Editorial IA
-  var descripcionesSesgo = {
-    'izquierda': 'Enfoque progresista centrado en desigualdad, derechos sociales y crítica al conservadurismo o al libre mercado.',
-    'centro-izquierda': 'Perspectiva reformista moderada, favorable a políticas de progreso gradual y defensa de instituciones.',
-    'centro': 'Enfoque principalmente descriptivo, neutral u objetivo. Presenta múltiples puntos de vista sin jerarquías valorativas.',
-    'centro-derecha': 'Perspectiva de centro-derecha que enfatiza el orden social, la libre iniciativa y eficiencia económica.',
-    'derecha': 'Enfoque conservador centrado en soberanía, valores tradicionales, orden y crítica al intervencionismo o progresismo.',
-    'desconocido': 'Sesgo no detectable o neutro por falta de marcadores ideológicos claros en la redacción.'
-  };
-
-  var nombresSesgo = {
-    'izquierda': 'Izquierda',
-    'centro-izquierda': 'Centro-Izquierda',
-    'centro': 'Centro (Neutral)',
-    'centro-derecha': 'Centro-Derecha',
-    'derecha': 'Derecha',
-    'desconocido': 'Desconocido'
-  };
-
+  // Ficha de Análisis Editorial IA (Excluyendo Escala de Sesgo IA)
   var descripcionesSentimiento = {
     'alarmista': 'Redacción con tintes catastrofistas, exageración de riesgos o lenguaje de urgencia constante.',
     'neutral': 'Tono descriptivo e institucional, centrado en hechos contrastables y sin carga emocional perceptible.',
@@ -94,29 +91,11 @@ function abrirArticulo(el) {
 
   var panelIA = document.getElementById('d-analisis-ia');
   if (panelIA) {
-    var sesgoIa = (sesgoIA || 'desconocido').toLowerCase();
     var sent = (d.sentimiento || '').toLowerCase();
     var nov = d.novedad || '2';
 
-    if (sesgoIa !== 'desconocido' || sent || nov !== '2' || critica) {
+    if (sent || nov !== '2' || critica) {
       panelIA.style.display = 'flex';
-
-      var valSesgo = document.getElementById('d-val-sesgo');
-      if (valSesgo) valSesgo.textContent = nombresSesgo[sesgoIa] || sesgoIa.toUpperCase();
-
-      var descSesgo = document.getElementById('d-desc-sesgo');
-      if (descSesgo) descSesgo.textContent = descripcionesSesgo[sesgoIa] || '';
-
-      document.querySelectorAll('#d-escala-sesgo .escala-item').forEach(function(item) {
-        var sesgoKey = item.getAttribute('data-sesgo');
-        var color = window.DIGEST_CONFIG.sesgoColores[sesgoKey] || '#9ca3af';
-        item.style.setProperty('--color-sesgo', color);
-        if (sesgoKey === sesgoIa) {
-          item.classList.add('selected');
-        } else {
-          item.classList.remove('selected');
-        }
-      });
 
       var valSent = document.getElementById('d-val-sentimiento');
       if (valSent) valSent.textContent = nombresSentimiento[sent] || nombresSentimiento[''];
@@ -134,6 +113,65 @@ function abrirArticulo(el) {
     }
   }
 
+  // Lógica del Contrapeso Editorial (Perspectiva Inversa)
+  var contrapesoDiv = document.getElementById('d-contrapeso');
+  var contrapesoLink = document.getElementById('d-contrapeso-link');
+  
+  if (contrapesoDiv && contrapesoLink) {
+    var opuesto = (sesgoF === 'izquierda' || sesgoF === 'centro-izquierda') ? ['derecha', 'centro-derecha'] : ['izquierda', 'centro-izquierda'];
+    var linkTarget = null;
+    
+    if (secEl) {
+      // Buscar un artículo con sesgo opuesto en la misma sección
+      var otras = secEl.querySelectorAll('.tarjeta, .tarjeta-destacada');
+      for (var i = 0; i < otras.length; i++) {
+        var o = otras[i];
+        if (o !== el) {
+          var oSesgo = (o.dataset.sesgoFuente || 'desconocido').toLowerCase();
+          if (opuesto.includes(oSesgo)) {
+            linkTarget = o;
+            break;
+          }
+        }
+      }
+    }
+    
+    if (linkTarget) {
+      contrapesoDiv.style.display = 'block';
+      contrapesoLink.textContent = linkTarget.dataset.titulo + " (" + linkTarget.dataset.fuente + ")";
+      contrapesoLink.onclick = function(e) {
+        e.preventDefault();
+        abrirArticulo(linkTarget);
+      };
+    } else {
+      // Fallback: Buscar en todo el DOM (todas las noticias) que tengan la misma categoría y sesgo opuesto
+      var todasTarjetas = document.querySelectorAll('#tab-todas .tarjeta, #tab-todas .tarjeta-destacada');
+      var actualCat = cat || el.dataset.categoria || '';
+      for (var i = 0; i < todasTarjetas.length; i++) {
+        var o = todasTarjetas[i];
+        if (o !== el) {
+          var oSesgo = (o.dataset.sesgoFuente || 'desconocido').toLowerCase();
+          var oCat = o.dataset.categoria || o.closest('.tab-content')?.id?.replace('tab-', '') || '';
+          if (opuesto.includes(oSesgo) && (oCat.toLowerCase() === actualCat.toLowerCase() || actualCat === '')) {
+            linkTarget = o;
+            break;
+          }
+        }
+      }
+      
+      if (linkTarget) {
+        contrapesoDiv.style.display = 'block';
+        contrapesoLink.textContent = linkTarget.dataset.titulo + " (" + linkTarget.dataset.fuente + ")";
+        contrapesoLink.onclick = function(e) {
+          e.preventDefault();
+          abrirArticulo(linkTarget);
+        };
+      } else {
+        contrapesoDiv.style.display = 'none';
+      }
+    }
+  }
+
   document.getElementById('d-btn-leer').href     = enlace;
   document.getElementById('d-btn-traducir').href = 'https://translate.google.com/translate?sl=auto&tl=es&u=' + encodeURIComponent(enlace);
 
@@ -144,6 +182,7 @@ function abrirArticulo(el) {
 }
 
 function cerrarDrawer() {
+  cancelVoz();
   document.getElementById('drawer-overlay').classList.remove('open');
   document.getElementById('drawer').classList.remove('open');
   document.body.style.overflow = '';
@@ -166,6 +205,110 @@ function compartirArticulo() {
   }
 }
 
+/* ── Lector de voz del Drawer ── */
+function toggleVozDrawer(ev) {
+  if (ev) ev.stopPropagation();
+  if (!_synth) {
+    alert("Tu navegador no soporta síntesis de voz.");
+    return;
+  }
+  if (_isPlayingVoz) {
+    cancelVoz();
+  } else {
+    playVoz();
+  }
+}
+
+function playVoz() {
+  _synth.cancel();
+  
+  var titulo = document.getElementById('d-titulo').textContent || '';
+  var resumen = document.getElementById('d-resumen').textContent || '';
+  var fuente = document.getElementById('d-fuente').textContent || '';
+  var lang = localStorage.getItem('digestLang') || 'es';
+
+  var textoALeer = "";
+  if (lang === 'en') {
+    textoALeer = titulo + ". Published by " + fuente + ". Summary: " + resumen;
+  } else {
+    textoALeer = titulo + ". Publicado por " + fuente + ". Resumen: " + resumen;
+  }
+
+  _utterance = new SpeechSynthesisUtterance(textoALeer);
+  _utterance.lang = lang === 'en' ? 'en-US' : 'es-ES';
+  _utterance.rate = 1.05;
+
+  var voices = _synth.getVoices();
+  var voice = voices.find(function(v) { return v.lang && v.lang.startsWith(lang); });
+  if (voice) _utterance.voice = voice;
+
+  _utterance.onstart = function() {
+    _isPlayingVoz = true;
+    actualizarBotonVoz(true);
+  };
+
+  _utterance.onend = function() {
+    _isPlayingVoz = false;
+    actualizarBotonVoz(false);
+  };
+
+  _utterance.onerror = function(e) {
+    if (e.error !== 'interrupted') {
+      _isPlayingVoz = false;
+      actualizarBotonVoz(false);
+    }
+  };
+
+  _synth.speak(_utterance);
+}
+
+function cancelVoz() {
+  if (_synth) {
+    _synth.cancel();
+  }
+  _isPlayingVoz = false;
+  actualizarBotonVoz(false);
+}
+
+function actualizarBotonVoz(playing) {
+  var btn = document.getElementById('d-btn-voz');
+  if (!btn) return;
+  var lang = localStorage.getItem('digestLang') || 'es';
+  if (playing) {
+    btn.classList.add('playing');
+    btn.innerHTML = lang === 'en' ? '⏹ Stop' : '⏹ Detener';
+  } else {
+    btn.classList.remove('playing');
+    btn.innerHTML = lang === 'en' ? '🔊 Listen' : '🔊 Escuchar';
+  }
+}
+
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') cerrarDrawer();
 });
+
+/* ── Lectura en voz alta desde tarjeta ── */
+var _leerBtn = null;
+function leerArticuloTarjeta(ev, btn) {
+  ev.stopPropagation();
+  if (_synth && _synth.speaking) {
+    _synth.cancel();
+    if (_leerBtn) { _leerBtn.classList.remove('leyendo'); _leerBtn.textContent = '🔊'; }
+    if (_leerBtn === btn) { _leerBtn = null; return; }
+  }
+  var card = btn.closest('.tarjeta,.tarjeta-destacada,.asombro-card');
+  if (!card) return;
+  var titulo  = card.dataset.titulo  || '';
+  var resumen = card.dataset.resumen || '';
+  var texto   = titulo + (resumen ? '. ' + resumen : '');
+  var u = new SpeechSynthesisUtterance(texto);
+  u.lang = 'es-ES'; u.rate = 1.0;
+  var voices = _synth.getVoices();
+  var voice  = voices.find(function(v) { return v.lang && v.lang.startsWith('es'); });
+  if (voice) u.voice = voice;
+  _leerBtn = btn;
+  btn.classList.add('leyendo'); btn.textContent = '⏹';
+  u.onend  = function() { btn.classList.remove('leyendo'); btn.textContent = '🔊'; _leerBtn = null; };
+  u.onerror = function(e) { if (e.error !== 'interrupted') { btn.classList.remove('leyendo'); btn.textContent = '🔊'; _leerBtn = null; } };
+  _synth.speak(u);
+}
