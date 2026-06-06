@@ -26,7 +26,6 @@ _JS_FILES = [
     'drawer.js',
     'charts.js',
     'stats.js',
-    'game.js',
     'sort.js',
     'actualidad.js',
     'init.js',
