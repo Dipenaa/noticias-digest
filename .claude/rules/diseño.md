@@ -9,18 +9,25 @@ description: Sistema de diseño del digest de noticias. Cargado automáticamente
 - **`renderer.py`** — Importa `_CSS` desde `styles.py`. Contiene lógica Python y plantilla HTML.
 - **`preview.py`** — Servidor local en `localhost:5001`. Botón 🔄 para regenerar sin tokens.
 
-## Workflow de iteración de diseño (sin gastar tokens)
-1. Editar `styles.py`
-2. El usuario pulsa **🔄 Regenerar** en `localhost:5001`
-3. El usuario describe lo que ve → yo ajusto
-4. Solo tomar screenshot con Playwright cuando sea necesario para diagnóstico
+## Workflow de iteración de diseño (eficiente en tokens)
 
-Si necesito screenshot manual:
-```python
-from playwright.sync_api import sync_playwright
-# Regenerar primero: urllib.request.urlopen('http://localhost:5001/regen')
-# Luego screenshot desde http://localhost:5001 (no desde file://)
+**El usuario es los ojos. No tomar screenshots para ver el resultado visual.**
+
 ```
+Editar CSS → "Refresca localhost:5001 y dime qué ves"
+  → Usuario describe → ajusto
+  → Si bug oscuro (CSS no aplica y no se sabe por qué):
+      browser_evaluate(() => getComputedStyle(document.querySelector('.clase')).border)
+  → Si quiero confirmar clase en HTML generado:
+      python -c "import preview; ..." + grep — sin browser
+```
+
+| Herramienta | Cuándo usarla | Coste |
+|---|---|---|
+| Usuario refresca + describe | Iteración normal siempre | 0 |
+| `browser_evaluate` getComputedStyle | Bug CSS que el usuario no puede diagnosticar | Bajo |
+| grep/read en CSS o HTML generado | Confirmar que un valor llegó al fichero/DOM | Mínimo |
+| Screenshot / Playwright navigate | **Nunca en diseño normal** | Alto — evitar |
 
 ## Tema actual: Bosque Otoñal (estilo Axios)
 

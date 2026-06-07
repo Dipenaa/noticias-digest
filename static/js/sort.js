@@ -83,5 +83,23 @@ function sortCards(criterio, btn) {
     });
 
     mapped.forEach(function(item) { grid.appendChild(item.el); });
+
+    // Restaurar título-celda en su posición editorial (no cuenta como noticia)
+    var tituloEl = grid.querySelector('.grid-titulo-celda');
+    if (tituloEl) {
+      var tPos = parseInt(tituloEl.getAttribute('data-titulo-pos') || 1);
+      grid.removeChild(tituloEl);
+      var sorted = Array.from(grid.children).filter(function(c) {
+        return c.classList.contains('tarjeta') || c.classList.contains('tarjeta-destacada');
+      });
+      var before = sorted[tPos] || null;
+      if (before) grid.insertBefore(tituloEl, before);
+      else grid.appendChild(tituloEl);
+    }
+
+    // Redibujar líneas
+    requestAnimationFrame(function() {
+      if (typeof drawGridLines === 'function') drawGridLines(tab);
+    });
   });
 }

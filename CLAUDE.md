@@ -1,178 +1,233 @@
-# Preferencias del proyecto
+# EnPapel — noticias-digest
 
-## Idioma
-Responde siempre en español, independientemente del idioma en que se escriba el mensaje.
+Digest personal de noticias RSS en español. Flask + Claude AI. Desplegado en Render.
+Repo: https://github.com/Dipenaa/noticias-digest | Prod: https://noticias-digest.onrender.com
 
 ---
 
-# Estado del proyecto
+## Estado actual del proyecto
 
-## Qué es esto
-Digest personal de noticias en español. Descarga feeds RSS de ~51 fuentes organizadas por categoría, las analiza con Claude (sesgo, crítica, sentimiento, asombro) y genera un HTML interactivo con filtros, síntesis cruzada, pestaña Asombro y vista inmersiva. Se despliega en Render como servidor Flask.
+> **Actualizar esta sección antes de cada handoff entre agentes.**
 
-## Despliegue
-- **Repositorio:** https://github.com/Dipenaa/noticias-digest
-- **URL en producción:** https://noticias-digest.onrender.com
-- **Plataforma:** Render (plan gratuito)
-- **Variables de entorno requeridas en Render:**
-  - `ANTHROPIC_API_KEY` — para el análisis con Claude (requerida)
-  - `REDIS_URL` — para caché persistente (opcional, Upstash Redis gratuito)
-  - `GEMINI_API_KEY` — solo para discoverer.py (opcional)
-  - `DIGEST_PASSWORD` — contraseña de acceso básico (por defecto: "dipe")
-- **Keep-alive:** configurar cron-job.org para hacer ping a `/estado` cada 14 minutos
+**Última sesión:** 2026-06-07 — Rediseño visual EnPapel (líneas SVG animadas estilo periódico)
 
-## Arquitectura resumida
+**Qué está hecho:**
+- CSS en 4 ficheros: `static/css/reset.css`, `layout.css`, `components.css`, `animations.css`
+- Líneas SVG generativas en `static/js/lines.js` — se dibujan al cargar cada pestaña y tienen ciclo de vida (desaparecen y reaparecen lentamente)
+- Títulos de sección como celda dentro del grid Bauhaus (`grid-titulo-celda`), posición aleatoria en cada carga
+- Preview local en `localhost:5001` — regenerar HTML con `GET /regen`
+
+**En progreso / pendiente inmediato:**
+- Afinar comportamiento de líneas SVG (posición correcta respecto a columnas CSS grid)
+
+**Próximos pasos priorizados:**
+1. Verificar líneas SVG en modo oscuro y modo claro
+2. Bugs Python del backlog (ver sección Issues)
+3. Deploy a Render tras estabilizar el diseño
+
+---
+
+## Roles: Claude Code vs Cline
+
+| Tarea | Agente |
+|---|---|
+| Edición rápida de CSS/JS, iteración visual | **Cline** |
+| Arquitectura, decisiones, memoria entre sesiones | **Claude Code** |
+| Bugs Python (analyzer, fetcher, synthesizer) | **Cline** (implementación) + **Claude Code** (revisión) |
+| Commits, push, session-report | **Claude Code** |
+
+**Protocolo de handoff:**
+1. El agente que termina hace commit
+2. Actualiza "Estado actual" arriba con qué hizo y qué queda
+3. El siguiente agente lee esta sección antes de tocar nada
+
+---
+
+## Arquitectura clave
+
 ```
-config.py             — API keys, modelos, fuentes RSS; MAX_ARTICULOS_POR_FUENTE=1
-fetcher.py            — Descarga feeds RSS en paralelo; rastrea fuentes fallidas
-analyzer.py           — Análisis de sesgo con Claude Haiku (con caché y prompt caching)
-synthesizer.py        — Síntesis cruzada con Claude Sonnet (con caché y pre-filtro de keywords)
-claude_client.py      — Cliente Claude: reintentos, rate limit, prompt caching, coste en $
-noise_filter.py       — Detecta artículos repetitivos (ruido); marca es_ruido=True
-macro_tracker.py      — Identifica 2-5 procesos mundiales del día (Haiku, caché 24h)
-watch.py              — Vigilancia de condiciones personalizadas (batch, caché 6h)
-briefing_generator.py — Memo de inteligencia diario (Sonnet, caché 12h)
-pipeline.py           — Pipeline central: estado compartido entre hilos; _INTERVALO_HORAS=18
-renderer.py           — SHIM de compatibilidad — el código real está en el paquete renderer/
-renderer/             — Paquete modular: shell.py + tabs/ + components/
-static/css/           — CSS en 4 ficheros: reset.css, layout.css, components.css, animations.css
-article_cache.py      — Caché persistente: Redis si REDIS_URL existe, sino JSON en disco
-app.py                — Servidor Flask (~150 líneas); delega toda lógica a pipeline.py
-main.py               — Alternativa CLI para ejecutar localmente
-discoverer.py         — Herramienta para descubrir nuevos feeds RSS con Gemini
-preview.py            — Servidor local en localhost:5001 para iterar diseño sin gastar tokens
-autoresearch_analyzer.py     — Script de autoresearch para optimizar el prompt de analyzer.py
-autoresearch_synthesizer.py  — Script de autoresearch para optimizar el prompt de synthesizer.py
-```
-
-## Presupuesto de coste API
-
-**Máximo $0.10-0.15/día.** Antes de añadir cualquier nueva llamada a Claude, estima su coste.
-
-- Haiku: $0.80 input / $4.00 output por MTok (caché read: $0.08)
-- Sonnet: $3.00 input / $15.00 output por MTok (caché read: $0.30)
-- Ver coste acumulado en los logs de Render: líneas `💰 haiku in=... → $0.00xx (total $...)`
-
-## Optimizaciones de coste ya aplicadas (no revertir)
-
-- `MAX_ARTICULOS_POR_FUENTE = 1` en config.py (era 2)
-- `_SLOTS_HORA = [10, 16]` en pipeline.py — regenera a las 10:00 y 16:00 hora Madrid (reemplazó `_INTERVALO_HORAS = 18`). Synthesizer: 2 llamadas Sonnet/día en vez de 1 (~+$0.02/día).
-- `cache_system=True` en TODAS las llamadas a `llamar_claude` — cachea system prompts
-- `_MAX_ARTICULOS_SINTESIS = 80` con pre-filtro de keywords (descarta temas únicos antes de Claude)
-- Filtro `es_ruido` en synthesizer — descarta artículos repetitivos antes de Claude
-- `separators=(',', ':')` en `json.dumps` del payload del synthesizer (~900 tokens menos)
-- watch.py: N condiciones → 1 llamada batch (era N llamadas individuales)
-- `max_tokens` reducidos: analyzer 700, briefing 550, noise_filter 1200
-
-## Modelos Claude
-- **Análisis masivo:** `claude-haiku-4-5-20251001` (20× más barato que Sonnet)
-- **Síntesis cruzada:** `claude-sonnet-4-6` (solo para detectar historias comunes)
-- **Prompt caching:** activo en todos los módulos vía `cache_system=True`; ahorra ~70-80% en tokens de instrucciones
-
-## Skills disponibles
-
-### Skills de proyecto (`.claude/skills/`)
-- **`redisenar`** — Workflow completo para iterar el diseño visual sin gastar tokens. Usa `preview.py`.
-- **`crear-skill`** — Crea o mejora skills para este proyecto.
-- **`briefing`** — Memo de inteligencia estilo PDB sobre el digest del día (~300 palabras).
-- **`vigilar`** — Gestiona condiciones de alerta que se comprueban en cada generación del digest.
-
-### Skills globales (`~/.claude/skills/`) — disponibles en todos los proyectos
-| Skill | Trigger | Qué hace |
-|---|---|---|
-| `/pensar` | Manual | Análisis profundo para tomar una decisión difícil. Convergente. |
-| `/explorar` | Automático | Genera opciones y posibilidades antes de decidir. Divergente. |
-| `/criticar` | Automático | Crítica honesta de código, planes o textos. |
-| `/sintetizar` | Automático | Síntesis densa de información compleja. |
-| `/investigar` | Automático | Research web → síntesis → guardar. |
-| `/autoresearch` | Manual | Loop autónomo de experimentación: optimiza un fichero iterando y midiendo. |
-| `/auto-mejora` | Manual | Convierte lo aprendido en sesiones en reglas y skills duraderas. |
-| `/enjambre` | Manual | Divide tareas grandes en subtareas paralelas (hasta 12 agentes). |
-| `/orientar` | Automático | Recupera contexto al inicio de sesión. Bootstrap si memoria vacía. |
-| `/rutina-diaria` | Manual | Inicio de jornada: orientación + briefing + producción + agenda. |
-| `/session-report` | Manual | Resumen de lo hecho en la sesión para handoff. |
-| `/pipeline` | Manual | Encadena skills: `/pipeline briefing → guardar`. |
-
-### Pipelines nombradas (`~/.claude/pipelines.md`)
-| Pipeline | Cadena | Cuándo |
-|---|---|---|
-| `/morning` | orientar → briefing → check-status prod | Al empezar el día |
-| `/cierre` | session-report → guardar | Al terminar |
-| `/research` | investigar → sintetizar → guardar | Investigación completa |
-| `/audit` | criticar → explorar | Revisar algo a fondo |
-
-## Autoresearch de prompts (21 mayo 2026)
-Se ejecutó `/autoresearch` sobre los dos prompts principales con artículos ficticios de prueba:
-
-**analyzer.py** — baseline 8/9 → final 9/9
-- Mejora: las críticas deben empezar directamente con la observación, no con "El artículo presenta..."
-
-**synthesizer.py** — baseline 8/9 → final 9/9
-- Mejora: los títulos de grupos deben tener verbo activo que capture la tensión de la historia
-- Bug corregido: usaba Haiku en vez de Sonnet (modelo equivocado)
-
-Coste total del autoresearch: ~1.5 céntimos.
-
-Scripts reutilizables guardados: `autoresearch_analyzer.py` y `autoresearch_synthesizer.py`.
-
-## Lo que se arregló (historial)
-- **Seguridad:** clave Gemini real eliminada del código fuente
-- **Caché persistente en Render:** article_cache.py usa Redis si REDIS_URL está configurada
-- **claude_client.py:** cliente Claude centralizado con reintentos, rate limit y prompt caching
-- **Feeds fallidos visibles:** la pestaña Estadísticas muestra fuentes que no devolvieron artículos
-- **Móvil:** barra de pestañas con scroll horizontal
-- **CSS separado:** styles.py contiene todo el CSS; renderer.py solo lógica Python
-- **Autenticación básica:** app.py protege todas las rutas con contraseña (DIGEST_PASSWORD)
-- **synthesizer.py:** corregido modelo incorrecto (era Haiku, debe ser Sonnet)
-- **Botones de regeneración IA eliminados (25 mayo 2026):** quitados el botón "Regenerar análisis IA" del banner y el botón "Generar síntesis con Claude" de la pestaña Síntesis — evita llamadas API no autorizadas
-- **Tema Dark Premium aplicado (25-26 mayo 2026):** `styles.py` reemplazado por el sandbox oscuro + correcciones
-- **Síntesis en generación normal (26 mayo 2026):** `_generar()` en app.py ahora llama a `sintetizar_noticias()` — antes solo se ejecutaba via `/analizar`
-- **CSS proceso-* restaurado (26 mayo 2026):** toda la CSS de `.proceso-strip`, `.proceso-body`, `.proceso-grid`, etc. se perdió al aplicar el tema y fue restaurada adaptada al tema oscuro
-- **Contraste mejorado (26 mayo 2026):** `--txt-3` subió de `#3d3d3f` a `#636366`; `--txt-2` de `#86868b` a `#aeaeb2`; `nav a` y `.sort-btn` más visibles
-- **Pestaña Actualidad vacía resuelta (27 mayo 2026):** macro_tracker usaba filtro substring que bloqueaba categorías válidas; corregido a exact match + prompt ampliado a procesos nacionales + fallback regex para JSON
-- **Coste API optimizado (27 mayo 2026):** 8 cambios reducen gasto estimado ~60-70% (ver sección "Optimizaciones de coste")
-- **Renderer modularizado (27 mayo 2026):** renderer.py es ahora un shim; código real en paquete `renderer/`; pipeline.py centraliza la lógica de app.py
-- **claude_client.py con tracking de coste en $ (27 mayo 2026):** `_calcular_coste()`, `reset_coste()`, `resumen_coste()` + logging `💰` con importe real por llamada
-
-## Estado del diseño — EnPapel (28 mayo 2026)
-
-Rebrand completo. CSS en `static/css/` (4 ficheros). App renombrada a **EnPapel**.
-
-Características:
-
-- Paleta arena/crema oscura: fondo `#0d0b08`, acento dorado `#c8a470`
-- Tipografía Playfair Display (serif) para títulos y logo
-- Monograma D en header (CSS-only, no emoji)
-- Sidebar toggle (☰) con animación + persistencia localStorage
-- Modo día (`body.light`) con redefinición completa de variables CSS
-- Degradado radial orgánico en body (arena cálida + terracota)
-- Buscador Spotlight (180px → 400px al enfocar) + backdrop-filter
-- Sticky elements con fondo opaco para evitar fantasmas de scroll
-- Sin emojis en pestañas; sin banner IA; sin botón Regenerar en preview
-
-## Cómo activar Redis (Upstash — gratuito)
-1. Ir a https://upstash.com y crear una base de datos Redis gratuita
-2. Copiar la "Redis URL" (formato `rediss://default:xxx@host:port`)
-3. Añadir `REDIS_URL=rediss://...` en las variables de entorno de Render
-4. Redeploy — el servidor usará Redis automáticamente
-
-## Cómo ejecutar localmente
-```bash
-git clone https://github.com/Dipenaa/noticias-digest.git
-cd noticias-digest
-pip install -r requirements.txt
-export ANTHROPIC_API_KEY=tu_clave
-python main.py          # genera noticias.html y lo abre
-# o
-python app.py           # servidor web en localhost:5000
-# o (para iterar diseño sin tokens)
-python preview.py       # vista previa en localhost:5001
+config.py          — fuentes RSS, modelos AI, límites
+pipeline.py        — orquestador central (reemplaza app.py para lógica)
+renderer/          — paquete modular: shell.py + tabs/ + components/
+static/css/        — 4 ficheros CSS (ver sección Rediseño)
+static/js/         — tabs.js, lines.js, sort.js, search.js
+preview.py         — servidor local puerto 5001 para iterar diseño
 ```
 
-## Infraestructura activa (confirmado 26 mayo 2026)
-- **Upstash Redis** — base de datos "Noticias", AWS Ireland, activa, $0.00/mes
-- **Cron-job.org** — ping a `/icon.svg` cada 10 min, todos los eventos 200 OK
+**Variables de entorno requeridas:** `ANTHROPIC_API_KEY`, `REDIS_URL` (opcional), `DIGEST_PASSWORD`
 
-## Pendiente
-- Verificar feeds RSS de Historia y Antropología (no se puede desde entorno remoto — comprobar en pestaña Estadísticas en producción)
-- Configurar Playwright MCP para iterar diseño con screenshots reales (usuario aprobó)
+---
+
+## Rediseño CSS — EnPapel (mayo-junio 2026)
+
+Paleta arena/crema oscura: `--bg: #0d0b08`, acento `--accent: #c8a470`, fuente Playfair Display.
+Modo día en `body.light {}` dentro de `reset.css`.
+**No tocar:** acento rojo `#dc2626` de Izquierda Crítica, violeta `#7c3aed` de Asombro.
+
+---
+
+# Issues del proyecto noticias
+
+Archivo de incidencias y optimizaciones pendientes. Claude se encargará de cada punto cuando el usuario lo indique.
+
+Prioridades: **🔴 Bug** → **🟡 Robustez** → **🟢 Optimización** → **⚪ Token/rendimiento**
+
+---
+
+## 🔴 BUGS
+
+### B1 — `analyzer.py:219` — `max_tokens=900` insuficiente para lotes grandes
+
+- **Archivo:** `noticias/analyzer.py` línea 219
+- **Problema:** Se envía un lote de N artículos a la IA pidiendo 8 campos por artículo + `analisis_general`, pero solo se conceden 900 tokens de salida. Si N ≥ 5 (típico), la respuesta se trunca → JSON inválido → análisis perdido sin error visible.
+- **Solución:** Calcular `max_tokens` como `max(900, len(nuevos) * 150)`. 150 tokens/artículo es más seguro.
+
+### B2 — `fetcher.py:82/115` — Race condition en `_fuentes_fallidas`
+
+- **Archivo:** `noticias/fetcher.py` líneas 82 y 115
+- **Problema:** `_fuentes_fallidas.append()` es llamado desde múltiples hilos del `ThreadPoolExecutor` sin lock. Atómico por GIL en CPython, pero el orden es impredecible y el patrón es frágil.
+- **Solución:** Usar `threading.Lock` alrededor del append, o reemplazar `list[str]` por una `queue.Queue`.
+
+### B3 — `noise_filter.py` — Módulo nunca llamado desde main.py
+
+- **Archivo:** `noticias/main.py` — en ninguna parte se importa o llama a `detectar_ruido()`
+- **Problema:** `noise_filter.py` está completo pero el pipeline lo ignora. Código muerto o integración incompleta.
+- **Solución:** Integrar la llamada a `detectar_ruido(noticias)` en `main.py` antes del análisis con IA, para filtrar artículos redundantes y ahorrar tokens.
+
+### B4 — `synthesizer.py:205` — Default de `asombro` incorrecto
+
+- **Archivo:** `noticias/synthesizer.py` línea 205
+- **Problema:** `a.get("asombro", 2)` — usa default 2 para artículos sin análisis, priorizándolos sobre los analizados con `asombro=0` o `asombro=1`. Inversión de prioridad.
+- **Solución:** Cambiar default a 0: `a.get("asombro", 0)`.
+
+### B5 — `noise_filter.py:84` — Resumen truncado a 75 caracteres (insuficiente para clasificar)
+
+- **Archivo:** `noticias/noise_filter.py` línea 84
+- **Problema:** El prompt envía `resumen[:75]` (~10-15 palabras). Un clasificador humano no puede determinar si un artículo es redundante con tan poca información. La IA probablemente clasifica aleatoriamente, generando tanto falsos positivos (artículos señal eliminados) como falsos negativos (redundancias no detectadas).
+- **Solución:** Aumentar a `resumen[:200]`. El coste en tokens es marginal (~30 tokens extra por artículo para un lote de 10) y la precisión mejora drásticamente.
+
+### B6 — `claude_client.py:262-268` — Dead code: limpieza de fences markdown en Gemini con JSON mode
+
+- **Archivo:** `noticias/claude_client.py` líneas 262-268
+- **Problema:** La línea 214 fuerza `responseMimeType: application/json` en Gemini, lo que hace que Gemini devuelva JSON puro SIN bloques markdown. El código de líneas 263-266 que busca y elimina ``` es dead code que nunca se ejecuta. Lo mismo en línea 203-205 para la rama Anthropic (línea 133-134) — pero ahí sí puede ser necesario porque json.loads fallaría con fences. En Gemini, con JSON mode activo, json.loads nunca fallará por fences, pero el código sigue intentando limpiarlos.
+- **Solución:** Eliminar la limpieza de fences en la rama Gemini (líneas 263-266) y simplificar a `return json.loads(texto)` directamente.
+
+### B7 — `main.py:70-97` — Descarga y análisis secuenciales entre principales y alternativas
+
+- **Archivo:** `noticias/main.py` líneas 70-97
+- **Problema:** `obtener_todas_las_noticias()` y `obtener_noticias_alternativas()` se ejecutan en serie (70→81, luego 94→97). Lo mismo para los dos análisis con IA. El tiempo total de ejecución es la suma de ambos, cuando podrían solaparse con `ThreadPoolExecutor`.
+- **Solución:** Paralelizar ambas descargas y ambos análisis para reducir el tiempo de pared ~40% sin coste extra de tokens. `noticias` y `alternativas` se descargan en paralelo; luego ambos análisis también en paralelo.
+
+---
+
+## 🟡 ROBUSTEZ
+
+### R1 — `claude_client.py:112` — Sin timeout en llamada Anthropic
+
+- **Archivo:** `noticias/claude_client.py` línea 112
+- **Problema:** `client.messages.create(**kwargs)` sin `timeout=`. Si la API se cuelga, el pipeline se bloquea indefinidamente.
+- **Solución:** Añadir `timeout=120` (o 60 para Haiku, 120 para Sonnet).
+
+### R2 — `article_cache.py:55` — Redis sin reconexión
+
+- **Archivo:** `noticias/article_cache.py` línea 55
+- **Problema:** `_conectar_redis()` se ejecuta solo en `__init__`. Si Redis falla al arrancar, se usa disco permanentemente. Si Redis cae después, no se detecta (el `try/except` en `guardar()` lo captura pero no reconecta).
+- **Solución:** Añadir método `_intentar_reconectar_redis()` que se llame periódicamente si `self._redis` es None y `_REDIS_URL` está configurada.
+
+### R3 — `analyzer.py:227-228` — Silencio ante artículos perdidos
+
+- **Archivo:** `noticias/analyzer.py` líneas 227-228
+- **Problema:** Si la IA devuelve menos artículos de los enviados, los restantes reciben `{}` (valores por defecto) sin print de advertencia. El usuario nunca sabe que faltan análisis.
+- **Solución:** Si `len(nuevos_idx) != len(resultado.get("articulos", []))`, mostrar `⚠️ La IA devolvió X artículos de Y esperados` antes de rellenar con defaults.
+
+### R4 — `article_cache.py:91` — Redis TTL de 72h para toda la caché (incluye secciones 6h)
+
+- **Archivo:** `noticias/article_cache.py` línea 91
+- **Problema:** `self._redis.setex(_REDIS_KEY, _TTL_ARTICULO, blob)` guarda todo el blob JSON con TTL de 72h. Pero dentro del blob, las secciones `categorias` y `sintesis` tienen TTL de 6h según la lógica de la app. Aunque la app filtra correctamente en lectura, Redis almacena datos caducados durante 72h, desperdiciando memoria y ancho de banda en cada escritura.
+- **Solución:** Usar TTLs separados por sección, o al menos usar el TTL mínimo de todas las secciones.
+
+### R5 — `discoverer.py:199` — Sin manejo específico de errores HTTP
+
+- **Archivo:** `noticias/discoverer.py` línea 199
+- **Problema:** `requests.post(_GEMINI_URL, json=payload, timeout=60)` con `resp.raise_for_status()` atrapado en un `except Exception` genérico. No distingue entre 401 (auth), 429 (rate limit) o 500 (servidor). A diferencia de `claude_client.py` que tiene manejo específico por código de estado.
+- **Solución:** Añadir manejo específico para 401/403, 429 y 5xx como en claude_client.py.
+
+---
+
+## 🟢 OPTIMIZACIONES
+
+### O1 — `main.py` — Coste total nunca se muestra
+
+- **Archivo:** `noticias/main.py` (final del `main()`)
+- **Problema:** `claude_client.py` tiene `resumen_coste()` pero `main.py` nunca lo llama. El usuario no ve el gasto de la ejecución.
+- **Solución:** Al final de `main()`, justo antes de `print(f"\n⏱  Completado en...")`, añadir `from claude_client import resumen_coste; print(f"  💰 {resumen_coste()}")`.
+
+### O2 — `claude_client.py:183-284` — Lógica de reintentos duplicada
+
+- **Archivo:** `noticias/claude_client.py`
+- **Problema:** Las ramas Gemini y Anthropic tienen su propia implementación de reintentos con backoff exponencial. Dos implementaciones que hacen lo mismo = doble mantenimiento, doble riesgo de bugs.
+- **Solución:** Extraer la lógica de reintento con backoff a una función común `_reintentar(max_retries, base_wait, fn)`.
+
+### O3 — `renderer/__init__.py:67-68` — Campo `destacado` nunca asignado
+
+- **Archivo:** `noticias/renderer/__init__.py`
+- **Problema:** `_splash_headlines()` busca `a.get("destacado")` pero ningún módulo asigna este campo. El splash siempre muestra los primeros 3 artículos sin criterio de "destacado".
+- **Solución:** Usar `asombro` como proxy: `a.get("asombro", 0) >= 2` en lugar de `a.get("destacado")`.
+
+### O4 — `config.py:30-31` — Mismos modelos sin diferenciar
+
+- **Archivo:** `noticias/config.py`
+- **Problema:** `GEMINI_MODEL` y `GEMINI_MODEL_ANALISIS` ambos apuntan a `gemini-2.0-flash`. Tener dos variables sugiere que deberían diferir (ej: un modelo más barato para análisis, otro más capaz para síntesis).
+- **Solución:** Documentar la intención o unificar en una sola variable. Si se quiere diferenciar, asignar un modelo más ligero a análisis (ej: `gemini-1.5-flash`).
+
+---
+
+## ⚪ AHORRO DE TOKENS / RENDIMIENTO
+
+### T1 — `analyzer.py:213` — `resumen[:300]` → podría reducirse a `resumen[:200]`
+
+- **Archivo:** `noticias/analyzer.py` línea 213
+- **Impacto actual:** 300 chars por artículo se envían a la IA para análisis. Para 10 artículos = ~3000 chars de input (~750 tokens).
+- **Propuesta:** Reducir a 200 chars. El análisis de sesgo y crítica no necesita el cuerpo completo del artículo, solo el enfoque y los detalles clave. 200 chars (~30 palabras) son suficientes para determinar sesgo y ángulo editorial.
+- **Ahorro estimado:** ~33% menos tokens de input en cada llamada de análisis. Si hay ~10 categorías con ~3 artículos cada una (~30 llamadas), ahorro de ~10,000 tokens/ejecución (~$0.0008 en Gemini, ~$0.03 en Claude Haiku).
+
+### T2 — `synthesizer.py:226` — `resumen[:250]` → podría reducirse a `resumen[:150]`
+
+- **Archivo:** `noticias/synthesizer.py` línea 226
+- **Impacto actual:** 250 chars por artículo para síntesis. La síntesis solo necesita saber de qué trata cada artículo para agruparlos, no necesita riqueza de detalle.
+- **Propuesta:** Reducir a 150 chars. Suficiente para que la IA detecte co-ocurrencia de temas.
+- **Ahorro estimado:** ~40% menos tokens de input en la llamada de síntesis (~3,000 tokens menos si hay 50 candidatos → ~$0.0003 en Gemini).
+
+### T3 — `analyzer.py:32-169` — System prompt muy verboso → verificar si merece los tokens de cache write
+
+- **Archivo:** `noticias/analyzer.py` líneas 32-169
+- **Impacto actual:** ~2000+ tokens de system prompt. La primera llamada de cada generación paga cache_write (~$1.00/MTok en Haiku). Cada ~2000 tokens de cache_write cuestan ~$0.002. Con 5 categorías en paralelo, la primera ejecución paga ~$0.01 solo en cache_write.
+- **Propuesta concreta:** Los ejemplos GOOD/BAD de crítica (líneas 59-66) ocupan ~200 tokens. El contexto del ecosistema mediático (líneas 141-153) ocupa ~100 tokens. Evaluar si mantenerlos o recortarlos. Si se recortan, la primera llamada ahorra ~$0.00015 — mínimo, pero en ejecuciones diarias se acumula.
+- **Decisión:** Mantener tal cual. La calidad del análisis justifica el coste de cache write inicial. El prompt caching hace que las siguientes llamadas cuesten solo ~$0.0002 cada una.
+
+### T4 — `noise_filter.py:84` — Arreglar B5 (resumen[:75]→[:200]) permitirá ahorrar tokens en re-análisis
+
+- **Archivo:** `noticias/noise_filter.py` (depende de B3 — integrar noise_filter en pipeline)
+- **Problema:** Si el noise_filter clasifica mal (por resumen muy corto), se filtran artículos señal como ruido o se dejan pasar redundancias. Las redundancias no filtradas llegan al analyzer, donde se pagan tokens para analizar artículos que no aportan nada nuevo.
+- **Propuesta:** Al corregir B5 se eliminan falsos negativos → se filtran más redundancias → menos artículos llegan al analyzer → ahorro de tokens en análisis.
+- **Ahorro estimado:** Si el 20% de los artículos son redundantes y el noise_filter los detecta correctamente, se ahorra ~20% de los tokens de análisis (~4,000 tokens/ejecución).
+
+### T5 — `main.py:70-97` — Descarga paralela reduce tiempo pero no tokens (B7 es solo tiempo)
+
+- **Nota:** A diferencia de los otros puntos, B7 reduce tiempo de ejecución pero NO tokens consumidos. Se ha movido aquí como referencia cruzada, pero no es un ahorro de tokens per se.
+- **Ver también:** B7 para la implementación de paralelización.
+
+### T6 — `synthesizer.py:64-142` — System prompt de síntesis muy extenso
+
+- **Archivo:** `noticias/synthesizer.py` líneas 64-142
+- **Impacto actual:** ~2800+ tokens de system prompt. Similar al analyzer, paga cache_write en la primera llamada.
+- **Propuesta:** Los ejemplos de títulos GOOD/BAD (líneas 117-123) ocupan ~120 tokens. Los ejemplos de síntesis GOOD/BAD (líneas 130-132) ocupan ~200 tokens. El contexto de errores comunes (líneas 127-133) ocupa ~200 tokens. Total: ~520 tokens de ejemplos extensos.
+- **Ahorro estimado:** Recortar ejemplos GOOD/BAD a solo texto (sin ejemplos) ahorraría ~300 tokens del cache_write. Con Sonnet a $3.75/MTok para cache_write, ahorro de ~$0.001 en la primera llamada de síntesis.
+- **Decisión:** Mantener. Los ejemplos mejoran la calidad de la síntesis (párrafo 1 factual, párrafo 2 contraste, párrafo 3 opcional). El ahorro es marginal.
+
+### T7 — `noise_filter.py:108` — Caché solo Redis → Si Redis no está, se ejecuta cada vez
+
+- **Archivo:** `noticias/noise_filter.py` línea 108
+- **Problema:** `_cache._redis_set(clave, json.dumps(...), ex=_TTL)` usa el método privado `_redis_set` que solo escribe en Redis, nunca en disco. Si Redis no está configurado, el noise_filter se ejecuta en cada ejecución del pipeline porque nunca hay datos cacheados.
+- **Solución:** Usar el método público del cache (`set_articulo` o similar) o añadir un método específico en `ArticleCache` que guarde en disco también. Alternativa: permitir que `noise_filter` tenga su propio cache en disco si Redis no está disponible.
+- **Ahorro estimado:** Si noise_filter se ejecuta a diario (B3 implementado) sin Redis, cada ejecución cuesta ~40 artículos * ~30 tokens/output = ~1200 tokens de Gemini Flash (~$0.00009). Pequeño, pero se acumula.

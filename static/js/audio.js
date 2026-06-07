@@ -201,6 +201,89 @@ function minimizarAudioPlayer() {
 }
 
 // Actualiza el estado visual del reproductor
+/* ── Sonidos de interfaz ──────────────────────────────────────────── */
+
+/* Genera ruido rosa (1/f) — suena mucho más natural que ruido blanco */
+function _ruidoRosa(d) {
+  var b0=0,b1=0,b2=0,b3=0,b4=0,b5=0;
+  for (var i = 0; i < d.length; i++) {
+    var w = Math.random() * 2 - 1;
+    b0 = 0.99886*b0 + w*0.0555179; b1 = 0.99332*b1 + w*0.0750759;
+    b2 = 0.96900*b2 + w*0.1538520; b3 = 0.86650*b3 + w*0.3104856;
+    b4 = 0.55000*b4 + w*0.5329522; b5 = -0.7616*b5 - w*0.0168980;
+    d[i] = (b0+b1+b2+b3+b4+b5 + w*0.5362) * 0.11;
+  }
+}
+
+function sonidoPasarPagina() {
+  try {
+    var ctx = _obtenerAudioContext();
+    var dur = 0.48, sr = ctx.sampleRate;
+    var buf = ctx.createBuffer(1, Math.floor(sr * dur), sr);
+    var d   = buf.getChannelData(0);
+    _ruidoRosa(d);
+
+    /* Envolvente: sube suave → pico en 20% → decae orgánicamente */
+    for (var i = 0; i < d.length; i++) {
+      var t = i / d.length;
+      d[i] *= t < 0.2 ? t / 0.2 : Math.pow(1 - (t - 0.2) / 0.8, 2.2);
+    }
+
+    var src = ctx.createBufferSource();
+    src.buffer = buf;
+
+    /* Filtro que barre de 600 Hz → 2200 Hz → 900 Hz: da el "vuelo" de la página */
+    var bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass'; bp.Q.value = 0.7;
+    bp.frequency.setValueAtTime(600,  ctx.currentTime);
+    bp.frequency.linearRampToValueAtTime(2200, ctx.currentTime + 0.18);
+    bp.frequency.exponentialRampToValueAtTime(900, ctx.currentTime + dur);
+
+    /* Realce de agudos para textura de papel */
+    var hs = ctx.createBiquadFilter();
+    hs.type = 'highshelf'; hs.frequency.value = 2000; hs.gain.value = 7;
+
+    var gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.09, ctx.currentTime);
+
+    src.connect(bp); bp.connect(hs); hs.connect(gain); gain.connect(ctx.destination);
+    src.start();
+  } catch(e) {}
+}
+
+function sonidoArrugarPapel() {
+  try {
+    var ctx = _obtenerAudioContext();
+    var dur = 0.22, sr = ctx.sampleRate;
+    var buf = ctx.createBuffer(1, Math.floor(sr * dur), sr);
+    var d   = buf.getChannelData(0);
+    _ruidoRosa(d);
+
+    /* Envolvente muy rápida con pequeños baches: simula pliegues irregulares */
+    for (var i = 0; i < d.length; i++) {
+      var t = i / d.length;
+      var env = Math.exp(-14 * t) * (1 + 0.4 * Math.sin(2 * Math.PI * 22 * t));
+      d[i] *= env;
+    }
+
+    var src = ctx.createBufferSource();
+    src.buffer = buf;
+
+    var bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass'; bp.frequency.value = 2800; bp.Q.value = 0.55;
+
+    var hs = ctx.createBiquadFilter();
+    hs.type = 'highshelf'; hs.frequency.value = 1500; hs.gain.value = 5;
+
+    var gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.13, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+
+    src.connect(bp); bp.connect(hs); hs.connect(gain); gain.connect(ctx.destination);
+    src.start();
+  } catch(e) {}
+}
+
 function actualizarAudioUI() {
   var player = document.getElementById('audio-player-wrap');
   var playBtn = document.getElementById('audio-btn-play');

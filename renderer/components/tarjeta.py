@@ -30,9 +30,14 @@ def tarjeta(articulo: dict, verificados: frozenset = frozenset(), orden: int = 0
     da["titulo"]  = _html.escape(titulo_mostrar, quote=True)
     da["critica"] = _html.escape(critica, quote=True)
     importante = "true" if articulo.get("importante") else "false"
+    titulo_orig_attr = _html.escape(articulo["titulo"], quote=True)
+    titulo_es_attr   = _html.escape(articulo.get("titulo_es") or articulo["titulo"], quote=True)
+    resumen_orig     = articulo.get("resumen") or ""
+    resumen_es_str   = articulo.get("resumen_es") or resumen_orig
     resumen_html = (
-        f'<p class="resumen">{_html.escape(articulo.get("resumen") or "")}</p>'
-        if articulo.get("resumen") else ""
+        f'<p class="resumen" data-orig="{_html.escape(resumen_orig, quote=True)}" data-es="{_html.escape(resumen_es_str, quote=True)}">'
+        f'{_html.escape(resumen_orig)}</p>'
+        if resumen_orig else ""
     )
 
     asombro = int(articulo.get("asombro") or 0)
@@ -79,8 +84,9 @@ def tarjeta(articulo: dict, verificados: frozenset = frozenset(), orden: int = 0
     </div>
   </div>
   <div class="titulo">
-    <a href="{articulo['enlace']}" target="_blank" rel="noopener noreferrer">
-      {articulo["titulo"]}
+    <a href="{articulo['enlace']}" target="_blank" rel="noopener noreferrer"
+       data-orig="{titulo_orig_attr}" data-es="{titulo_es_attr}">
+      {_html.escape(articulo["titulo"])}
     </a>
   </div>
   {resumen_html}
@@ -110,9 +116,14 @@ def tarjeta_destacada(articulo: dict, categoria: str,
     da["titulo"]    = _html.escape(titulo_mostrar, quote=True)
     da["critica"]   = _html.escape(critica, quote=True)
     da["categoria"] = _html.escape(categoria, quote=True)
+    titulo_orig_attr = _html.escape(articulo["titulo"], quote=True)
+    titulo_es_attr   = _html.escape(articulo.get("titulo_es") or articulo["titulo"], quote=True)
+    resumen_orig     = articulo.get("resumen") or ""
+    resumen_es_str   = articulo.get("resumen_es") or resumen_orig
     resumen_html = (
-        f'<p class="resumen">{_html.escape(articulo.get("resumen") or "")}</p>'
-        if articulo.get("resumen") else ""
+        f'<p class="resumen" data-orig="{_html.escape(resumen_orig, quote=True)}" data-es="{_html.escape(resumen_es_str, quote=True)}">'
+        f'{_html.escape(resumen_orig)}</p>'
+        if resumen_orig else ""
     )
 
     asombro = int(articulo.get("asombro") or 0)
@@ -159,8 +170,9 @@ def tarjeta_destacada(articulo: dict, categoria: str,
     </div>
   </div>
   <div class="titulo">
-    <a href="{articulo['enlace']}" target="_blank" rel="noopener noreferrer">
-      {articulo["titulo"]}
+    <a href="{articulo['enlace']}" target="_blank" rel="noopener noreferrer"
+       data-orig="{titulo_orig_attr}" data-es="{titulo_es_attr}">
+      {_html.escape(articulo["titulo"])}
     </a>
   </div>
   {resumen_html}
@@ -320,12 +332,19 @@ def tarjeta_sintesis(grupo: dict) -> str:
   {items}
 </div>"""
 
-    n_extra = len(extra)
-    toggle_label = f"&#9660; {n} fuente{'s' if n != 1 else ''}"
-    if n_extra:
-        toggle_label += f" + {n_extra} perspectiva{'s' if n_extra != 1 else ''}"
+    # Comparación principal: siempre visible
+    comparacion_html = angulos_html if hay_comparador else f'<div class="sintesis-fuentes">{fuentes_html}</div>'
 
-    detalle_primario = angulos_html if hay_comparador else f'<div class="sintesis-fuentes">{fuentes_html}</div>'
+    # Toggle solo para perspectivas internacionales extra
+    n_extra = len(extra)
+    toggle_html = ""
+    if extra:
+        toggle_label = f"&#9660; {n_extra} perspectiva{'s' if n_extra != 1 else ''} internacionales"
+        toggle_html = f"""
+  <button class="sintesis-toggle" onclick="toggleSintesis(this)">{toggle_label}</button>
+  <div class="sintesis-detalle">
+    {perspectivas_html}
+  </div>"""
 
     return f"""
 <div class="{card_clase}" data-search="{grupo['titulo'].lower()} {' '.join(a['fuente'].lower() for a in articulos)}">
@@ -333,14 +352,10 @@ def tarjeta_sintesis(grupo: dict) -> str:
     <span class="sintesis-fuentes-count">{n} fuente{"s" if n != 1 else ""}</span>
     <div class="sintesis-meta-right">
       <span class="sintesis-frescura {frescura_clase}">{frescura_label}</span>
-      {comparador_badge}
     </div>
   </div>
   <div class="sintesis-titulo">{grupo["titulo"]}</div>
   <div class="sintesis-texto">{grupo["sintesis"]}</div>
-  <button class="sintesis-toggle" onclick="toggleSintesis(this)">{toggle_label}</button>
-  <div class="sintesis-detalle">
-    {detalle_primario}
-    {perspectivas_html}
-  </div>
+  {comparacion_html}
+  {toggle_html}
 </div>"""

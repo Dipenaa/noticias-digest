@@ -1,44 +1,29 @@
-"""Pestaña Todas — secciones completas con todas las noticias."""
+"""Pestaña Todas — secciones independientes, título ocupa 2 filas."""
 
-from renderer.components.badges import leyenda
+import random
+from datetime import date, datetime
+
 from renderer.components.tarjeta import tarjeta
+
+
+def _score(art: dict) -> int:
+    s = int(art.get('asombro') or 0) * 3
+    s += 2 if art.get('importante') else 0
+    s += 1 if art.get('destacado') else 0
+    try:
+        age = (date.today() - datetime.strptime(art.get('fecha', '2000-01-01'), '%Y-%m-%d').date()).days
+        s += max(0, 4 - age)
+    except Exception:
+        pass
+    return s
+
 
 TAB_ID    = "todas"
 TAB_LABEL = "Todas las noticias"
 TAB_ICON  = "📰"
 
 
-def _seccion(categoria: str, articulos: list[dict], analisis: str,
-             verificados: frozenset = frozenset()) -> str:
-    id_seccion = categoria.lower().replace(" ", "-")
-
-    if articulos:
-        tarjetas  = "\n".join(tarjeta(a, verificados, i) for i, a in enumerate(articulos))
-        contenido = f'<div class="grid">{tarjetas}</div>'
-    else:
-        contenido = '<p class="sin-articulos">No se encontraron artículos.</p>'
-
-    analisis_html = ""
-    if analisis:
-        analisis_html = f"""
-<div class="analisis-general">
-  <div class="analisis-general-titulo">🔍 Análisis crítico de la sección</div>
-  <p>{analisis}</p>
-</div>"""
-
-    return f"""
-<section id="{id_seccion}" class="seccion">
-  <div class="seccion-header">
-    <div class="seccion-acento"></div>
-    <h2 class="seccion-titulo">{categoria}</h2>
-  </div>
-  {analisis_html}
-  {contenido}
-</section>"""
-
-
 def nav(categorias: list[str]) -> str:
-    """Barra de navegación de categorías (solo visible en pestaña Todas)."""
     links = "".join(
         f'<a href="#{cat.lower().replace(" ", "-")}">{cat}</a>'
         for cat in categorias
@@ -46,11 +31,35 @@ def nav(categorias: list[str]) -> str:
     return f'<nav id="cat-nav">{links}</nav>'
 
 
+def _seccion(categoria: str, articulos: list[dict],
+             verificados: frozenset = frozenset()) -> str:
+    if not articulos:
+        return ''
+
+    anchor = categoria.lower().replace(' ', '-')
+    ordenados = sorted(articulos, key=_score, reverse=True)
+
+    # Título siempre primero: ocupa 2 filas con grid-row: span 2
+    # Las noticias fluyen a su derecha y debajo (grid-auto-flow: dense)
+    titulo = (
+        f'<div class="grid-titulo-celda" data-titulo-pos="0">'
+        f'<h2 class="seccion-titulo">{categoria}</h2>'
+        f'</div>'
+    )
+    items = [titulo] + [tarjeta(a, verificados, i) for i, a in enumerate(ordenados)]
+
+    return (
+        f'<section id="{anchor}" class="seccion">'
+        f'<div class="grid">{"".join(items)}</div>'
+        f'</section>'
+    )
+
+
 def render(noticias: dict[str, list[dict]],
            analisis: dict[str, str],
            verificados: frozenset = frozenset(), **_) -> str:
-    secciones = "\n".join(
-        _seccion(cat, arts, analisis.get(cat, ""), verificados)
+    return '\n'.join(
+        _seccion(cat, arts, verificados)
         for cat, arts in noticias.items()
+        if arts
     )
-    return leyenda() + secciones

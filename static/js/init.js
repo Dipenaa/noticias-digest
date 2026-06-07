@@ -85,7 +85,67 @@ function toggleSidebar() {
     last = (saved === 'todas') ? 'destacadas' : saved;
   } catch(e) {}
 
+  if (typeof initTabLines === 'function') initTabLines();
   switchTab(last);
+
+  /* Sonido de arrugar papel al abrir cualquier noticia */
+  document.addEventListener('click', function(e) {
+    var card = e.target.closest(
+      '.tarjeta, .tarjeta-destacada, .sintesis-card, .asombro-card, .proceso-strip'
+    );
+    if (card && typeof sonidoArrugarPapel === 'function') sonidoArrugarPapel();
+  }, { passive: true });
+
+  /* Líneas reactivas al hover — event delegation con tracking de tarjeta activa */
+  var _hoverCard = null;
+  document.addEventListener('mouseover', function(e) {
+    var card = e.target.closest(
+      '.tarjeta, .tarjeta-destacada, .sintesis-card, .asombro-card, .proceso-strip'
+    );
+    if (card === _hoverCard) return;
+    if (_hoverCard && typeof restoreCardLines === 'function') restoreCardLines(_hoverCard);
+    _hoverCard = card;
+    if (card && typeof highlightCardLines === 'function') highlightCardLines(card);
+  });
+  document.addEventListener('mouseover', function(e) {
+    if (!_hoverCard) return;
+    var still = e.target.closest(
+      '.tarjeta, .tarjeta-destacada, .sintesis-card, .asombro-card, .proceso-strip'
+    );
+    if (!still) {
+      if (typeof restoreCardLines === 'function') restoreCardLines(_hoverCard);
+      _hoverCard = null;
+    }
+  });
+})();
+
+/* ── Toggle de traducción al español ────────────────────────────────── */
+function _aplicarTraduccion(active) {
+  document.querySelectorAll('[data-orig][data-es]').forEach(function(el) {
+    el.textContent = active ? (el.dataset.es || el.dataset.orig) : el.dataset.orig;
+  });
+}
+
+function toggleTraduccion() {
+  var active = document.body.classList.toggle('traducido');
+  try { localStorage.setItem('digestTraduccion', active ? '1' : '0'); } catch(e) {}
+  var btn = document.getElementById('traduccion-toggle');
+  if (btn) {
+    btn.classList.toggle('active', active);
+    btn.title = active ? 'Ver en idioma original' : 'Traducir noticias al español';
+  }
+  _aplicarTraduccion(active);
+}
+
+(function() {
+  try {
+    if (localStorage.getItem('digestTraduccion') === '1') {
+      document.body.classList.add('traducido');
+      var btn = document.getElementById('traduccion-toggle');
+      if (btn) { btn.classList.add('active'); btn.title = 'Ver en idioma original'; }
+      setTimeout(function() { _aplicarTraduccion(true); }, 0);
+    }
+  } catch(e) {}
 })();
 
 /* ── Traducciones y Multilenguaje ────────────────────────────────────── */

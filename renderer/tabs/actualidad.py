@@ -13,6 +13,12 @@ _ESTADO_META = {
     "resolucion": ("↓", "estado-resolucion",  "Resolviendo"),
     "silencio":   ("○", "estado-silencio",    "En silencio"),
 }
+_SESGO_ABREV = {
+    "izquierda": "IZQ", "centro-izquierda": "C·IZQ",
+    "centro": "CTR",
+    "centro-derecha": "C·DER", "derecha": "DER",
+    "desconocido": "?",
+}
 _HORIZONTE_LABEL = {
     "dias": "días", "semanas": "semanas", "meses": "meses", "anos": "años",
 }
@@ -55,22 +61,22 @@ def _proceso_card(p: dict, hero: bool = False) -> str:
         json.dumps(p.get("historial", []), ensure_ascii=False), quote=True
     )
 
-    # Artículos relacionados
+    # Artículos relacionados — siempre visibles, con badge de sesgo
     arts_html = ""
     for a in (p.get("articulos") or [])[:4]:
         titulo_a = _html.escape(a.get("titulo", ""))
         fuente_a = _html.escape(a.get("fuente", ""))
         enlace_a = _html.escape(a.get("enlace", "#"), quote=True)
+        sesgo_a  = (a.get("sesgo_fuente") or "desconocido").replace(" ", "-")
+        abrev_a  = _SESGO_ABREV.get(a.get("sesgo_fuente") or "desconocido", "?")
         arts_html += (
-            f'<li><a href="{enlace_a}" target="_blank" rel="noopener">{titulo_a}</a>'
-            f' <span class="proceso-art-fuente">— {fuente_a}</span></li>'
+            f'<li>'
+            f'<span class="proceso-art-badge sesgo-{sesgo_a}">{abrev_a}</span>'
+            f'<a href="{enlace_a}" target="_blank" rel="noopener">{titulo_a}</a>'
+            f'<span class="proceso-art-fuente">{fuente_a}</span>'
+            f'</li>'
         )
-    n_arts = len((p.get("articulos") or [])[:4])
-    arts_label = f"&#9660; {n_arts} art&#237;culo{'s' if n_arts != 1 else ''}"
-    arts_section = (
-        f'<button class="proceso-toggle" onclick="toggleProcesoArts(this)">{arts_label}</button>'
-        f'<ul class="proceso-articulos">{arts_html}</ul>'
-    ) if arts_html else ""
+    arts_section = f'<ul class="proceso-articulos">{arts_html}</ul>' if arts_html else ""
 
     resumen     = _html.escape(p.get("resumen_hoy", ""))
     descripcion = _html.escape(p.get("descripcion", ""))

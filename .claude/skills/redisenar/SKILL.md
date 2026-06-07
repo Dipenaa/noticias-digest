@@ -1,6 +1,10 @@
 ---
 name: redisenar
-description: Edita el CSS de EnPapel. Úsalo para cualquier cambio visual — rediseños completos, nueva clase, fix de contraste, modo día, o bug visual. CSS en static/css/ (4 ficheros separados). Siempre incluye preview en localhost:5001 antes de commit.
+description: >
+  AUTO-TRIGGER en cualquier tarea visual sobre la web: bordes, tarjetas, colores, padding,
+  layout, CSS, modo claro/oscuro, "se ve mal", "queda raro", "está pegado", "cambia el fondo",
+  fix de contraste, nuevo estilo, rediseño parcial o completo. Carga este skill ANTES de tocar
+  ningún fichero CSS — define el workflow eficiente (usuario como ojos, sin screenshots).
 ---
 
 # Skill: /redisenar
@@ -47,23 +51,29 @@ Determina cuál de los 4 ficheros contiene el selector a editar. Leerlo completo
 ### 2. Editar
 Cambios quirúrgicos. Si el cambio afecta variables, editar `:root` en `reset.css` primero — se propaga a todo.
 
-### 3. Preview (sin gastar tokens)
-El servidor de preview en `localhost:5001` recarga el renderer con `/regen`.
+### 3. Preview — el usuario es los ojos
 
-**Ojo:** `/regen` recarga módulos Python (renderer), pero NO recarga `preview.py` si cambias variables en ese fichero. En ese caso hay que reiniciar el servidor:
+El workflow correcto para iterar diseño:
+
+```
+Editar CSS → "Refresca localhost:5001 y dime qué ves"
+  → Usuario describe problema → ajustar CSS
+  → Bug oscuro (no sabe por qué no funciona) → browser_evaluate getComputedStyle
+  → Confirmar clase en DOM → python -c + grep, sin browser
+```
+
+**NO usar screenshots ni Playwright navigate para ver el resultado visual.**
+El usuario tiene el browser abierto — es más barato que cualquier screenshot.
+
+Cuándo sí usar herramientas de browser:
+- `browser_evaluate` con `getComputedStyle` → diagnosticar por qué un CSS no aplica
+- `browser_evaluate` para leer el DOM cuando el usuario no puede describir la estructura
+
+**Ojo:** `/regen` recarga módulos Python (renderer), pero NO recarga `preview.py`. Si cambias variables en ese fichero, reiniciar el servidor:
 ```powershell
-# matar el proceso en 5001 y relanzar
-Stop-Process -Id (netstat -ano | Select-String ":5001 .*LISTENING" | ForEach-Object { ($_ -split '\s+')[-1] }) -Force
-Start-Process python -ArgumentList "preview.py" -WindowStyle Hidden
+Get-NetTCPConnection -LocalPort 5001 | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force }
+Start-Process python -ArgumentList "preview.py" -WorkingDirectory "c:\Proyectos\noticias" -WindowStyle Hidden
 ```
-
-Para solo regenerar HTML (cambios de CSS o renderer):
-```python
-import urllib.request
-urllib.request.urlopen('http://localhost:5001/regen')
-```
-
-Solo usar Playwright/screenshot cuando hay un bug visual que diagnosticar.
 
 ### 4. Commit
 ```powershell

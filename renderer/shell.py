@@ -20,6 +20,7 @@ _JS_DIR = os.path.join(os.path.dirname(__file__), '..', 'static', 'js')
 # Orden de carga (las dependencias primero)
 _JS_FILES = [
     'tabs.js',
+    'lines.js',
     'search.js',
     'bookmarks.js',
     'audio.js',
@@ -87,6 +88,7 @@ def _tab_bar(tabs: list, n_asombro: int, n_procesos: int, n_sintesis: int) -> st
     btns = "\n  ".join(_btn(t) for t in tabs)
     return f"""<div class="tab-bar">
   {btns}
+  <button class="dark-toggle" id="traduccion-toggle" onclick="toggleTraduccion()" title="Traducir noticias al español">🌐 ES</button>
   <button class="dark-toggle" id="dark-toggle" onclick="toggleDark()" data-translate="dark_mode">🌙 Modo oscuro</button>
   <div class="lang-toggle-group">
     <span class="lang-label" data-translate="lang_label">Idioma:</span>

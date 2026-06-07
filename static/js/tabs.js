@@ -44,6 +44,19 @@ function switchTab(name) {
     }, 0);
   }
 
+  // Sonido + borde animado del tab activo
+  if (typeof sonidoPasarPagina === 'function') sonidoPasarPagina();
+  if (typeof animateTabLine === 'function') animateTabLine(name);
+
+  // Líneas de periódico
+  requestAnimationFrame(function() {
+    var tabEl = document.getElementById('tab-' + name);
+    if (tabEl && typeof drawGridLines === 'function') drawGridLines(tabEl);
+    if (typeof _aplicarTraduccion === 'function') {
+      try { _aplicarTraduccion(document.body.classList.contains('traducido')); } catch(e) {}
+    }
+  });
+
   try {
     if (name === 'estadisticas') {
       if (!_statsReady) { renderEstadisticas(); _statsReady = true; }

@@ -4,9 +4,7 @@ var _asombroIdx = 0;
 function inicializarAsombro() {
   var cards = document.querySelectorAll('#tab-asombro .asombro-card');
   if (!cards.length) return;
-  _asombroIdx = 0;
-  cards.forEach(function(c, i) { c.style.display = i === 0 ? '' : 'none'; });
-  _actualizarContadorAsombro(cards.length);
+  cards.forEach(function(c) { c.style.display = ''; }); // grid: mostrar todas
 }
 
 function asombroNav(dir) {

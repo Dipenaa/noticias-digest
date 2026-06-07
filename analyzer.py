@@ -95,6 +95,11 @@ CAMPOS QUE DEBES DEVOLVER POR ARTÍCULO
   Traduce solo si está en otro idioma (inglés, francés, alemán, árabe, etc.).
   Mantén la longitud y el tono periodístico del original.
 
+▸ "resumen_es"
+  Resumen traducido al español. Si el resumen ya está en español, devuelve el mismo texto sin cambios.
+  Traduce solo si está en otro idioma. Mantén la longitud y el tono del original.
+  Si no hay resumen, devuelve null.
+
 ▸ "tags"
   Lista de 2-3 etiquetas temáticas en español. Sustantivos concretos (máximo 3 palabras cada uno).
   Prioriza entidades específicas: personas relevantes, instituciones, lugares, leyes o conceptos clave.
@@ -172,7 +177,7 @@ _USER_TMPL = """Artículos:
 {articulos_json}
 
 Responde con este JSON exacto:
-{{"articulos":[{{"sesgo_ia":"...","critica":"...","importante":false,"sentimiento":"neutral","asombro":0,"asombro_razon":null,"titulo_es":"...","tags":[],"pregunta":""}}],"analisis_general":"..."}}"""
+{{"articulos":[{{"sesgo_ia":"...","critica":"...","importante":false,"sentimiento":"neutral","asombro":0,"asombro_razon":null,"titulo_es":"...","resumen_es":null,"tags":[],"pregunta":""}}],"analisis_general":"..."}}"""
 
 _MAX_WORKERS_ANALYSIS = 5
 
@@ -195,6 +200,7 @@ def _analizar_categoria(categoria: str, articulos: list[dict]) -> tuple[list[dic
             a["asombro"]       = cached.get("asombro", 0)
             a["asombro_razon"] = cached.get("asombro_razon")
             a["titulo_es"]     = cached.get("titulo_es", "")
+            a["resumen_es"]    = cached.get("resumen_es", "")
             a["importante"]    = bool(cached.get("importante", False))
             a["tags"]          = cached.get("tags", [])
             a["pregunta"]      = cached.get("pregunta", "")
@@ -216,7 +222,7 @@ def _analizar_categoria(categoria: str, articulos: list[dict]) -> tuple[list[dic
 
     system  = _SYSTEM.format(idioma=IDIOMA_ANALISIS)
     user    = _USER_TMPL.format(articulos_json=json.dumps(payload, ensure_ascii=False))
-    resultado = llamar_claude(user, system=system, max_tokens=900, cache_system=True)
+    resultado = llamar_claude(user, system=system, max_tokens=max(1200, len(nuevos) * 220), cache_system=True)
 
     if resultado is None:
         for i in nuevos_idx:
@@ -234,13 +240,15 @@ def _analizar_categoria(categoria: str, articulos: list[dict]) -> tuple[list[dic
         a["asombro"]       = int(datos.get("asombro") or 0)
         a["asombro_razon"] = datos.get("asombro_razon") or None
         a["titulo_es"]     = datos.get("titulo_es") or a["titulo"]
+        a["resumen_es"]    = datos.get("resumen_es") or a.get("resumen") or ""
         a["tags"]          = datos.get("tags") or []
         a["pregunta"]      = datos.get("pregunta") or ""
         _cache.set_articulo(a["enlace"], {
             "sesgo_ia": a["sesgo_ia"], "critica": a["critica"],
             "sentimiento": a["sentimiento"], "asombro": a["asombro"],
             "asombro_razon": a["asombro_razon"], "importante": a["importante"],
-            "titulo_es": a["titulo_es"], "tags": a["tags"], "pregunta": a["pregunta"],
+            "titulo_es": a["titulo_es"], "resumen_es": a["resumen_es"],
+            "tags": a["tags"], "pregunta": a["pregunta"],
         })
 
     analisis_general = resultado.get("analisis_general", "")
