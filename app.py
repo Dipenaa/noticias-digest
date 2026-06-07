@@ -117,10 +117,8 @@ def index():
     if html and 'id="splash"' in html:
         html = _strip_splash(html)
 
-    if html and update:
-        edad = (datetime.now() - update).total_seconds()
-        if edad > pipeline._INTERVALO_HORAS * 3600:
-            pipeline.lanzar_generacion()
+    if html and update and pipeline._toca_regenerar():
+        pipeline.lanzar_generacion()
 
     if html:
         return Response(html, mimetype="text/html; charset=utf-8")

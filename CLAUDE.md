@@ -56,7 +56,7 @@ autoresearch_synthesizer.py  — Script de autoresearch para optimizar el prompt
 ## Optimizaciones de coste ya aplicadas (no revertir)
 
 - `MAX_ARTICULOS_POR_FUENTE = 1` en config.py (era 2)
-- `_INTERVALO_HORAS = 18` en pipeline.py (era 12) — regenera cada 18h en vez de 12h
+- `_SLOTS_HORA = [10, 16]` en pipeline.py — regenera a las 10:00 y 16:00 hora Madrid (reemplazó `_INTERVALO_HORAS = 18`). Synthesizer: 2 llamadas Sonnet/día en vez de 1 (~+$0.02/día).
 - `cache_system=True` en TODAS las llamadas a `llamar_claude` — cachea system prompts
 - `_MAX_ARTICULOS_SINTESIS = 80` con pre-filtro de keywords (descarta temas únicos antes de Claude)
 - Filtro `es_ruido` en synthesizer — descarta artículos repetitivos antes de Claude

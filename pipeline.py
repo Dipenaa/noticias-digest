@@ -10,13 +10,16 @@ import os
 import threading
 import traceback
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from fetcher import obtener_todas_las_noticias, obtener_noticias_alternativas, get_fuentes_fallidas
 from analyzer import analizar_todas_las_noticias
 from synthesizer import sintetizar_noticias
 from renderer import renderizar_html
 
-_INTERVALO_HORAS = 18
+_SLOTS_HORA   = [10, 16]   # hora local Madrid en que se regenera
+_VENTANA_MIN  = 45         # minutos tras el slot en que se acepta la generación
+_TZ_MADRID    = ZoneInfo("Europe/Madrid")
 
 _lock             = threading.Lock()
 _html_cache: str | None       = None
@@ -273,10 +276,28 @@ def lanzar_sintetizar() -> None:
     threading.Thread(target=sintetizar, daemon=True).start()
 
 
+def _toca_regenerar() -> bool:
+    """True si estamos dentro de la ventana de un slot y no hemos regenerado desde ese slot."""
+    ahora = datetime.now(tz=_TZ_MADRID)
+    for h in _SLOTS_HORA:
+        slot = ahora.replace(hour=h, minute=0, second=0, microsecond=0)
+        en_ventana = 0 <= (ahora - slot).total_seconds() <= _VENTANA_MIN * 60
+        if en_ventana:
+            if _ultimo_update is None:
+                return True
+            ultimo = _ultimo_update
+            if ultimo.tzinfo is None:
+                ultimo = ultimo.replace(tzinfo=_TZ_MADRID)
+            return ultimo < slot
+    return False
+
+
 def scheduler() -> None:
-    """Regenera el digest automáticamente cada _INTERVALO_HORAS."""
+    """Comprueba cada 5 minutos si toca regenerar según los slots configurados."""
     import time
     while True:
-        time.sleep(_INTERVALO_HORAS * 3600)
-        print(f"[{datetime.now():%H:%M:%S}] Regeneración automática ({_INTERVALO_HORAS}h)")
-        lanzar_generacion()
+        time.sleep(5 * 60)
+        if _toca_regenerar():
+            hora_madrid = datetime.now(tz=_TZ_MADRID).hour
+            print(f"[{datetime.now():%H:%M:%S}] Regeneración automática (slot ~{hora_madrid:02d}:00 Madrid)")
+            lanzar_generacion()
