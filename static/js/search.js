@@ -110,6 +110,25 @@ function _limpiarContador() {
 }
 
 /* ── Filtro por tag clickable ── */
+/* ── Toggles de expansión ── */
+function toggleSintesis(btn) {
+  var detalle = btn.nextElementSibling;
+  if (!detalle) return;
+  var abierto = detalle.classList.toggle('abierto');
+  var original = btn.getAttribute('data-label');
+  if (!original) { btn.setAttribute('data-label', btn.textContent); original = btn.textContent; }
+  btn.textContent = abierto ? original.replace('▼', '▲') : original;
+}
+
+function toggleProcesoArts(btn) {
+  var lista = btn.nextElementSibling;
+  if (!lista) return;
+  var abierto = lista.classList.toggle('abierto');
+  var original = btn.getAttribute('data-label');
+  if (!original) { btn.setAttribute('data-label', btn.textContent); original = btn.textContent; }
+  btn.textContent = abierto ? original.replace('▼', '▲') : original;
+}
+
 function filtrarTag(btn) {
   var tag = btn.textContent.trim();
   var buscador = document.getElementById('buscador');

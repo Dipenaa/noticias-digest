@@ -320,6 +320,13 @@ def tarjeta_sintesis(grupo: dict) -> str:
   {items}
 </div>"""
 
+    n_extra = len(extra)
+    toggle_label = f"&#9660; {n} fuente{'s' if n != 1 else ''}"
+    if n_extra:
+        toggle_label += f" + {n_extra} perspectiva{'s' if n_extra != 1 else ''}"
+
+    detalle_primario = angulos_html if hay_comparador else f'<div class="sintesis-fuentes">{fuentes_html}</div>'
+
     return f"""
 <div class="{card_clase}" data-search="{grupo['titulo'].lower()} {' '.join(a['fuente'].lower() for a in articulos)}">
   <div class="sintesis-meta">
@@ -331,6 +338,9 @@ def tarjeta_sintesis(grupo: dict) -> str:
   </div>
   <div class="sintesis-titulo">{grupo["titulo"]}</div>
   <div class="sintesis-texto">{grupo["sintesis"]}</div>
-  {angulos_html if hay_comparador else f'<div class="sintesis-fuentes">{fuentes_html}</div>'}
-  {perspectivas_html}
+  <button class="sintesis-toggle" onclick="toggleSintesis(this)">{toggle_label}</button>
+  <div class="sintesis-detalle">
+    {detalle_primario}
+    {perspectivas_html}
+  </div>
 </div>"""

@@ -144,14 +144,30 @@ body.light .search-input:focus {
   background-color: rgba(92,102,70,0.10);
 }
 /* Tarjetas de artículo: sin caja (editorial). Las tipo-tarjeta reales (síntesis, asombro) sí llevan fondo. */
-body.light .sintesis-card,
-body.light .asombro-card,
-body.light .proceso-card,
-body.light .proceso-card-hero { background: rgba(255,253,247,0.72); }
 body.light .tarjeta,
 body.light .tarjeta-destacada { background: none; }
 body.light .tarjeta:hover,
 body.light .tarjeta-destacada:hover { background: rgba(111,125,74,0.04); }
+
+/* Tarjetas tipo-card en light: fondo explícito + borde + radio */
+body.light .sintesis-card {
+  background: rgba(255,253,247,0.85);
+  border: 1px solid rgba(0,0,0,0.07) !important;
+  border-radius: 10px;
+  padding: 1.75rem 2rem !important;
+}
+body.light .sintesis-card:first-child { padding-top: 1.75rem !important; }
+body.light .asombro-card {
+  background: rgba(255,253,247,0.85);
+  border: 1px solid rgba(0,0,0,0.07) !important;
+  border-radius: 10px;
+  padding: 2rem !important;
+}
+body.light .proceso-card,
+body.light .proceso-card-hero {
+  background: rgba(255,253,247,0.85);
+  border-radius: 10px;
+}
 body.light .stat-kpi,
 body.light .stat-card,
-body.light .conexion-card   { background: rgba(255,253,247,0.62); }
+body.light .conexion-card { background: rgba(255,253,247,0.72); border-radius: 8px; }

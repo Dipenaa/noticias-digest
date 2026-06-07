@@ -65,7 +65,12 @@ def _proceso_card(p: dict, hero: bool = False) -> str:
             f'<li><a href="{enlace_a}" target="_blank" rel="noopener">{titulo_a}</a>'
             f' <span class="proceso-art-fuente">— {fuente_a}</span></li>'
         )
-    arts_section = f'<ul class="proceso-articulos">{arts_html}</ul>' if arts_html else ""
+    n_arts = len((p.get("articulos") or [])[:4])
+    arts_label = f"&#9660; {n_arts} art&#237;culo{'s' if n_arts != 1 else ''}"
+    arts_section = (
+        f'<button class="proceso-toggle" onclick="toggleProcesoArts(this)">{arts_label}</button>'
+        f'<ul class="proceso-articulos">{arts_html}</ul>'
+    ) if arts_html else ""
 
     resumen     = _html.escape(p.get("resumen_hoy", ""))
     descripcion = _html.escape(p.get("descripcion", ""))
